@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "622653714131",
+    "project_id": "vazlo-refaccionarias",
+    "storage_bucket": "vazlo-refaccionarias.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:622653714131:android:5f2c0843fc7c8099f46e26",
+        "android_client_info": {
+          "package_name": "vazlo.refaccionarias"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "622653714131-7qnhetfhh3f58lplh3267dr9mptoh9g1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBEnmIEm1lNbxdluJcP29ksbVhgeQx2MWQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "622653714131-7qnhetfhh3f58lplh3267dr9mptoh9g1.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "622653714131-2kfo334uq3g2b5sem35pm6kdk8rg32f9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "mx.com.vazlo.refaccionarias",
+                "app_store_id": "1435346721"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
