@@ -13,6 +13,7 @@ import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
 import vazlo.refaccionarias.local.Sesion
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import vazlo.refaccionarias.data.model.Promocion
 
 sealed interface HomeUiState {
     data class Success(val productos: List<Producto>) : HomeUiState
@@ -21,14 +22,26 @@ sealed interface HomeUiState {
 }
 
 
+sealed interface BannersState {
+    data class Success(val promos: MutableList<Promocion>) : BannersState
+    object Error : BannersState
+    object Loading : BannersState
+}
+
+
 class HomeViewModel(
     private val sesion: Sesion,
     private val servicesAppRepository: ServicesAppRepository
 ) : ViewModel() {
 
-    val listaProductos = mutableListOf<ProductosNuevosResponse>()
+    var promos = mutableListOf<Promocion>()
 
     var homeUiState: HomeUiState by mutableStateOf(HomeUiState.Loading)
+        private set
+
+    var esAdmin = false
+
+    var bannerState: BannersState by mutableStateOf(BannersState.Loading)
         private set
 
     private var latitud by mutableDoubleStateOf(0.0)
@@ -43,8 +56,23 @@ class HomeViewModel(
 
 
     init {
+        cargarPromos()
         cargarNuevosProductos()
         cargarMarcadores()
+        verificarAdmin()
+    }
+
+
+    fun verificarAdmin() {
+        viewModelScope.launch {
+            val user = sesion.id.first()
+            val responsable = sesion.idUserResponsable.first()
+
+            if(user.equals(responsable))
+            {
+                esAdmin = true
+            }
+        }
     }
 
     fun cargarNuevosProductos() {
@@ -55,10 +83,26 @@ class HomeViewModel(
             val response = servicesAppRepository.cargarProductosNuevos(url = url, idUser = idUser)
             Log.i("Omyy", response.estado.toString())
             homeUiState = if (response.estado == 1) {
-                HomeUiState.Success(response.clientes)
+                HomeUiState.Success(response.clientes!!)
             } else {
                 HomeUiState.Error
             }
+        }
+    }
+
+    fun cargarPromos(){
+        viewModelScope.launch {
+            val url = sesion.menuListaPromociones.first()
+            val idUser = sesion.id.first()
+
+            val response = servicesAppRepository.getPromos(url, idUser)
+
+            bannerState = if (response.estado == 1) {
+                BannersState.Success(response.promociones)
+            } else {
+                BannersState.Error
+            }
+
         }
     }
 

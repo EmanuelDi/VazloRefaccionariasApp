@@ -15,6 +15,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,6 +37,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -85,6 +88,7 @@ import vazlo.refaccionarias.ui.theme.Blanco
 import vazlo.refaccionarias.ui.theme.Gris_Vazlo
 import vazlo.refaccionarias.ui.theme.Partech
 import kotlinx.coroutines.launch
+import vazlo.refaccionarias.ui.screens.home.LoadingScreen
 
 
 object ResultadosCatElDestination : NavigationDestination {
@@ -111,14 +115,14 @@ fun ResultadosCatElScreen(
 
     val tabs = listOf(
         TabItem.Eagle,
-        TabItem.Shark,
-        TabItem.Partech,
-        TabItem.Rodatech,
-        TabItem.TrackOne
+        TabItem.TrackOne,
+//        TabItem.Partech,
+//        TabItem.Rodatech,
+//        TabItem.Shark
     )
     when (resultadosCatElViewModel.empresasUiState) {
         is EmpresasUiState.Loading -> {
-            AltScreen(texto = stringResource(R.string.cargando))
+            LoadingScreen()
         }
 
         is EmpresasUiState.Success -> {
@@ -182,36 +186,40 @@ private fun TabsContent(
         beyondBoundsPageCount = 0,
         key = null,
     ) { page ->
-        when (page) {
-            0 -> EagleContent(
-                navigateToDetallesParte = navigateToDetallesParte,
-                resultadosCatElViewModel = resultadosCatElViewModel,
-                viewModelCompartido = viewModelCompartido
-            )
+        Surface(color = MaterialTheme.colorScheme.background) {
+            when (page) {
+                0 -> EagleContent(
+                    navigateToDetallesParte = navigateToDetallesParte,
+                    resultadosCatElViewModel = resultadosCatElViewModel,
+                    viewModelCompartido = viewModelCompartido
+                )
 
-            1 -> SharkContent(
-                navigateToDetallesParte = navigateToDetallesParte,
-                resultadosCatElViewModel = resultadosCatElViewModel,
-                viewModelCompartido = viewModelCompartido
-            )
+                1 -> TrackContent(
+                    navigateToDetallesParte = navigateToDetallesParte,
+                    resultadosCatElViewModel = resultadosCatElViewModel,
+                    viewModelCompartido = viewModelCompartido
+                )
 
-            2 -> PartechContent(
-                navigateToDetallesParte = navigateToDetallesParte,
-                resultadosCatElViewModel = resultadosCatElViewModel,
-                viewModelCompartido = viewModelCompartido
-            )
+                /*2 -> SharkContent(
+                    navigateToDetallesParte = navigateToDetallesParte,
+                    resultadosCatElViewModel = resultadosCatElViewModel,
+                    viewModelCompartido = viewModelCompartido
+                )
 
-            3 -> RodatechContent(
-                navigateToDetallesParte = navigateToDetallesParte,
-                resultadosCatElViewModel = resultadosCatElViewModel,
-                viewModelCompartido = viewModelCompartido
-            )
+                3 -> PartechContent(
+                    navigateToDetallesParte = navigateToDetallesParte,
+                    resultadosCatElViewModel = resultadosCatElViewModel,
+                    viewModelCompartido = viewModelCompartido
+                )
 
-            4 -> TrackContent(
-                navigateToDetallesParte = navigateToDetallesParte,
-                resultadosCatElViewModel = resultadosCatElViewModel,
-                viewModelCompartido = viewModelCompartido
-            )
+                4 -> RodatechContent(
+                    navigateToDetallesParte = navigateToDetallesParte,
+                    resultadosCatElViewModel = resultadosCatElViewModel,
+                    viewModelCompartido = viewModelCompartido
+                )*/
+
+
+            }
         }
     }
 }
@@ -240,7 +248,7 @@ private fun ResultadosCatElTopAppBar(
                 )
                 Text(
                     text = stringResource(R.string.catalogoelectronico),
-                    color = MaterialTheme.colorScheme.onSecondary,
+                    color = MaterialTheme.colorScheme.outline,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -251,7 +259,7 @@ private fun ResultadosCatElTopAppBar(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "",
                     modifier = modifier.size(30.dp),
-                    tint = MaterialTheme.colorScheme.onSecondary
+                    tint = MaterialTheme.colorScheme.outline
                 )
             }
         },
@@ -281,9 +289,9 @@ private fun FancyAnimatedIndicator(tabPositions: List<TabPosition>, pagerState: 
     val selectedTabIndex = pagerState.currentPage
     val colors = listOf(
         MaterialTheme.colorScheme.secondary,
+        Amarillo_Vazlo,
         Gris_Vazlo,
         Partech,
-        Amarillo_Vazlo,
         Amarillo_Vazlo
     )
     val transition = updateTransition(selectedTabIndex, label = "")
@@ -348,13 +356,14 @@ private fun TabsResultsCatEl(modifier: Modifier = Modifier, pagerState: PagerSta
     }
 
 
-    Column(modifier = modifier) {
+    Column(modifier = modifier.fillMaxWidth()) {
         PrimaryScrollableTabRow(
             selectedTabIndex = pagerState.currentPage,
             indicator = indicator,
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.inverseOnSurface,
-            divider = {}
+            divider = {},
+            edgePadding = 0.dp
         ) {
             tabs.forEachIndexed { index, tab ->
                 Tab(
@@ -367,9 +376,11 @@ private fun TabsResultsCatEl(modifier: Modifier = Modifier, pagerState: PagerSta
                         Text(
                             text = stringResource(id = tab.title),
                             style = MaterialTheme.typography.labelMedium,
-                            color = Blanco
+                            color = Blanco,
+                            fontSize = 15.sp
                         )
-                    }
+                    },
+                    modifier = modifier.width(200.dp)
                 )
             }
         }
@@ -387,18 +398,12 @@ private fun EagleContent(
 ) {
     when (resultadosCatElViewModel.productosUiStateEagle) {
         is ProductosUiState.Loading -> {
-            AltScreen(texto = stringResource(R.string.cargando))
+            LoadingScreen()
         }
 
         is ProductosUiState.Success -> {
             val productos =
                 (resultadosCatElViewModel.productosUiStateEagle as ProductosUiState.Success).productos
-
-            Log.i(
-                "logra3",
-                productos[0].nombreMarca + " " + productos[0].linea + " " + productos[0].linea_id
-            )
-
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = modifier
@@ -408,14 +413,14 @@ private fun EagleContent(
                     text = productos[0].nombreMarca + " " + productos[0].nombreModeloCarro,
                     fontSize = 25.sp,
                     fontWeight = FontWeight.Bold,
-                    fontStyle = FontStyle.Italic,
-                    modifier = modifier.padding(vertical = 10.dp)
+                    modifier = modifier.padding(vertical = 10.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 HorizontalDivider(
                     modifier = modifier
                         .fillMaxWidth()
                         .height(1.dp),
-                    color = MaterialTheme.colorScheme.tertiary
+                    color = MaterialTheme.colorScheme.surfaceVariant
                 )
                 val productosList = productos.groupBy {
                     it.linea
@@ -423,7 +428,9 @@ private fun EagleContent(
                 LazyColumn(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = modifier.padding(top = 8.dp)
+                    modifier = modifier
+                        .padding(top = 8.dp)
+                        .background(MaterialTheme.colorScheme.background)
                 ) {
                     productosList.forEach { (linea, productos) ->
                         item {
@@ -453,7 +460,7 @@ private fun EagleContent(
 
 }
 
-@Composable
+/*@Composable
 private fun SharkContent(
     modifier: Modifier = Modifier,
     navigateToDetallesParte: (String) -> Unit,
@@ -675,7 +682,7 @@ private fun RodatechContent(
             AltScreen(texto = stringResource(R.string.no_hay_registros_para_mostrar))
         }
     }
-}
+}*/
 
 @Composable
 private fun TrackContent(
@@ -686,18 +693,12 @@ private fun TrackContent(
 ) {
     when (resultadosCatElViewModel.productosUiStateTrackone) {
         is ProductosUiState.Loading -> {
-            AltScreen(texto = stringResource(R.string.cargando))
+            LoadingScreen()
         }
 
         is ProductosUiState.Success -> {
             val productos =
                 (resultadosCatElViewModel.productosUiStateTrackone as ProductosUiState.Success).productos
-
-            Log.i(
-                "logra3",
-                productos[0].nombreMarca + " " + productos[0].linea + " " + productos[0].linea_id
-            )
-
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = modifier
@@ -707,8 +708,8 @@ private fun TrackContent(
                     text = productos[0].nombreMarca + " " + productos[0].nombreModeloCarro,
                     fontSize = 25.sp,
                     fontWeight = FontWeight.Bold,
-                    fontStyle = FontStyle.Italic,
-                    modifier = modifier.padding(vertical = 10.dp)
+                    modifier = modifier.padding(vertical = 10.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 HorizontalDivider(
                     modifier = modifier
@@ -757,6 +758,7 @@ private fun TittleScreens(modifier: Modifier, soporte: String) {
     Text(
         text = soporte,
         fontSize = 22.sp,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
     )
 }
 
@@ -773,7 +775,7 @@ private fun CardProducto(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-            .background(color = MaterialTheme.colorScheme.tertiary)
+            .background(color = MaterialTheme.colorScheme.surfaceVariant)
             .padding(10.dp)
     ) {
         Row(
@@ -791,7 +793,7 @@ private fun CardProducto(
                     .data(producto.urlSoporte)
                     .crossfade(true).build(),
                 error = painterResource(R.drawable.imagen),
-                placeholder = painterResource(R.drawable.imagen),
+                placeholder = painterResource(R.drawable.download_file__1_),
                 contentDescription = producto.descripcion,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.size(150.dp)
@@ -816,12 +818,12 @@ private fun CardProducto(
                         producto.aFin,
                         producto.descripcion
                     ),
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
     }
-
 }
 
 /*@Composable
@@ -899,7 +901,8 @@ private fun EmpresasDialog(
                 }) {
                     Text(text = "Aceptar")
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.background
         )
     }
 }

@@ -1,21 +1,21 @@
 package vazlo.refaccionarias.ui.screens.usuarios_y_permisos
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonPrimitive
 import vazlo.refaccionarias.data.model.usuarios.NuevoUsuario
 import vazlo.refaccionarias.data.model.usuarios.Usuario
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
 import vazlo.refaccionarias.local.Sesion
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.serialization.json.jsonPrimitive
 
 sealed interface UsuariosUiState {
-    data class Success(val usuarios: List<Usuario>) : UsuariosUiState
+    data class Success(val usuarios: MutableList<Usuario>) : UsuariosUiState
     object Error : UsuariosUiState
     object Loading : UsuariosUiState
 }
@@ -79,7 +79,6 @@ class UsuariosViewModel(
 
     private fun cargarUsuarios() {
         viewModelScope.launch {
-            usuariosUiState = UsuariosUiState.Loading
             val url = sesion.getUrlCargarUsuario.first()
 /*
             val url =
@@ -95,21 +94,19 @@ class UsuariosViewModel(
     }
 
 
-    fun setNuevoUsuario() {
-        viewModelScope.launch {
-            nuevoUsuario = NuevoUsuario(
-                clienteId = entryUsuario,
-                clienteNombre = entryNombre,
-                clienteResponsable = sesion.id.first(),
-                clientePsw = entryPassword,
-                domicilio = entryDomicilio,
-                poblacion = entryPoblacion,
-                correo = entryCorreo,
-                correo1 = entryCorreo1
-            )
-            Log.i("Amanda", nuevoUsuario!!.clienteNombre!!)
-            val url = sesion.getUrlNuevoUsuario.first()
-  /*          var urlPrueba = "https://apps.vazloonline.com//web_service//REFACCIONARIAS//usuarios_permisos//usuario_nuevo.php"*/
+    suspend fun setNuevoUsuario(): Boolean {
+
+        nuevoUsuario = NuevoUsuario(
+            clienteId = entryUsuario,
+            clienteNombre = entryNombre,
+            clienteResponsable = sesion.id.first(),
+            clientePsw = entryPassword,
+            domicilio = entryDomicilio,
+            poblacion = entryPoblacion,
+            correo = entryCorreo,
+            correo1 = entryCorreo1
+        )
+        val url = sesion.getUrlNuevoUsuario.first()
             val response = servicesAppRepository.nuevoUsuario(
                 url = url,
                 cliente = nuevoUsuario!!.clienteId!!,
@@ -121,54 +118,70 @@ class UsuariosViewModel(
                 correo = nuevoUsuario!!.correo!!,
                 correo1 = nuevoUsuario!!.correo1!!
             )
+
+        val datosOb = response.body()!!
+        return if (datosOb["estado"]?.jsonPrimitive?.int == 1) {
             cargarUsuarios()
             limpiarEntry()
-        }
-
+            true
+        } else
+            false
     }
 
-    fun actualizarUsuario() {
-        viewModelScope.launch {
-            val response = servicesAppRepository.actualizarUsuario(
-                url = sesion.getUrlActualizarUsuario.first(),
-                clienteId = userSeleccionado,
-                clienteNonbre = entryNombre,
-                domicilio = entryDomicilio,
-                poblacion = entryPoblacion,
-                correo = entryCorreo,
-                correo1 = entryCorreo1
-            )
+    suspend fun actualizarUsuario(): Boolean {
 
+        val response = servicesAppRepository.actualizarUsuario(
+            url = sesion.getUrlActualizarUsuario.first(),
+            clienteId = userSeleccionado,
+            clienteNonbre = entryNombre,
+            domicilio = entryDomicilio,
+            poblacion = entryPoblacion,
+            correo = entryCorreo,
+            correo1 = entryCorreo1
+        )
+
+        val datosOb = response.body()!!
+        return if (datosOb["estado"]?.jsonPrimitive?.int == 1) {
             cargarUsuarios()
             limpiarEntry()
+            true
+        } else
+            false
 
-            val datosOb = response.body()!!
-            Log.i("MaistroPipe", datosOb["mensaje"]?.jsonPrimitive?.content ?: "")
-        }
     }
 
-    fun actualizarPassword() {
-        viewModelScope.launch {
-            val response = servicesAppRepository.actualizarPassword(
-                url = sesion.getUrlActualizarPassword.first(),
-                clienteId = userSeleccionado,
-                clientePsw = entryPassword
-            )
-            val datosOb = response.body()!!
-            Log.i("MaistroPipe", datosOb["mensaje"]?.jsonPrimitive?.content ?: "")
-        }
-    }
+    suspend fun actualizarPassword(): Boolean {
 
-    fun eliminarUsuario() {
-        viewModelScope.launch {
-            val response = servicesAppRepository.eliminarUsuario(
-                url = sesion.getUrlEliminarUsuario.first(),
-                cte = userSeleccionado
-            )
-            val datosOb = response.body()!!
-            Log.i("MaistroPipe", datosOb["mensaje"]?.jsonPrimitive?.content ?: "")
+        val response = servicesAppRepository.actualizarPassword(
+            url = sesion.getUrlActualizarPassword.first(),
+            clienteId = userSeleccionado,
+            clientePsw = entryPassword
+        )
+        val datosOb = response.body()!!
+
+        return if (datosOb["estado"]?.jsonPrimitive?.int == 1) {
             cargarUsuarios()
+            limpiarEntry()
+            true
+        } else
+            false
+
+    }
+
+    suspend fun eliminarUsuario(): Boolean {
+
+        val response = servicesAppRepository.eliminarUsuario(
+            url = sesion.getUrlEliminarUsuario.first(),
+            cte = userSeleccionado
+        )
+        val datosOb = response.body()!!
+        return if (datosOb["estado"]?.jsonPrimitive?.int == 1) {
+            cargarUsuarios()
+            true
+        } else {
+            false
         }
+
     }
 
     fun limpiarEntry() {

@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -165,8 +167,7 @@ private fun Content(
 ) {
     when (busquedaCatElecViewModel.busqCatElecUiState) {
         is BusqCatElecUiState.Loading ->
-            AltScreen(estado = "Cargando")
-
+            CargandoCatEL()
         is BusqCatElecUiState.Success -> {
             val anios =
                 (busquedaCatElecViewModel.busqCatElecUiState as BusqCatElecUiState.Success).aniosResponse
@@ -177,9 +178,8 @@ private fun Content(
                 listaAnios = anios
             )
         }
-
         is BusqCatElecUiState.Error ->
-            AltScreen(estado = "Error")
+            ErroScreenCatEl(estado = "Error")
     }
 }
 
@@ -230,13 +230,13 @@ private fun DropDownAnio(
             },
             enabled = false,
             colors = TextFieldDefaults.colors(
-                unfocusedLabelColor = MaterialTheme.colorScheme.onTertiary,
-                unfocusedTrailingIconColor = MaterialTheme.colorScheme.onTertiary,
-                unfocusedIndicatorColor = MaterialTheme.colorScheme.onTertiary,
-                disabledTextColor = MaterialTheme.colorScheme.onTertiary,
-                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                focusedLabelColor = MaterialTheme.colorScheme.onTertiary,
-                focusedTrailingIconColor = MaterialTheme.colorScheme.onTertiary
+                disabledIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                disabledContainerColor = MaterialTheme.colorScheme.background,
+                disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                errorSupportingTextColor = MaterialTheme.colorScheme.error,
+                errorLabelColor = MaterialTheme.colorScheme.error,
+                errorContainerColor = MaterialTheme.colorScheme.background
             )
         )
         DropdownMenu(
@@ -322,13 +322,13 @@ private fun DropDownMarca(
             },
             enabled = false,
             colors = TextFieldDefaults.colors(
-                unfocusedLabelColor = MaterialTheme.colorScheme.onTertiary,
-                unfocusedTrailingIconColor = MaterialTheme.colorScheme.onTertiary,
-                unfocusedIndicatorColor = MaterialTheme.colorScheme.onTertiary,
-                disabledTextColor = MaterialTheme.colorScheme.onTertiary,
-                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                focusedLabelColor = MaterialTheme.colorScheme.onTertiary,
-                focusedTrailingIconColor = MaterialTheme.colorScheme.onTertiary
+                disabledIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                disabledContainerColor = MaterialTheme.colorScheme.background,
+                disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                errorSupportingTextColor = MaterialTheme.colorScheme.error,
+                errorLabelColor = MaterialTheme.colorScheme.error,
+                errorContainerColor = MaterialTheme.colorScheme.background
             )
         )
         DropdownMenu(
@@ -430,13 +430,13 @@ private fun DropDownModelo(
             },
             enabled = false,
             colors = TextFieldDefaults.colors(
-                unfocusedLabelColor = MaterialTheme.colorScheme.onTertiary,
-                unfocusedTrailingIconColor = MaterialTheme.colorScheme.onTertiary,
-                unfocusedIndicatorColor = MaterialTheme.colorScheme.onTertiary,
-                disabledTextColor = MaterialTheme.colorScheme.onTertiary,
-                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                focusedLabelColor = MaterialTheme.colorScheme.onTertiary,
-                focusedTrailingIconColor = MaterialTheme.colorScheme.onTertiary
+                disabledIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                disabledContainerColor = MaterialTheme.colorScheme.background,
+                disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                errorSupportingTextColor = MaterialTheme.colorScheme.error,
+                errorLabelColor = MaterialTheme.colorScheme.error,
+                errorContainerColor = MaterialTheme.colorScheme.background
             )
         )
         DropdownMenu(
@@ -541,13 +541,13 @@ private fun DropDownMotor(
             },
             enabled = false,
             colors = TextFieldDefaults.colors(
-                unfocusedLabelColor = MaterialTheme.colorScheme.onTertiary,
-                unfocusedTrailingIconColor = MaterialTheme.colorScheme.onTertiary,
-                unfocusedIndicatorColor = MaterialTheme.colorScheme.onTertiary,
-                disabledTextColor = MaterialTheme.colorScheme.onTertiary,
-                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                focusedLabelColor = MaterialTheme.colorScheme.onTertiary,
-                focusedTrailingIconColor = MaterialTheme.colorScheme.onTertiary
+                disabledIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                disabledContainerColor = MaterialTheme.colorScheme.background,
+                disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                errorSupportingTextColor = MaterialTheme.colorScheme.error,
+                errorLabelColor = MaterialTheme.colorScheme.error,
+                errorContainerColor = MaterialTheme.colorScheme.background
             )
         )
         DropdownMenu(
@@ -614,11 +614,11 @@ private fun DropDownMotor(
 private fun AyudaCard(modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
     val color by animateColorAsState(
-        targetValue = if (expanded) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.tertiary,
+        targetValue = if (expanded) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceVariant,
         label = "",
     )
     Card(
-        modifier = modifier.padding(top = 20.dp)
+        modifier = modifier.padding(top = 20.dp),
     ) {
         Column(
             Modifier
@@ -645,11 +645,12 @@ private fun AyudaCard(modifier: Modifier = Modifier) {
                         Text(
                             text = stringResource(R.string.ayuda),
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onTertiary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = stringResource(id = R.string.catalogoelectronico),
-                            color = MaterialTheme.colorScheme.onTertiary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Normal
                         )
                     }
                 }
@@ -669,12 +670,12 @@ private fun AyudaCard(modifier: Modifier = Modifier) {
                 ) {
                     Text(
                         text = stringResource(R.string.desc_ayuda_cat),
-                        color = MaterialTheme.colorScheme.onTertiary,
-                        textAlign = TextAlign.Justify
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Justify,
+                        fontWeight = FontWeight.Normal
                     )
                 }
             }
-
         }
     }
 }
@@ -770,7 +771,14 @@ private fun SuccessScreen(
 }
 
 @Composable
-private fun AltScreen(
+private fun CargandoCatEL(modifier: Modifier = Modifier){
+    Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun ErroScreenCatEl(
     modifier: Modifier = Modifier,
     estado: String
 ) {

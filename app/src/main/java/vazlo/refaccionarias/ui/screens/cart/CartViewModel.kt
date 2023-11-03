@@ -58,6 +58,10 @@ class CartViewModel(
         nuevaCant = inputCantidad
     }
 
+    var permisoCotizacion = "0"
+    var permisoExistencia = "0"
+    var permisoPrecio = "0"
+    var permisoHacerPedido = "0"
 
     fun onSelectProducto(productoId: String) {
         productoSeleccionado = productoId
@@ -71,12 +75,16 @@ class CartViewModel(
         val url = sesion.verCarritoJunio2023.first()
         val idCte = sesion.id.first()
         val response = servicesAppRepository.cargarProductosCarrito(url, idCte)
-        return if (response.estado == 1) {
+        return if (response.estado == 1 || response.estado == 10) {
             carritoUiState = CarritoUiState.Success(response.productos)
             cantidad = response.productos.size
             subtotal = response.subtotal.toString()
             iva = response.iva.toString()
             total = response.total.toString()
+            permisoCotizacion = sesion.getPermisoCotizacion.first()
+            permisoExistencia = sesion.getPermisoExistencia.first()
+            permisoPrecio = sesion.getPermisoPrecio.first()
+            permisoHacerPedido = sesion.getPermisoPedidos.first()
             true
         } else {
             carritoUiState = CarritoUiState.Error
@@ -89,7 +97,7 @@ class CartViewModel(
         productosCargando.add(productoSeleccionado)
         val url = sesion.agregarProduCarrito.first()
         val idCte = sesion.id.first()
-        val response = servicesAppRepository.actulaziarCantidadProucto(
+        val response = servicesAppRepository.actualizarCantidadProucto(
             url = url,
             idCte = idCte,
             cantidad = nuevaCantidad,

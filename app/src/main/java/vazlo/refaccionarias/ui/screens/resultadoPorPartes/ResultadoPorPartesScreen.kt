@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,6 +46,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -100,8 +102,10 @@ fun ResultadoPorPartesScreen(
                     }
 
                     is ResultadoParteUiState.Error -> {
-                        AltScreen(modifier = modifier, texto = "Error al cargar")
+                        ErrorScreenCart(modifier = modifier, texto = "Parece que tu carrito esta vacio si crees que es un error comunicate con soporte")
                     }
+
+                    else -> {}
                 }
             }
             /*if (show) {
@@ -113,6 +117,16 @@ fun ResultadoPorPartesScreen(
                 )
             }*/
         }
+    }
+}
+
+@Composable
+fun ErrorScreenCart(modifier: Modifier = Modifier, texto: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = texto, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Justify)
     }
 }
 
@@ -149,11 +163,11 @@ fun AltScreen(
     texto: String
 ) {
     Column(
-        modifier,
+        modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = texto)
+        CircularProgressIndicator()
     }
 }
 
@@ -213,7 +227,8 @@ fun HeaderTipo(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                fontSize = 17.sp
             )
         }
     }
@@ -300,7 +315,8 @@ fun Productos(
                 Text(
                     text = producto.nombreSoporte,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.secondary
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontSize = 16.sp
                 )
                 Text(
                     text = stringResource(
@@ -313,7 +329,8 @@ fun Productos(
                         producto.descripcion
                     ),
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 16.sp
                 )
             }
         }

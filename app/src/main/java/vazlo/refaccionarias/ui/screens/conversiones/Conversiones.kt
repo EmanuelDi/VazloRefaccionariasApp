@@ -1,5 +1,12 @@
 package vazlo.refaccionarias.ui.screens.conversiones
 
+import android.app.Activity
+import android.content.Intent
+import android.os.Build
+import android.speech.RecognizerIntent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresExtension
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -22,7 +29,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.sharp.MicNone
+import androidx.compose.material.icons.twotone.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,15 +55,19 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.navigation.NavigationDestination
-import vazlo.refaccionarias.ui.screens.conversiones.ConversionesViewModel
+import vazlo.refaccionarias.ui.AppViewModelProvider
 
 
 object ConversionesDestination : NavigationDestination {
@@ -63,11 +75,13 @@ object ConversionesDestination : NavigationDestination {
     /*override val titleRes = R.string.item_entry_title*/
 }
 
+@RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
 @Composable
 fun ConversionesScreen(
     modifier: Modifier = Modifier,
     navigateBack: () -> Unit,
-    navigateToResultadoParte: (String, String) -> Unit
+    navigateToResultadoParte: (String, String) -> Unit,
+    conversionesViewModel: ConversionesViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     Scaffold(
         topBar = { ConversionesTopAppBar(navigateBack = navigateBack) }
@@ -89,7 +103,10 @@ fun ConversionesScreen(
                     )
                 }
             }
-            BodyConversiones(navigateToResultadoParte = navigateToResultadoParte)
+            BodyConversiones(
+                navigateToResultadoParte = navigateToResultadoParte,
+                viewModel = conversionesViewModel
+            )
         }
     }
 
@@ -99,13 +116,13 @@ fun ConversionesScreen(
 fun BodyConversiones(
     modifier: Modifier = Modifier,
     navigateToResultadoParte: (String, String) -> Unit,
+    viewModel: ConversionesViewModel,
     ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(20.dp),
         modifier = modifier.padding(horizontal = 10.dp, vertical = 20.dp)
     ) {
-        val viewModel = ConversionesViewModel ()
         val errorSearch = remember { mutableStateOf(false) }
         EntryForm(
             viewModel= viewModel,
@@ -157,21 +174,14 @@ fun EntryForm(
             viewModel.onCriterioChange(it)
             onErrorResolve()
         },
-        label = { Text(text = stringResource(R.string.buscar)) },
+        textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp),
+        label = { Text(text = stringResource(R.string.buscar), style = MaterialTheme.typography.bodyMedium) },
         trailingIcon = {
-            IconButton(onClick = {
-                if (viewModel.busqueda.isNotBlank()) {
-                    navigateToResultadoParte(viewModel.busqueda, "B")
-                } else {
-                    errorSearch.value = true
-                    focusManager.clearFocus()
-                }
-            }) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "",
-                    modifier.size(30.dp)
-                )
+            VoiceRecognitionButtonConver(navigateToResultadoParte = navigateToResultadoParte)
+        },
+        leadingIcon = {
+            IconButton(onClick = { viewModel.onCriterioChange("") }) {
+                Icon(imageVector = Icons.TwoTone.Clear, contentDescription = "")
             }
         },
         colors = TextFieldDefaults.colors(
@@ -182,6 +192,8 @@ fun EntryForm(
             unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
             errorSupportingTextColor = MaterialTheme.colorScheme.error,
             errorLabelColor = MaterialTheme.colorScheme.error,
+            focusedContainerColor = MaterialTheme.colorScheme.background,
+            errorContainerColor = MaterialTheme.colorScheme.background
         ),
         modifier = modifier
             .fillMaxWidth()
@@ -195,11 +207,50 @@ fun EntryForm(
         isError = errorSearch.value,
         supportingText = {
             if (errorSearch.value) Text(
-                text = "El campo no puede estar vacío",
-                fontSize = 15.sp
-            ) else Text(text = "")
+                text = "El campo no puede estar vacio",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodyMedium
+            ) else Text(
+                text = "Ejemplo: 1100",
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
     )
+}
+
+@Composable
+fun VoiceRecognitionButtonConver(navigateToResultadoParte: (String, String) -> Unit) {
+    val context = LocalContext.current
+    val voiceRecognitionResult = remember { mutableStateOf("") }
+
+    val launcher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+                val matches = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                if (matches != null && matches.isNotEmpty()) {
+                    voiceRecognitionResult.value = matches[0]
+                    navigateToResultadoParte(voiceRecognitionResult.value, "B")
+                }
+            }
+        }
+
+    IconButton(onClick = {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH
+            )
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Diga, 1100")
+        }
+        launcher.launch(intent)
+    }) {
+        Icon(imageVector = Icons.Sharp.MicNone, contentDescription = "")
+    }
+
 }
 
 @Composable

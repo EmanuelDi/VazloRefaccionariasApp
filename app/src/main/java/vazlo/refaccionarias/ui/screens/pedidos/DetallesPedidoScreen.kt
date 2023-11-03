@@ -38,6 +38,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import vazlo.refaccionarias.R
@@ -188,15 +189,22 @@ fun InfoProduct(id: String, precio: String, cantidad: String) {
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Text(
-                text = stringResource(id = R.string.product_text),
+                text = stringResource(id = R.string.product_text, id),
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 17.sp
             )
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
             Text(
-                text = id,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = stringResource(R.string.cantidad, cantidad),
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 17.sp
             )
         }
 
@@ -204,29 +212,8 @@ fun InfoProduct(id: String, precio: String, cantidad: String) {
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Text(
-                text = stringResource(R.string.cantidad),
-                fontWeight = FontWeight.Bold,
+                text = stringResource(id = R.string.precio_text, precio),
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = cantidad,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            Text(
-                text = stringResource(id = R.string.precio_text),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = precio,
-                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

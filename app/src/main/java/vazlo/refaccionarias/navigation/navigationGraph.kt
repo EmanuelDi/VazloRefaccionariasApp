@@ -1,6 +1,7 @@
 package vazlo.refaccionarias.navigation
 
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresExtension
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
@@ -15,8 +16,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import vazlo.refaccionarias.data.LocationService
-import vazlo.refaccionarias.ui.eventos.Eventos
-import vazlo.refaccionarias.ui.eventos.EventosScreen
 import vazlo.refaccionarias.ui.screens.busquedaPorPartes.BusquedaPorPartesDestination
 import vazlo.refaccionarias.ui.screens.busquedaPorPartes.BusquedaPorPartesScreen
 import vazlo.refaccionarias.ui.screens.cart.CartDestination
@@ -27,12 +26,19 @@ import vazlo.refaccionarias.ui.screens.catalagoElectronico.ResultadosCatElDestin
 import vazlo.refaccionarias.ui.screens.catalagoElectronico.ResultadosCatElScreen
 import vazlo.refaccionarias.ui.screens.conversiones.ConversionesDestination
 import vazlo.refaccionarias.ui.screens.conversiones.ConversionesScreen
+import vazlo.refaccionarias.ui.screens.detallesNuevos.DetallesNuevoDestination
+import vazlo.refaccionarias.ui.screens.detallesNuevos.DetallesNuevoScreen
+import vazlo.refaccionarias.ui.screens.detallesNuevos.ProductoNuevoCompartiido
 import vazlo.refaccionarias.ui.screens.detallesParte.DetallesParteDestination
 import vazlo.refaccionarias.ui.screens.detallesParte.DetallesParteScreen
+import vazlo.refaccionarias.ui.screens.eventos.Eventos
+import vazlo.refaccionarias.ui.screens.eventos.EventosScreen
 import vazlo.refaccionarias.ui.screens.folletosQuincenales.FolletosQuincelasScreen
 import vazlo.refaccionarias.ui.screens.folletosQuincenales.FolletosQuincenalesDestination
 import vazlo.refaccionarias.ui.screens.folletosQuincenales.PdfDestination
 import vazlo.refaccionarias.ui.screens.folletosQuincenales.PdfScreen
+import vazlo.refaccionarias.ui.screens.guia.GuiaDestination
+import vazlo.refaccionarias.ui.screens.guia.GuiaScreen
 import vazlo.refaccionarias.ui.screens.home.HomeContent
 import vazlo.refaccionarias.ui.screens.home.HomeDestination
 import vazlo.refaccionarias.ui.screens.login.LoginDestination
@@ -49,12 +55,15 @@ import vazlo.refaccionarias.ui.screens.pedidos.PedidosScreen
 import vazlo.refaccionarias.ui.screens.resultadoPorPartes.ProductoCompartidoViewModel
 import vazlo.refaccionarias.ui.screens.resultadoPorPartes.ResultadoPorPartesDestination
 import vazlo.refaccionarias.ui.screens.resultadoPorPartes.ResultadoPorPartesScreen
+import vazlo.refaccionarias.ui.screens.soporteTecnico.SoporteTecnicoDestination
+import vazlo.refaccionarias.ui.screens.soporteTecnico.SoporteTecnicoScreen
 import vazlo.refaccionarias.ui.screens.usuarios_y_permisos.PermisosDestination
 import vazlo.refaccionarias.ui.screens.usuarios_y_permisos.PermisosScreen
 import vazlo.refaccionarias.ui.screens.usuarios_y_permisos.UsuariosScreen
 import vazlo.refaccionarias.ui.screens.usuarios_y_permisos.UsuariosYPermisosDestination
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
 @Composable
 fun RefaccionariNavHost(
@@ -73,22 +82,37 @@ fun RefaccionariNavHost(
     val viewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current) {
         "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
     }
-    val viewModelCompartido = viewModel<ProductoCompartidoViewModel>(viewModelStoreOwner = viewModelStoreOwner)
+    val viewModelCompartido =
+        viewModel<ProductoCompartidoViewModel>(viewModelStoreOwner = viewModelStoreOwner)
+    val productoNuevoCompartido =
+        viewModel<ProductoNuevoCompartiido>(viewModelStoreOwner = viewModelStoreOwner)
     val pedidoCompartido: PedidoCompartidoViewModel = viewModel()
     NavHost(
         navController = navController,
         startDestination = LoginDestination.route,
         modifier = modifier
     ) {
-        composable(route = LoginDestination.route){
-            LoginScreen(navigateToHome = { navController.navigate(HomeDestination.route) } )
+        composable(
+            route = LoginDestination.route,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
+        ) {
+            LoginScreen(navigateToHome = { navController.navigate(HomeDestination.route) })
         }
         composable(route = HomeDestination.route) {
             HomeContent(
                 navController = navController,
+                navigateToDetallesNuevo = { criterio: String ->
+                    navController.navigate("${DetallesNuevoDestination.route}/$criterio")
+                },
+                productoNuevoCompartiido = productoNuevoCompartido
             )
         }
-        composable(route = CatalogoElectronicoDestination.route) {
+        composable(
+            route = CatalogoElectronicoDestination.route,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
+        ) {
             CatElectronicoScreen(
                 navigateBack = { navController.popBackStack() },
                 navigateToResultCatElectronico = { anio: String, marca: String, modelo: String, cilindraje: String, litros: String ->
@@ -98,6 +122,8 @@ fun RefaccionariNavHost(
         }
         composable(
             route = ResultadosCatElDestination.routeWithArgs,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
             arguments = listOf(
                 navArgument(ResultadosCatElDestination.anio) {
                     type = NavType.StringType
@@ -141,11 +167,16 @@ fun RefaccionariNavHost(
                     navController.navigate("${DetallesParteDestination.route}/$criterio")
                 },
                 navigateToHome = { navController.popBackStack(HomeDestination.route, false) },
-                viewModelCompartido = viewModelCompartido
+                viewModelCompartido = viewModelCompartido,
+                navigateToCart = { navController.navigate(CartDestination.route) }
             )
         }
 
-        composable(route = BusquedaPorPartesDestination.route) {
+        composable(
+            route = BusquedaPorPartesDestination.route,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
+        ) {
             BusquedaPorPartesScreen(
                 navigateBack = { navController.popBackStack() },
                 navigateToResultadoParte = { criterio: String, funcArg: String ->
@@ -153,7 +184,11 @@ fun RefaccionariNavHost(
                 }
             )
         }
-        composable(route = ConversionesDestination.route) {
+        composable(
+            route = ConversionesDestination.route,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
+        ) {
             ConversionesScreen(
                 navigateBack = { navController.popBackStack() },
                 navigateToResultadoParte = { criterio: String, funcArg: String ->
@@ -162,7 +197,11 @@ fun RefaccionariNavHost(
             )
         }
 
-        composable(route = MamoanDestination.route) {
+        composable(
+            route = MamoanDestination.route,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
+        ) {
             MamoanScreen(
                 navigateBack = { navController.popBackStack() },
                 navigateToResultadoParte = { criterio: String, funcArg: String ->
@@ -192,26 +231,42 @@ fun RefaccionariNavHost(
                 viewModelCompartido = viewModelCompartido
             )
         }
-        composable(route = PedidosDestination.route) {
+        composable(
+            route = PedidosDestination.route,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
+        ) {
             PedidosScreen(
                 navigateBack = { navController.popBackStack() },
                 navigateToDetallesPedido = { navController.navigate(DetailsPedidos.route) },
                 sharedViewModel = pedidoCompartido
             )
         }
-        composable(route = DetailsPedidos.route) {
+        composable(
+            route = DetailsPedidos.route,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut }
+        ) {
             DetallesPedidoScreen(
                 navigateBack = { navController.popBackStack() },
                 sharedViewModel = pedidoCompartido
             )
         }
-        composable(route = CartDestination.route) {
+        composable(
+            route = CartDestination.route,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
+        ) {
             CartScreen(
                 navigateBack = { navController.popBackStack() },
                 navigateToBusquedaParte = { navController.navigate(BusquedaPorPartesDestination.route) }
             )
         }
-        composable(route = UsuariosYPermisosDestination.route) {
+        composable(
+            route = UsuariosYPermisosDestination.route,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
+        ) {
             UsuariosScreen(
                 navigateBack = { navController.popBackStack() },
                 navigateToPermisos = {navController.navigate("${PermisosDestination.route}/${it}") }
@@ -219,6 +274,8 @@ fun RefaccionariNavHost(
         }
         composable(
             route = PermisosDestination.routeWithArgs,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
             arguments = listOf(navArgument(PermisosDestination.itemIdArg) {
                 type = NavType.StringType
             })
@@ -227,10 +284,18 @@ fun RefaccionariNavHost(
                 navigateBack = { navController.popBackStack() }
             )
         }
-        composable(route = NotificacionesDestination.route) {
+        composable(
+            route = NotificacionesDestination.route,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
+        ) {
             NotificacionesScreen(navigateBack = { navController.popBackStack() })
         }
-        composable(route = FolletosQuincenalesDestination.route) {
+        composable(
+            route = FolletosQuincenalesDestination.route,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
+        ) {
             FolletosQuincelasScreen(
                 navigateBack = { navController.popBackStack() },
                 navigateToPdfView = { navController.navigate("${PdfDestination.route}/${it}")}
@@ -255,8 +320,52 @@ fun RefaccionariNavHost(
                     )
                 })
         }
-        composable(route = Eventos.route) {
-            EventosScreen(navigateBack = { navController.popBackStack() }, locationServices = locationService)
+        composable(
+            route = Eventos.route,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
+        ) {
+            EventosScreen(
+                navigateBack = { navController.popBackStack() },
+                locationServices = locationService
+            )
+        }
+        composable(
+            route = DetallesNuevoDestination.routeWithArgs,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
+            arguments = listOf(
+                navArgument(DetallesParteDestination.criterioArg) {
+                    type = NavType.StringType
+                }
+            )
+        ) {
+            DetallesNuevoScreen(
+                navigateBack = { navController.popBackStack() },
+                navigateToDetallesParte = { criterio: String ->
+                    navController.navigate("${DetallesParteDestination.route}/$criterio")
+                },
+                navigateToHome = { navController.popBackStack(HomeDestination.route, false) },
+                viewModelCompartido = productoNuevoCompartido,
+                productoCompartidoViewModel = viewModelCompartido,
+                navigateToCart = { navController.navigate(CartDestination.route) }
+            )
+        }
+        composable(
+            SoporteTecnicoDestination.route,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
+        ) {
+            SoporteTecnicoScreen(navigateBack = { navController.popBackStack() })
+        }
+        composable(
+            route = GuiaDestination.route,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
+            ) {
+            GuiaScreen(
+                navigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

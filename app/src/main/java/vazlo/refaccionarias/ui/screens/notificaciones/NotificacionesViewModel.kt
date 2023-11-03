@@ -9,6 +9,8 @@ import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
 import vazlo.refaccionarias.local.Sesion
 import kotlinx.coroutines.flow.first
 import android.util.Log
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 
 
 sealed interface NotificacionesUiState {
@@ -33,11 +35,21 @@ class NotificacionesViewModel(
             val response = servicesAppRepository.cargarNotificaciones(url, idCte, token)
             Log.i("pop", response.mensaje)
             notificacionesUiState =
-                if (response.estado == 1) NotificacionesUiState.Success(response.mensajes) else NotificacionesUiState.Error
+                if (response.estado == 1) NotificacionesUiState.Success(response.mensajes) else NotificacionesUiState.Success(response.mensajes)
         } catch (e: Exception) {
+            Log.e("Notis", e.toString())
             notificacionesUiState = NotificacionesUiState.Error
-            Log.i("pop", e.toString())
 
+        }
+    }
+
+    fun darBajaNotificacion(id: String) {
+        viewModelScope.launch {
+            val url = sesion.bajaMensajeNotifiacion.first()
+
+            val response = servicesAppRepository.bajarNotificacion(url, id)
+
+            val obData = response.body()
         }
     }
 

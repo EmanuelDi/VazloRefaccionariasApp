@@ -3,7 +3,7 @@ package vazlo.refaccionarias.ui.screens.home
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import vazlo.refaccionarias.R
-import vazlo.refaccionarias.ui.eventos.Eventos
+import vazlo.refaccionarias.ui.screens.eventos.Eventos
 import vazlo.refaccionarias.ui.screens.busquedaPorPartes.BusquedaPorPartesDestination
 import vazlo.refaccionarias.ui.screens.cart.CartDestination
 import vazlo.refaccionarias.ui.screens.catalagoElectronico.CatalogoElectronicoDestination
@@ -95,11 +95,6 @@ val menuItemsSecciones = listOf(
         icon = R.drawable.soporte_tecnico1,
         label = R.string.soporte_t_cnico,
         destination = SoporteTecnicoDestination.route,
-    ),
-    MenuItem(
-        icon = R.drawable.soporte_tecnico1,
-        label = R.string.ayuda,
-        destination = "",
     ),
     MenuItem(
         icon = R.drawable.salir1,

@@ -1,4 +1,4 @@
-package vazlo.refaccionarias.ui.eventos
+package vazlo.refaccionarias.ui.screens.eventos
 
 
 import androidx.compose.runtime.getValue
@@ -27,6 +27,7 @@ class RefacCercanasViewModel(
 
     private var latitud by mutableDoubleStateOf(0.0)
     private var longitud by mutableDoubleStateOf(0.0)
+    var cantEventos = 0
 
     fun setCoordenadas(lat: Double, long: Double) {
         latitud = lat
@@ -41,9 +42,10 @@ class RefacCercanasViewModel(
             val response = servicesAppRepository.getMarcadores(url = url, lat = latitud, long = longitud)
 
             marcadoresUiState = if(response.estado == 1) {
+                cantEventos = response.marcadoresCliente.size
                 MarcadoresUiState.Success(response.marcadoresCliente)
             } else {
-                MarcadoresUiState.Error
+                MarcadoresUiState.Success(emptyList())
             }
         }
     }

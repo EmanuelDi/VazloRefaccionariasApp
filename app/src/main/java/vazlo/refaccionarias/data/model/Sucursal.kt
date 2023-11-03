@@ -6,7 +6,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Sucursal(
     @SerialName("nombre")
-    val id: String? = null,
+    val nombre: String? = null,
     @SerialName("existencia")
     val existencia: String? = null,
+    @SerialName("id")
+    val idSuc: String? = null
 )

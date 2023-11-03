@@ -1,5 +1,12 @@
 package vazlo.refaccionarias.ui.screens.mamoan
 
+import android.app.Activity
+import android.content.Intent
+import android.os.Build
+import android.speech.RecognizerIntent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresExtension
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -22,7 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.sharp.MicNone
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,15 +54,19 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.navigation.NavigationDestination
-import vazlo.refaccionarias.ui.screens.mamoan.MamoanViewModel
+import vazlo.refaccionarias.ui.AppViewModelProvider
 
 
 object MamoanDestination : NavigationDestination {
@@ -63,12 +74,13 @@ object MamoanDestination : NavigationDestination {
     /*override val titleRes = R.string.item_entry_title*/
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
 @Composable
 fun MamoanScreen(
     modifier: Modifier = Modifier,
     navigateBack: () -> Unit,
-    navigateToResultadoParte: (String, String) -> Unit
+    navigateToResultadoParte: (String, String) -> Unit,
+    viewModel: MamoanViewModel  = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     Scaffold(
         topBar = { MamoanTopAppBar( navigateBack = navigateBack) }
@@ -90,7 +102,10 @@ fun MamoanScreen(
                     )
                 }
             }
-            BodyMamoan(navigateToDetallesParte = navigateToResultadoParte)
+            BodyMamoan(
+                navigateToDetallesParte = navigateToResultadoParte,
+                mamoanViewModel = viewModel
+            )
         }
     }
 }
@@ -132,8 +147,11 @@ fun MamoanTopAppBar(modifier: Modifier = Modifier, navigateBack: () -> Unit) {
 }
 
 @Composable
-fun BodyMamoan(modifier: Modifier = Modifier, navigateToDetallesParte: (String, String) -> Unit) {
-    val mamoanViewModel = MamoanViewModel()
+fun BodyMamoan(
+    modifier: Modifier = Modifier,
+    navigateToDetallesParte: (String, String) -> Unit,
+    mamoanViewModel: MamoanViewModel
+) {
     val errorSearch = remember { mutableStateOf(false) }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -144,7 +162,7 @@ fun BodyMamoan(modifier: Modifier = Modifier, navigateToDetallesParte: (String, 
             viewModel = mamoanViewModel,
             errorSearch = errorSearch,
             onErrorSearch = { errorSearch.value = true },
-            navigateToResBusqPorPartes = navigateToDetallesParte
+            navigateToResultadoParte = navigateToDetallesParte
         ) { errorSearch.value = false }
         Button(
             onClick = { if (mamoanViewModel.criterio.isNotBlank()) {
@@ -248,7 +266,7 @@ fun EntryForm(
     modifier: Modifier = Modifier,
     viewModel: MamoanViewModel,
     errorSearch: MutableState<Boolean>,
-    navigateToResBusqPorPartes: (String, String) -> Unit,
+    navigateToResultadoParte: (String, String) -> Unit,
     onErrorSearch: () -> Unit,
     onErrorResolve: () -> Unit
 ) {
@@ -260,22 +278,12 @@ fun EntryForm(
             viewModel.onCriterioChange(it)
             onErrorResolve()
         },
-        label = { Text(text = stringResource(R.string.buscar)) },
+        textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp),
+        label = { Text(text = stringResource(R.string.buscar), style = MaterialTheme.typography.bodyMedium) },
         trailingIcon = {
-            IconButton(onClick = {
-                if (viewModel.criterio.isNotBlank()) {
-                    navigateToResBusqPorPartes.invoke(viewModel.criterio, "M")
-                } else {
-                    onErrorSearch()
-                    focusManager.clearFocus()
-                }
-            }) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "",
-                    modifier.size(30.dp)
-                )
-            }
+            vazlo.refaccionarias.ui.screens.busquedaPorPartes.VoiceRecognitionButton(
+                navigateToResultadoParte
+            )
         },
         colors = TextFieldDefaults.colors(
             focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -287,6 +295,7 @@ fun EntryForm(
             unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
             errorLabelColor = MaterialTheme.colorScheme.error,
             errorSupportingTextColor = MaterialTheme.colorScheme.error,
+            errorContainerColor = MaterialTheme.colorScheme.background
         ),
         modifier = modifier
             .fillMaxWidth()
@@ -301,10 +310,49 @@ fun EntryForm(
         supportingText = {
             if (errorSearch.value) Text(
                 text = "El campo no puede estar vacío",
-                fontSize = 15.sp
-            ) else Text(text = "")
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodyMedium
+            ) else Text(
+                text = "Ejemplo: Chevrolet Silverado 2500",
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     )
+}
+
+@Composable
+fun VoiceRecognitionButton(navigateToResultadoParte: (String, String) -> Unit) {
+    val context = LocalContext.current
+    val voiceRecognitionResult = remember { mutableStateOf("") }
+
+    val launcher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+                val matches = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                if (matches != null && matches.isNotEmpty()) {
+                    voiceRecognitionResult.value = matches[0]
+                    navigateToResultadoParte(voiceRecognitionResult.value, "B")
+                }
+            }
+        }
+
+    IconButton(onClick = {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH
+            )
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Diga, 1100")
+        }
+        launcher.launch(intent)
+    }) {
+        Icon(imageVector = Icons.Sharp.MicNone, contentDescription = "")
+    }
+
 }
 
 /*@Preview

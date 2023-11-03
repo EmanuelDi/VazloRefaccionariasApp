@@ -1,4 +1,4 @@
-package vazlo.refaccionarias.ui.screens.detallesParte
+package vazlo.refaccionarias.ui.screens.detallesNuevos
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -99,10 +99,13 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import kotlinx.coroutines.launch
 import vazlo.refaccionarias.R
+import vazlo.refaccionarias.data.model.Producto
 import vazlo.refaccionarias.data.model.ProductosResult
 import vazlo.refaccionarias.data.model.Sucursal
 import vazlo.refaccionarias.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
+import vazlo.refaccionarias.ui.screens.detallesParte.DetallesParteViewModel
+import vazlo.refaccionarias.ui.screens.detallesParte.ProductosUiState
 import vazlo.refaccionarias.ui.screens.resultadoPorPartes.ProductoCompartidoViewModel
 import vazlo.refaccionarias.ui.theme.Blanco
 import vazlo.refaccionarias.ui.theme.Negro
@@ -111,22 +114,23 @@ import vazlo.refaccionarias.ui.theme.VazloRefaccionariasTheme
 import vazlo.refaccionarias.ui.theme.Verde_Success
 
 
-object DetallesParteDestination : NavigationDestination {
-    override val route = "detalles-parte"
+object DetallesNuevoDestination : NavigationDestination {
+    override val route = "detalles-nuevo"
     const val criterioArg = "criterio"
     val routeWithArgs = "$route/{$criterioArg}"
 }
 
 @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
 @Composable
-fun DetallesParteScreen(
+fun DetallesNuevoScreen(
     modifier: Modifier = Modifier,
     navigateBack: () -> Unit,
-    navigateToSelf: (String) -> Unit,
+    navigateToDetallesParte: (String) -> Unit,
     navigateToHome: () -> Unit,
     navigateToCart: () -> Unit,
     dPViewModel: DetallesParteViewModel = viewModel(factory = AppViewModelProvider.Factory),
-    viewModelCompartido: ProductoCompartidoViewModel
+    viewModelCompartido: ProductoNuevoCompartiido,
+    productoCompartidoViewModel: ProductoCompartidoViewModel,
 ) {
 
     var showBottomSheet by remember {
@@ -145,19 +149,19 @@ fun DetallesParteScreen(
     var showAlertError by remember { mutableStateOf(false) }
 
     val prod = viewModelCompartido.getProducto()
-    val producto = rememberSaveable(saver = ProductosResult.Saver) {
+    val producto = rememberSaveable(saver = Producto.Saver) {
         mutableStateOf(prod).value
     }
 
     var url360 by remember { mutableStateOf("") }
 
-    val scope = rememberCoroutineScope()
+    var scope = rememberCoroutineScope()
 
-    dPViewModel.verificar360(producto.nombreSoporte!!)
+    dPViewModel.verificar360(producto.nombreArticulo!!)
 
-    LaunchedEffect(viewModelCompartido.getProducto().nombreSoporte) {
+    LaunchedEffect(viewModelCompartido.getProducto().nombreArticulo) {
         dPViewModel.get360()
-        url360 = dPViewModel.url360 + "?soporte=" + viewModelCompartido.getProducto().nombreSoporte
+        url360 = dPViewModel.url360 + "?soporte=" + viewModelCompartido.getProducto().nombreArticulo
         Log.i("360", url360)
     }
 
@@ -181,14 +185,14 @@ fun DetallesParteScreen(
                             .background(color = MaterialTheme.colorScheme.primary),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        (if (producto.linea?.isNotEmpty() == true) producto.linea else producto.cillitModSopId)?.let { itProd ->
-                            Text(
-                                text = itProd,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
+
+                        Text(
+                            text = producto.lineaPos!!,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+
                     }
                 }
                 DetalleParte(
@@ -197,6 +201,7 @@ fun DetallesParteScreen(
                     onClick = { openedDialog = !openedDialog },
                     url360 = url360
                 )
+
                 if (openedDialog)
                     DialogOpcionesCompra(
                         onDismiss = { openedDialog = !openedDialog },
@@ -207,6 +212,7 @@ fun DetallesParteScreen(
                         aCarrito = { agregar = true },
                         aBackOrder = { agregar = false }
                     )
+
                 BottomCantidad(
                     showBottomSheet = showBottomSheet,
                     cerrarBottomSheet = { showBottomSheet = false },
@@ -215,7 +221,7 @@ fun DetallesParteScreen(
                     cerrarOptions = { openedDialog = false },
                     showSucces = { showAlert = true },
                     showError = { showAlertError = true },
-                    backOption = { openedDialog = true }
+                    backOption = { openedDialog = true },
                 )
 
 
@@ -235,7 +241,6 @@ fun DetallesParteScreen(
                     showAlert = showAlertError,
                 )
 
-
                 when (dPViewModel.productosUiState) {
                     is ProductosUiState.Loading -> {
                         AltTable(mensaje = "Cargando")
@@ -248,8 +253,8 @@ fun DetallesParteScreen(
                         DetallesParteContent(
                             productos = productos,
                             viewModel = dPViewModel,
-                            navigateToSelf = navigateToSelf,
-                            viewModelCompartido = viewModelCompartido,
+                            navigateToSelf = navigateToDetallesParte,
+                            viewModelCompartido = productoCompartidoViewModel,
                             showBottomSheet = showBottomSheet,
                             cerrarBottomSheet = { showBottomSheet = false },
                             agregar = agregar
@@ -263,16 +268,6 @@ fun DetallesParteScreen(
                     else -> {}
                 }
             }
-//            BottomCantidad(
-//                showBottomSheet = showBottomSheet,
-//                onDissmiss = {  },
-//                agregar = agregar,
-//                viewModel = viewModel,
-//                onAgregar = { },
-//                producto = producto.nombreSoporte,
-//                sucursal = sucursal.nombre!!,
-//                idSucursal = sucursal.idSuc
-//            )
         }
     }
 }
@@ -412,8 +407,10 @@ fun OptionCompraItem(
             )
         }
     }
+
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MensajeAlert(onDismiss: () -> Unit, showAlert: Boolean, navigateToCart: () -> Unit) {
 
@@ -436,7 +433,7 @@ fun MensajeAlert(onDismiss: () -> Unit, showAlert: Boolean, navigateToCart: () -
                 }
             },
             title = { Text(text = "Aviso", color = Negro) },
-            text = { Text(text = "La operacion se completo con exito", color = Negro) },
+            text = { Text(text = "El producto se agregó a tu carrito", color = Negro) },
             icon = {
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
@@ -528,7 +525,7 @@ fun OptionItem(
         supportingContent = { Text(text = precioText) },
         trailingContent = {
             if (permisoCotizacion == "1") {
-                ActionCartButton(
+                vazlo.refaccionarias.ui.screens.detallesParte.ActionCartButton(
                     disponible = sucursal.existencia!!,
                     onCarrito = onClick,
                     onDismiss = onDismiss,
@@ -558,6 +555,7 @@ fun ActionCartButton(
     onBackorder: () -> Unit
 ) {
 
+
     if (disponible.toInt() > 0) {
         IconButton(onClick = {
             onCarrito()
@@ -576,7 +574,7 @@ fun ActionCartButton(
             ),
             modifier = modifier
         ) {
-            Text(text = "BackOrder", color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp)
+            Text(text = "BackOrder", color = MaterialTheme.colorScheme.onSurface, fontSize = 17.sp)
         }
     }
 
@@ -984,11 +982,12 @@ fun BottomCantidad(
 }
 
 
+
 // Recibe el objeto de la parte
 @Composable
 private fun DetalleParte(
     modifier: Modifier = Modifier,
-    producto: ProductosResult,
+    producto: Producto,
     detallesParteViewModel: DetallesParteViewModel,
     onClick: () -> Unit,
     url360: String
@@ -1014,20 +1013,15 @@ private fun DetalleParte(
                 modifier = modifier.padding(horizontal = 10.dp)
             ) {
                 Text(
-                    text = producto.nombreSoporte!!,
+                    text = producto.nombreArticulo!!,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.secondary,
                     fontSize = 17.sp
                 )
                 Text(
                     text = stringResource(
-                        R.string.desc_prod_resultados,
-                        producto.nombrePosicion!!,
-                        producto.nombreCilidraje!!,
-                        producto.nombreLitro!!,
-                        producto.aIni!!,
-                        producto.aFin!!,
-                        producto.descripcion!!
+                        R.string.desc_prod_resultados_nuevos,
+                        producto.lineaPos!!,
                     ),
                     fontWeight = FontWeight.Bold,
                     fontSize = 17.sp
@@ -1093,17 +1087,17 @@ private fun DetalleParte(
 @Composable
 private fun ImageParte(
     modifier: Modifier = Modifier,
-    producto: ProductosResult
+    producto: Producto
 ) {
     val show = remember { mutableStateOf(false) }
 
     AsyncImage(
         model = ImageRequest.Builder(context = LocalContext.current)
             .diskCachePolicy(CachePolicy.DISABLED)
-            .data(producto.urlSoporte)
+            .data(producto.foto)
             .crossfade(true).build(),
         error = painterResource(R.drawable.imagen),
-        placeholder = painterResource(R.drawable.download_file__1_),
+        placeholder = painterResource(R.drawable.imagen),
         contentDescription = producto.descripcion,
         contentScale = ContentScale.Crop,
         modifier = modifier
@@ -1122,7 +1116,7 @@ private fun ImageParte(
 @Composable
 private fun ImageDialog(
     modifier: Modifier = Modifier,
-    producto: ProductosResult,
+    producto: Producto,
     close: () -> Unit
 ) {
     var scale by remember { mutableFloatStateOf(1f) }
@@ -1175,7 +1169,7 @@ private fun ImageDialog(
                     AsyncImage(
                         model = ImageRequest.Builder(context = LocalContext.current)
                             .diskCachePolicy(CachePolicy.DISABLED)
-                            .data(producto.urlSoporte)
+                            .data(producto.foto)
                             .crossfade(true).build(),
                         error = painterResource(R.drawable.imagen),
                         placeholder = painterResource(R.drawable.imagen),
@@ -1353,22 +1347,16 @@ private fun DetallesParteContent(
             )
         }
     }
-
-
-
-
-
     if (showDialog.value) {
         ResultadosDialog(
             modifier = modifier,
             viewModel = viewModel,
             viewModelCompartido = viewModelCompartido,
             navigateToSelf = navigateToSelf,
-            producto = productoCurrent.value,
-            close = {
-                showDialog.value = false
-            }
-        )
+            producto = productoCurrent.value
+        ) {
+            showDialog.value = false
+        }
     }
 }
 
@@ -1421,14 +1409,10 @@ private fun ResultadosDialog(
                         text = "${producto!!.nombreMarca} ${producto.nombreModeloCarro}",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondary
+                        color = MaterialTheme.colorScheme.outline
                     )
                     IconButton(onClick = close) {
-                        /*Icon(
-                            painter = painterResource(id = R.drawable.close_icon),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSecondary
-                        )*/
+                        Icon(imageVector = Icons.Filled.Close, contentDescription = "", tint = MaterialTheme.colorScheme.outline)
                     }
                 }
                 Column {
@@ -1534,7 +1518,7 @@ private fun Productos(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-            .background(color = MaterialTheme.colorScheme.tertiary)
+            .background(color = MaterialTheme.colorScheme.surfaceVariant)
             .padding(10.dp)
     ) {
         Row(
@@ -1566,7 +1550,8 @@ private fun Productos(
                 Text(
                     text = producto.nombreSoporte!!,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.secondary
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontSize = 17.sp
                 )
                 Text(
                     text = stringResource(
@@ -1578,7 +1563,9 @@ private fun Productos(
                         producto.aFin!!,
                         producto.descripcion!!
                     ),
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                    color = Negro
                 )
             }
         }

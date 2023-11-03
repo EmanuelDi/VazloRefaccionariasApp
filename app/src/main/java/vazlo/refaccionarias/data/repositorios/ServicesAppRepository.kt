@@ -18,6 +18,8 @@ import vazlo.refaccionarias.data.model.Verificar360Response
 import kotlinx.serialization.json.JsonObject
 import retrofit2.Response
 import vazlo.refaccionarias.data.model.CargarMarcadoresClientesResponse
+import vazlo.refaccionarias.data.model.PromosResponse
+import vazlo.refaccionarias.data.model.Sucursal
 
 interface ServicesAppRepository {
     suspend fun login(url: String?, usuario: String, clave: String): Login
@@ -152,7 +154,7 @@ interface ServicesAppRepository {
         tipo: String
     ): ResultadoEmpresasResponse
 
-    suspend fun actulaziarCantidadProucto(
+    suspend fun actualizarCantidadProucto(
         url: String,
         idCte: String,
         cantidad: Int,
@@ -189,7 +191,8 @@ interface ServicesAppRepository {
         cilindraje: String,
         litros: String,
         anioInicial: String,
-        anioFinal: String
+        anioFinal: String,
+        idCte: String
     ): ResultadoPartes
 
     suspend fun verificar360(url: String, soporte: String): Verificar360Response
@@ -201,6 +204,11 @@ interface ServicesAppRepository {
 
     suspend fun getMarcadores(url: String, lat: Double, long: Double): CargarMarcadoresClientesResponse
 
+    suspend fun getPromos(url: String, idUser: String): PromosResponse
+
+    suspend fun agregarBackOrder(url: String, idCte: String, nomsop: String, cant: Int, sucursal: String): Response<JsonObject>
+
+    suspend fun bajarNotificacion(url: String, id: String): Response<JsonObject>
 }
 
 class NetServicesApp(
@@ -374,13 +382,13 @@ class NetServicesApp(
         return servicesApp.getEmpresas(url, litros, cilindraje, anio, modelo, marca, usuario, tipo)
     }
 
-    override suspend fun actulaziarCantidadProucto(
+    override suspend fun actualizarCantidadProucto(
         url: String,
         idCte: String,
         cantidad: Int,
         nomsop: String
     ): Response<JsonObject> {
-        return servicesApp.actulaziarCantidadProucto(url, idCte, cantidad, nomsop)
+        return servicesApp.actualizarCantidadProucto(url, idCte, cantidad, nomsop)
     }
 
     override suspend fun eliminarProdCarrito(url: String, idCte: String, soporte: String): Response<JsonObject> {
@@ -414,9 +422,10 @@ class NetServicesApp(
         cilindraje: String,
         litros: String,
         anioInicial: String,
-        anioFinal: String
+        anioFinal: String,
+        idCte: String
     ): ResultadoPartes {
-        return servicesApp.getSugeridoGuias(url, marca, modelo, cilindraje, litros, anioInicial, anioFinal)
+        return servicesApp.getSugeridoGuias(url, marca, modelo, cilindraje, litros, anioInicial, anioFinal, idCte)
     }
 
     override suspend fun verificar360(url: String, soporte: String): Verificar360Response {
@@ -437,6 +446,18 @@ class NetServicesApp(
 
     override suspend fun getMarcadores(url: String, lat: Double, long: Double): CargarMarcadoresClientesResponse {
         return servicesApp.getMarcadores(url,  lat, long)
+    }
+
+    override suspend fun getPromos(url: String, idUser: String): PromosResponse {
+        return servicesApp.getPromos(url, idUser)
+    }
+
+    override suspend fun agregarBackOrder(url: String, idCte: String, nomsop: String, cant: Int, sucursal: String): Response<JsonObject> {
+        return servicesApp.subirABackorder(url, idCte, nomsop, cant, sucursal)
+    }
+
+    override suspend fun bajarNotificacion(url: String, id: String): Response<JsonObject> {
+        return servicesApp.darBajaNotificaciones(url, id)
     }
 }
 

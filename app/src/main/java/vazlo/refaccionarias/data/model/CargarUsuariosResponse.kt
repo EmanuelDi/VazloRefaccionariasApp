@@ -11,6 +11,6 @@ data class CargarUsuariosResponse(
     @SerialName("mensaje")
     val mensaje: String,
     @SerialName("Info_Usuarios")
-    val infoUsuarios: List<Usuario>
+    val infoUsuarios: MutableList<Usuario>
 
 )

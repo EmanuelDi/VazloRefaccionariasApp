@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.DoNotDisturbOn
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.CardDefaults
@@ -47,6 +48,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,10 +61,15 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.data.model.Permisos
 import vazlo.refaccionarias.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
+import vazlo.refaccionarias.ui.theme.Gris_Vazlo
+import vazlo.refaccionarias.ui.theme.Negro
+import vazlo.refaccionarias.ui.theme.Rojo_Vazlo
+import vazlo.refaccionarias.ui.theme.Verde_Success
 
 
 object PermisosDestination : NavigationDestination {
@@ -77,6 +84,14 @@ fun PermisosScreen(
     modifier: Modifier = Modifier, navigateBack: () -> Unit,
     permisosViewModel: PermisosViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+
+    val scope = rememberCoroutineScope()
+    var showSuccess by remember {
+        mutableStateOf(false)
+    }
+    var showError by remember {
+        mutableStateOf(false)
+    }
     var fabHeight by remember { mutableIntStateOf(0) }
     Scaffold(
         topBar = { TopBarPedidos(navigateBack = navigateBack) },
@@ -84,8 +99,16 @@ fun PermisosScreen(
             FloatingActionButton(
                 modifier = Modifier.onGloballyPositioned {
                     fabHeight = it.size.height
-                }, onClick = { permisosViewModel.actualizarPermisos() }) {
-                Icon(imageVector = Icons.Filled.Check, contentDescription = "")
+                }, onClick = {
+                    scope.launch {
+                        if (permisosViewModel.actualizarPermisos()) {
+                            showSuccess = true
+                        } else {
+                            showError = true
+                        }
+                    }
+                }) {
+                Icon(imageVector = Icons.Filled.Check, contentDescription = "", tint = MaterialTheme.colorScheme.outline)
             }
         },
         floatingActionButtonPosition = FabPosition.End
@@ -113,7 +136,10 @@ fun PermisosScreen(
             ListaPermisos(permisosViewModel = permisosViewModel, fabHeight = fabHeight)
         }
     }
+    SuccessMessage(onDismiss = { showSuccess = false }, showDialog = showSuccess , mensaje = "Permisos Actualizados")
+    ErrorMessage(onDismiss = { showError = false }, showDialog = showError, mensaje = "Ocurrio un erro al actualizar")
 }
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -226,7 +252,8 @@ fun PermisoCard(
                 ) {
                     Text(
                         text = stringResource(id = permiso.infExtra!!),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Negro
                     )
                 }
             }
@@ -245,7 +272,9 @@ private fun TituloPermiso(permiso: Permisos, modifier: Modifier = Modifier) {
         Text(
             text = stringResource(id = permiso.title!!),
             style = MaterialTheme.typography.bodyMedium,
-            softWrap = true
+            softWrap = true,
+            color = Negro,
+
         )
     }
 }
@@ -263,7 +292,13 @@ private fun PedidoSwitch(checked: MutableState<Boolean>) {
             )
         }
     } else {
-        null
+        {
+            Icon(
+                imageVector = Icons.Filled.DoNotDisturbOn,
+                contentDescription = null,
+                modifier = Modifier.size(SwitchDefaults.IconSize),
+            )
+        }
     }
     Switch(
         modifier = Modifier.semantics { contentDescription = "Demo with icon" },
@@ -271,7 +306,13 @@ private fun PedidoSwitch(checked: MutableState<Boolean>) {
         onCheckedChange = { isChecked ->
             checked.value = isChecked
         },
-        thumbContent = icon
+        thumbContent = icon,
+        colors = SwitchDefaults.colors(
+            checkedThumbColor = Verde_Success,
+            checkedTrackColor = Gris_Vazlo,
+            uncheckedThumbColor = Rojo_Vazlo,
+            uncheckedTrackColor = Gris_Vazlo,
+        )
     )
 }
 

@@ -2,10 +2,13 @@ package vazlo.refaccionarias.ui.screens.notificaciones
 
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import androidx.annotation.RequiresExtension
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -16,11 +19,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DismissDirection
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -29,12 +36,15 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDismissState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -42,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.data.model.Mensaje
+import vazlo.refaccionarias.data.model.mensajesPrueba
 import vazlo.refaccionarias.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
 import vazlo.refaccionarias.ui.theme.Azul_Vazlo
@@ -75,11 +86,12 @@ fun NotificacionesScreen(
                     LoadingScreen()
                 }
                 is NotificacionesUiState.Success -> {
-                    val productos =
+                    val mensajes =
                         (notificacionesViewModel.notificacionesUiState as NotificacionesUiState.Success).productos
-                    /*Log.i("sos1", "Encontrados: ${productos.size}")*/
+                    Log.i("sos1", "Encontrados: ${mensajes.size}")
                     ContentNot(
-                        mensajes = productos
+                        mensajes = mensajesPrueba,
+                        notificacionesViewModel = notificacionesViewModel
                     )
                 }
                 is NotificacionesUiState.Error -> {
@@ -115,59 +127,103 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContentNot(
     modifier: Modifier = Modifier,
     mensajes: List<Mensaje>,
+    notificacionesViewModel: NotificacionesViewModel
 ) {
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
-        verticalArrangement = Arrangement.spacedBy(15.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-
         ) {
+
         items(mensajes) { mensaje ->
-            Message(mensaje = mensaje)
-            HorizontalDivider(modifier.fillMaxWidth(), color = Azul_Vazlo)
+            val dismissState = rememberDismissState()
+            if (dismissState.isDismissed(DismissDirection.EndToStart)) {
+                notificacionesViewModel.darBajaNotificacion(mensaje.id)
+            }
+            if (dismissState.isDismissed(DismissDirection.StartToEnd)) {
+                notificacionesViewModel.darBajaNotificacion(mensaje.id)
+            }
+
+            SwipeToDismiss(
+                state = dismissState,
+                directions = setOf(DismissDirection.EndToStart, DismissDirection.StartToEnd),
+                background = {
+                    val color = MaterialTheme.colorScheme.surface
+                    Card(shape = RoundedCornerShape(10.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(color)
+                                .padding(8.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete",
+                                tint = Color.White,
+                                modifier = modifier.align(Alignment.CenterEnd)
+                            )
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete",
+                                tint = Color.White,
+                                modifier = modifier.align(Alignment.CenterStart)
+                            )
+                        }
+                    }
+                },
+                dismissContent = {
+                    Message(mensaje = mensaje, eliminar = {notificacionesViewModel.darBajaNotificacion(mensaje.id)})
+                },
+                modifier = modifier.padding(10.dp)
+            )
+
+            HorizontalDivider(modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surfaceVariant, thickness = 5.dp)
         }
     }
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Message(modifier: Modifier = Modifier, mensaje: Mensaje) {
-    ListItem(
-        overlineContent = {
-            Text(
-                text = mensaje.titulo,
-                style = MaterialTheme.typography.titleLarge
+fun Message(modifier: Modifier = Modifier, mensaje: Mensaje, eliminar: () -> Unit) {
+    Card(shape = RoundedCornerShape(5.dp)) {
+        ListItem(
+            overlineContent = {
+                Text(
+                    text = mensaje.titulo,
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            headlineContent = {
+                Text(
+                    text = mensaje.mensaje,
+                    style = MaterialTheme.typography.headlineSmall
+                )
+            },
+            trailingContent = {
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(imageVector = Icons.Default.Clear, contentDescription = "")
+                }
+            },
+            colors = ListItemColors(
+                containerColor = Azul_Vazlo,
+                headlineColor = Blanco,
+                leadingIconColor = Blanco,
+                overlineColor = Blanco,
+                supportingTextColor = Blanco,
+                trailingIconColor = Blanco,
+                disabledTrailingIconColor = Blanco,
+                disabledLeadingIconColor = Blanco,
+                disabledHeadlineColor = Blanco
             )
-        },
-        headlineContent = {
-            Text(
-                text = mensaje.mensaje,
-                style = MaterialTheme.typography.headlineSmall
-            )
-        },
-        trailingContent = {
-            IconButton(onClick = { /*TODO*/ }) {
-                Icon(imageVector = Icons.Default.Clear, contentDescription = "")
-            }
-        },
-        colors = ListItemColors(
-            containerColor = Azul_Vazlo,
-            headlineColor = Blanco,
-            leadingIconColor = Blanco,
-            overlineColor = Blanco,
-            supportingTextColor = Blanco,
-            trailingIconColor = Blanco,
-            disabledTrailingIconColor = Blanco,
-            disabledLeadingIconColor = Blanco,
-            disabledHeadlineColor = Blanco
         )
-    )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

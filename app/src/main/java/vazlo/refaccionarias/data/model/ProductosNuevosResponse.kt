@@ -7,17 +7,17 @@ import vazlo.refaccionarias.data.model.Producto
 @Serializable
 data class ProductosNuevosResponse(
     @SerialName("permiso_precio")
-    val permisoPrecio: Int,
+    val permisoPrecio: Int? = 0,
     @SerialName("permiso_existencia")
-    val permisoExistencia: Int,
+    val permisoExistencia: Int? = 0,
     @SerialName("permiso_cotizacion")
-    val permisoCotizacion: Int,
+    val permisoCotizacion: Int? = 0,
     @SerialName("cedis")
     val cedis: String,
     @SerialName("clientes")
     val clientes: List<Producto>,
     @SerialName("estado")
-    val estado: Int,
+    val estado: Int? = 0,
     @SerialName("mensaje")
-    val mensaje: String
+    val mensaje: String? = ""
 )

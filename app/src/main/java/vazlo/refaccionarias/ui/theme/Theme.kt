@@ -29,7 +29,9 @@ private val DarkColors = darkColorScheme(
     outline = Blanco,
     outlineVariant = Blanco,
     background = Blanco,
-    error = Rojo_Vazlo
+    error = Rojo_Vazlo,
+    inversePrimary = Amarillo_Vazlo,
+    onPrimary = Blanco
 )
 
 private val LightColors = lightColorScheme(
@@ -46,7 +48,9 @@ private val LightColors = lightColorScheme(
     outline = Blanco,
     outlineVariant = Blanco,
     background = Blanco,
-    error = Rojo_Vazlo
+    error = Rojo_Vazlo,
+    inversePrimary = Amarillo_Vazlo,
+    onPrimary = Blanco
 )
 
 @Composable

@@ -12,7 +12,9 @@ import vazlo.refaccionarias.local.Sesion
 import vazlo.refaccionarias.ui.screens.usuarios_y_permisos.PermisosDestination
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
+import vazlo.refaccionarias.data.model.ProductosResult
 
 class PermisosViewModel(
     savedStateHandle: SavedStateHandle,
@@ -75,24 +77,23 @@ class PermisosViewModel(
         verificarPermisos()
     }
 
-    fun actualizarPermisos() {
-        viewModelScope.launch {
-            val url = sesion.getUrlActualizarPermisos.first()
-            val response = servicesAppRepository.actualizarPermisos(
-                url = url,
-                idCte = itemId,
-                if (checkedPrecio.value) 1 else 0,
-                if (checkedExistencias.value) 1 else 0,
-                if (checkedPedido.value) 1 else 0,
-                if (checkedCapturaRapida.value) 1 else 0,
-                if (checkedCargarArchivo.value) 1 else 0,
-                if (checkedCotizacion.value) 1 else 0,
-                if (checkedCotizarCarrito.value) 1 else 0,
-                if (checkedHistorial.value) 1 else 0
-            )
-            val datosOb = response.body()!!
-            Log.i("permisoUpdate", datosOb["mensaje"]?.jsonPrimitive?.content ?: "")
-        }
+    suspend fun actualizarPermisos(): Boolean {
+        val url = sesion.getUrlActualizarPermisos.first()
+        val response = servicesAppRepository.actualizarPermisos(
+            url = url,
+            idCte = itemId,
+            if (checkedPrecio.value) 1 else 0,
+            if (checkedExistencias.value) 1 else 0,
+            if (checkedPedido.value) 1 else 0,
+            if (checkedCapturaRapida.value) 1 else 0,
+            if (checkedCargarArchivo.value) 1 else 0,
+            if (checkedCotizacion.value) 1 else 0,
+            if (checkedCotizarCarrito.value) 1 else 0,
+            if (checkedHistorial.value) 1 else 0
+        )
+        val datosOb = response.body()!!
+        return datosOb["estado"]?.jsonPrimitive?.int == 1
+
     }
 
     fun verificarPermisos() {

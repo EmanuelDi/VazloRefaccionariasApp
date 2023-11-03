@@ -1,6 +1,15 @@
 package vazlo.refaccionarias.ui.screens.soporteTecnico
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -8,6 +17,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,12 +29,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +42,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,31 +50,34 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.compose.ui.unit.sp
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.theme.VazloRefaccionariasTheme
 
 
 object SoporteTecnicoDestination : NavigationDestination {
-    override val route = "soporte_tecnico"
-    /*override val titleRes = R.string.item_entry_title*/
+    override val route = "soporte-tecnico"
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun SoporteTecnicoScreen(modifier: Modifier = Modifier, navController: NavController) {
+fun SoporteTecnicoScreen(
+    modifier: Modifier = Modifier, navigateBack: () -> Unit
+) {
     VazloRefaccionariasTheme {
-        Scaffold(topBar = {
-            SoporteTecnicoTopBar(modifier, navController)
-        }) {
+        Scaffold(
+            topBar = {
+                SoporteTecnicoTopBar(modifier, navigateBack)
+            },
+            containerColor = MaterialTheme.colorScheme.background
+        ) {
             Column(modifier = modifier.padding(it)) {
                 Surface(color = MaterialTheme.colorScheme.primary) {
                     Row(
@@ -77,7 +90,7 @@ fun SoporteTecnicoScreen(modifier: Modifier = Modifier, navController: NavContro
                         Text(
                             text = stringResource(R.string.soporte_t_cnico),
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onPrimary,
+                            color = MaterialTheme.colorScheme.outline,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -89,11 +102,11 @@ fun SoporteTecnicoScreen(modifier: Modifier = Modifier, navController: NavContro
 }
 
 @Composable
-fun Content(modifier: Modifier = Modifier) {
+private fun Content(modifier: Modifier = Modifier) {
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.onPrimary)
+            .background(MaterialTheme.colorScheme.background)
             .padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(15.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -101,8 +114,8 @@ fun Content(modifier: Modifier = Modifier) {
         ) {
         //type: true equals full width
 
-        item{
-            Column(verticalArrangement = Arrangement.spacedBy(20.dp)){
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 SoporteCard(
                     title = "Atención a cliente",
                     name = "Virginia Cruz",
@@ -138,7 +151,9 @@ fun Content(modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SoporteTecnicoTopBar(modifier: Modifier, navController: NavController) {
+private fun SoporteTecnicoTopBar(
+    modifier: Modifier, navigateBack: () -> Unit
+) {
     TopAppBar(title = {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -152,33 +167,28 @@ fun SoporteTecnicoTopBar(modifier: Modifier, navController: NavController) {
             Text(
                 text = stringResource(R.string.refaccionarias),
                 fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.outline
             )
         }
     }, actions = {
-        IconButton(onClick = { navController.popBackStack()}) {
+        IconButton(onClick = navigateBack) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                imageVector = Icons.Default.ArrowBack,
                 contentDescription = "",
                 modifier = modifier.size(30.dp),
-                tint = MaterialTheme.colorScheme.onPrimary
+                tint = MaterialTheme.colorScheme.outline
             )
-        }/*IconButton(onClick = { *//*TODO*//* }) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = ""
-                )
-            }*/
+        }
 
-    },
-        colors = topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.secondary
-        )
+    }, colors = TopAppBarDefaults.topAppBarColors(
+        containerColor = MaterialTheme.colorScheme.secondary
+    )
     )
 }
 
 //Tiene que recibir un obj
 @Composable
-fun SoporteCard(
+private fun SoporteCard(
     modifier: Modifier = Modifier,
     title: String,
     name: String,
@@ -186,18 +196,36 @@ fun SoporteCard(
     phone: String,
     whatsapp: String
 ) {
+    val context = LocalContext.current
+    val dialPhoneLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
+            // Este código se ejecutará después de que el usuario haya completado la acción en la aplicación de teléfono.
+        }
+    val mailLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+
+        }
+
+    val openWhatsAppLauncher: ManagedActivityResultLauncher<Intent, ActivityResult> =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartActivityForResult()
+        ) { _ ->
+            // Aquí puedes manejar el resultado si es necesario
+        }
+
     var expanded by remember { mutableStateOf(false) }
     val color by animateColorAsState(
-        targetValue = if (expanded) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+        targetValue = if (expanded) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceVariant,
         label = "",
     )
-    Card {
+    Card(
+
+    ) {
         Column(
             Modifier
                 .animateContentSize(
                     animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessLow
+                        dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow
                     )
                 )
                 .background(color = color)
@@ -212,11 +240,14 @@ fun SoporteCard(
                     Text(
                         text = title,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.secondary
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontSize = 17.sp
                     )
                     Text(
                         text = name,
-                        fontWeight = FontWeight.Bold
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 17.sp
                     )
                 }
 
@@ -226,46 +257,64 @@ fun SoporteCard(
             }
 
             if (expanded) {
-                HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 15.dp),
+                Divider(
+                    color = MaterialTheme.colorScheme.onTertiary,
                     thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.onTertiary
+                    modifier = Modifier.padding(horizontal = 15.dp)
                 )
                 Column(
                     modifier = Modifier.padding(horizontal = 15.dp, vertical = 10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    if (mail.isNotEmpty()){
+                    if (mail.isNotEmpty()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Image(
-                                painter = painterResource(id = R.drawable.mail_icon),
+                            Image(painter = painterResource(id = R.drawable.mail_icon),
                                 contentDescription = "",
                                 modifier = modifier
                                     .padding(end = 10.dp)
                                     .size(38.dp)
-                            )
+                                    .clickable {
+                                        val clipboard =
+                                            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                        val clip = ClipData.newPlainText("", mail)
+                                        clipboard.setPrimaryClip(clip)
+                                        val intent = Intent(Intent.ACTION_VIEW)
+                                        intent.data = Uri.parse("mailto:?subject=$mail")
+                                        mailLauncher.launch(intent)
+                                    })
                             Text(
                                 text = mail,
-                                textAlign = TextAlign.Justify
+                                color = MaterialTheme.colorScheme.onTertiary,
+                                textAlign = TextAlign.Justify,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 17.sp
                             )
                         }
                     }
-                    if (phone.isNotEmpty()){
+
+                    if (phone.isNotEmpty()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Image(
-                                painter = painterResource(id = R.drawable.llamada_icon),
+                            Image(painter = painterResource(id = R.drawable.llamada_icon),
                                 contentDescription = "",
                                 modifier = modifier
                                     .padding(end = 10.dp)
                                     .size(38.dp)
-                            )
+                                    .clickable {
+                                        val intent = Intent(Intent.ACTION_DIAL)
+                                        intent.data =
+                                            Uri.parse("tel:$phone") // Reemplaza esto con el número de teléfono deseado
+                                        dialPhoneLauncher.launch(intent)
+                                    })
                             Text(
                                 text = phone,
-                                textAlign = TextAlign.Justify
+                                color = MaterialTheme.colorScheme.onTertiary,
+                                textAlign = TextAlign.Justify,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 17.sp
                             )
                         }
                     }
-                    if (whatsapp.isNotEmpty()){
+                    if (whatsapp.isNotEmpty()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Image(
                                 painter = painterResource(id = R.drawable.whatsapp_icon),
@@ -273,10 +322,27 @@ fun SoporteCard(
                                 modifier = modifier
                                     .padding(end = 10.dp)
                                     .size(38.dp)
+                                    .clickable {
+                                        val message =
+                                            "Soy el mecánico. Necesito ayuda en la aplicación Vazlo Mecánicos" // Puedes dejar esto en blanco si no deseas un mensaje predefinido
+                                        val uri = Uri.parse(
+                                            "https://wa.me/$phone/?text=${
+                                                Uri.encode(message)
+                                            }"
+                                        )
+
+                                        val whatsappIntent = Intent(Intent.ACTION_VIEW, uri)
+
+                                        // Inicia la actividad de WhatsApp
+                                        openWhatsAppLauncher.launch(whatsappIntent)
+                                    }
                             )
                             Text(
                                 text = whatsapp,
-                                textAlign = TextAlign.Justify
+                                color = MaterialTheme.colorScheme.onTertiary,
+                                textAlign = TextAlign.Justify,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 17.sp
                             )
                         }
                     }
@@ -289,28 +355,13 @@ fun SoporteCard(
 
 @Composable
 private fun ExpandedButton(
-    expanded: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    expanded: Boolean, onClick: () -> Unit
 ) {
     IconButton(onClick = onClick) {
         Icon(
             imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-            contentDescription = "Expandir",
-            modifier = modifier
+            tint = MaterialTheme.colorScheme.onTertiary,
+            contentDescription = "Expandir"
         )
     }
 }
-
-/*@RequiresApi(Build.VERSION_CODES.O)
-@Preview
-@Composable
-fun SoporteTecnicoPreview() {
-    RefaccionariasTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            SoporteTecnicoScreen()
-        }
-    }
-}*/

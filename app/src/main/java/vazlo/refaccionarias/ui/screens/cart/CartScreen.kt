@@ -33,6 +33,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DoNotDisturbAlt
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -56,11 +58,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberPlainTooltipState
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -71,6 +77,7 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
@@ -80,26 +87,30 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.PopupPositionProvider
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.data.model.ProductoCart
 import vazlo.refaccionarias.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
-import vazlo.refaccionarias.ui.screens.cart.CarritoUiState
-import vazlo.refaccionarias.ui.screens.cart.CartViewModel
+import vazlo.refaccionarias.ui.screens.home.LoadingScreen
 import vazlo.refaccionarias.ui.screens.resultadoPorPartes.AltScreen
 import vazlo.refaccionarias.ui.theme.Blanco
 import vazlo.refaccionarias.ui.theme.Negro
 import vazlo.refaccionarias.ui.theme.Rojo_Vazlo
 import vazlo.refaccionarias.ui.theme.Verde_Success
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 
 
 object CartDestination : NavigationDestination {
@@ -137,6 +148,7 @@ fun CartScreen(
     val window = (view.context as Activity).window
     WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = showBottomSheet
 
+    var fabHeight by remember { mutableIntStateOf(0) }
     Scaffold(
         topBar = { CartTopBar(navigateBack = navigateBack) },
         bottomBar = { },
@@ -145,28 +157,58 @@ fun CartScreen(
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = modifier.fillMaxWidth()
             ) {
-                FloatingActionButton(
-                    onClick = { showVaciarDialog = true },
-                    containerColor = MaterialTheme.colorScheme.surface
-                ) {
+                if (carritoViewModel.permisoCotizacion == "1") {
+                    FloatingActionButton(
+                        onClick = { showVaciarDialog = true },
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        modifier = modifier.onGloballyPositioned {
+                            fabHeight = it.size.height
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Clear,
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                } else {
                     Icon(
-                        imageVector = Icons.Filled.Clear,
+                        imageVector = Icons.Filled.DoNotDisturbAlt,
                         contentDescription = "",
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = modifier.size(30.dp)
                     )
                 }
                 FloatingActionButton(onClick = { navigateToBusquedaParte() }) {
                     Icon(
                         imageVector = Icons.Filled.Add,
                         contentDescription = "",
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = modifier.onGloballyPositioned {
+                            fabHeight = it.size.height
+                        }
                     )
                 }
-                FloatingActionButton(onClick = { showEnviarDialog = true }, containerColor = Verde_Success) {
+                if (carritoViewModel.permisoHacerPedido == "1") {
+                    FloatingActionButton(
+                        onClick = { showEnviarDialog = true },
+                        containerColor = Verde_Success,
+                        modifier = modifier.onGloballyPositioned {
+                            fabHeight = it.size.height
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                } else {
                     Icon(
-                        imageVector = Icons.Filled.Check,
+                        imageVector = Icons.Filled.DoNotDisturbAlt,
                         contentDescription = "",
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = modifier.size(30.dp)
                     )
                 }
             }
@@ -181,7 +223,7 @@ fun CartScreen(
                 }
             }
         }
-        if (showEnviarDialog == true) {
+        if (showEnviarDialog) {
             EnviarDialog(
                 onDismiss = { showEnviarDialog = false },
                 onClick = {
@@ -458,7 +500,7 @@ fun CartScreen(
             }
             when (carritoViewModel.carritoUiState) {
                 is CarritoUiState.Loading -> {
-                    AltScreen(modifier = modifier, texto = "Cargando")
+                   LoadingScreen()
                 }
 
                 is CarritoUiState.Success -> {
@@ -481,10 +523,11 @@ fun CartScreen(
                         )
                     }
                 }
-
                 is CarritoUiState.Error -> {
                     AltScreen(modifier = modifier, texto = "Error al cargar")
                 }
+
+                else -> {}
             }
         }
     }
@@ -600,7 +643,7 @@ fun VaciarDialog(onDismiss: () -> Unit, onClick: () -> Job) {
             }
         },
         title = { Text(text = "¿Estas seguro?", color = Negro) },
-        text = { Text(text = "Se eliminaran todos los producto del carrito", color = Negro) },
+        text = { Text(text = "Se eliminaran todos los productos del carrito", color = Negro) },
         containerColor = MaterialTheme.colorScheme.onSurface
     )
 }
@@ -659,9 +702,29 @@ fun ProductList(
     viewModel: CartViewModel,
     scope: CoroutineScope
 ) {
+
+    var showAlertNoDisp by remember {
+        mutableStateOf(false)
+    }
+
     val productsGroup = productList.groupBy {
         it.nombreSoporte.substringAfter("(").substringBefore(")")
     }
+
+    val hayNoDisponibles = productList.filter {
+        it.cantidad == "NO DISPONIBLE"
+    }
+
+
+    if (hayNoDisponibles.isNotEmpty()) {
+        LaunchedEffect(key1 = "", block = { scope.launch { viewModel.cargarCarrito() } })
+        showAlertNoDisp = true
+    }
+
+    if (showAlertNoDisp) {
+        AlertNoDisp { showAlertNoDisp = false }
+    }
+
     LazyColumn(
         modifier.height(480.dp),
         contentPadding = PaddingValues(horizontal = 20.dp)
@@ -707,6 +770,33 @@ fun ProductList(
 }
 
 @Composable
+fun AlertNoDisp(onDismiss: () -> Unit) {
+    AlertDialog(
+        title = { Text(text = "Alerta") },
+        icon = {
+            Icon(
+                imageVector = Icons.Filled.Error,
+                contentDescription = "",
+                tint = Rojo_Vazlo
+            )
+        },
+        text = {
+            Text(
+                text = "Algunos productos de tu carrito dejaron de estar disponibles y fueron removidos",
+                textAlign = TextAlign.Center,
+                fontSize = 20.sp
+            )
+        },
+        onDismissRequest = { onDismiss() },
+        confirmButton = {
+            TextButton(onClick = { onDismiss() }) {
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    )
+}
+
+@Composable
 fun ItemProduct(
     producto: ProductoCart,
     modifier: Modifier = Modifier,
@@ -733,25 +823,40 @@ fun ItemProduct(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 ImageProduct(imageId = producto.url)
-                IncrementInput(
-                    modifier,
-                    cantidad = producto.cantidad,
-                    onClick = onClick,
-                    onInputClick = {
-                        viewModel.onSelectProducto(
-                            producto.nombreSoporte
-                        )
-                    },
-                )
-            }
-            Spacer(modifier = modifier.width(20.dp))
-            InfoProduct(id = producto.nombreSoporte, precio = producto.precio) {
-                scope.launch {
-                    if (viewModel.eliminarProd(producto.nombreSoporte)) {
-                        viewModel.cargarCarrito()
-                    }
+                if (viewModel.permisoCotizacion == "1") {
+                    IncrementInput(
+                        modifier,
+                        cantidad = producto.cantidad,
+                        onClick = onClick,
+                        onInputClick = {
+                            viewModel.onSelectProducto(
+                                producto.nombreSoporte
+                            )
+                        },
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Filled.DoNotDisturbAlt,
+                        contentDescription = "",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = modifier.size(30.dp)
+                    )
                 }
             }
+            Spacer(modifier = modifier.width(20.dp))
+
+            InfoProduct(
+                id = producto.nombreSoporte,
+                precio = producto.precio,
+                onClick = {
+                    scope.launch {
+                        if (viewModel.eliminarProd(producto.nombreSoporte)) {
+                            viewModel.cargarCarrito()
+                        }
+                    }
+                },
+                carritoViewModel = viewModel
+            )
         }
     }
 }
@@ -829,7 +934,7 @@ fun ImageProduct( imageId: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun InfoProduct(id: String, precio: String, onClick: () -> Job) {
+fun InfoProduct(id: String, precio: String, onClick: () -> Job, carritoViewModel: CartViewModel) {
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
@@ -837,39 +942,50 @@ fun InfoProduct(id: String, precio: String, onClick: () -> Job) {
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Text(
-                text = stringResource(id = R.string.product_text),
+                text = stringResource(id = R.string.product_text, id.substringBefore("(")),
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = id.substringBefore("("),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 17.sp
+
             )
         }
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            Text(
-                text = stringResource(id = R.string.precio_text),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = precio,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            if (carritoViewModel.permisoPrecio == "1") {
+                Text(
+                    text = stringResource(id = R.string.precio_text, precio),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 17.sp
+                )
+            } else {
+                Text(
+                    text = "Precio: Sin Permiso",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 17.sp
+                )
+            }
         }
-        TextButton(
-            onClick = { onClick() }
-        ) {
-            Text(
-                text = stringResource(R.string.eliminar),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.secondaryContainer
+        if (carritoViewModel.permisoCotizacion == "1") {
+            TextButton(
+                onClick = { onClick() }
+            ) {
+                Text(
+                    text = stringResource(R.string.eliminar),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.secondaryContainer
+                )
+            }
+        } else {
+            Icon(
+                imageVector = Icons.Filled.DoNotDisturbAlt,
+                contentDescription = "",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(30.dp)
             )
         }
     }

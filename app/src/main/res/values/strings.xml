@@ -1,15 +1,15 @@
 <resources>
-    <string name="app_name">Vazlo Refaccionarias</string>
+    <string name="app_name">Refaccionarias</string>
     <string name="usuario">Usuario</string>
-    <string name="contrasena">Contrasena</string>
-    <string name="recuperar_contrasena">Recuperar\nContrasena</string>
-    <string name="recuperar_contrasena_grande">Recuperar Contrasena</string>
+    <string name="contrasena">Contraseña</string>
+    <string name="recuperar_contrasena">Recuperar\nContraseña</string>
+    <string name="recuperar_contrasena_grande">Recuperar Contraseña</string>
     <string name="registrarse">Registrarse</string>
-    <string name="bienvenido">Bienvenido</string>
+    <string name="bienvenido">Bienvenido a Vazlo Refaccionarias</string>
     <string name="iniciar_sesion">Iniciar Sesion</string>
     <string name="eliminar">Eliminar</string>
-    <string name="product_text">Producto: </string>
-    <string name="precio_text">Precio Unitario:</string>
+    <string name="product_text">Producto: %1$s</string>
+    <string name="precio_text">Precio Unitario: %1$s</string>
     <string name="productos">Productos(%1$d)</string>
     <string name="subtotal">"Subtotal: "</string>
     <string name="iva">"IVA 16%: "</string>
@@ -65,7 +65,7 @@
     <string name="agendar">Agendar</string>
     <string name="agendar_servicio">Agendar servicio</string>
     <string name="fecha_de_servicio">Fecha de servicio</string>
-    <string name="cliente">Cliente</string>
+    <string name="cliente">Cliente: %1$s</string>
     <string name="veh_culo">Vehículo</string>
     <string name="descripci_n">Descripción</string>
     <string name="selecciona_una_fecha">Selecciona una fecha</string>
@@ -106,14 +106,15 @@
     <string name="ver_opciones">Ver opciones</string>
 
     <string name="usuarios">Usuarios</string>
-    <string name="usuario2">Usuario: </string>
-    <string name="nombre">Nombre:  </string>
-    <string name="correo">Correo:  </string>
-    <string name="domicilio">Domicilio: </string>
-    <string name="poblacion">Poblacion: </string>
-    <string name="correo_alternativo">Correo Alternativo: </string>
+    <string name="usuario2">Usuario: %1$s </string>
+    <string name="nombre">Nombre: %1$s </string>
+    <string name="correo">Correo:  %1$s</string>
+    <string name="domicilio">Domicilio: %1$s</string>
+    <string name="poblacion">Poblacion: %1$s</string>
+    <string name="correo_alternativo">Correo Alternativo: %1$s</string>
     <string name="no_se_ha_iniciado">No se ha podido iniciar sesión</string>
     <string name="desc_prod_resultados">%1$s\n%2$s %3$s\n%4$s - %5$s\n%6$s</string>
+    <string name="desc_prod_resultados_nuevos">%1$s</string>
     <string name="cantidad">"Cantidad: "</string>
     <string name="cargando">Cargando</string>
     <string name="no_hay_registros_para_mostrar">No hay registros para mostrar</string>

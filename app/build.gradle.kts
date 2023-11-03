@@ -13,7 +13,7 @@ android {
         applicationId = "vazlo.refaccionarias"
         minSdk = 21
         targetSdk = 34
-        versionCode = 1
+        versionCode = 10
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -24,7 +24,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -32,11 +32,12 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -75,8 +76,9 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.google.maps.android:maps-compose:2.11.4")
     implementation("com.google.android.gms:play-services-maps:18.1.0")
+    implementation ("com.google.android.gms:play-services-code-scanner:16.1.0")
 
-
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
     //retrofit
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

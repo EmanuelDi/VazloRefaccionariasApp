@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -98,6 +99,17 @@ class Sesion(
         val ID_CEDIS = stringPreferencesKey("id_cedis")
 
         val SGUIAS = stringPreferencesKey("sguias")
+
+        val BACKORDER = stringPreferencesKey("backOrder")
+
+        val PERMISO_PRECIOS = stringPreferencesKey("permiso_precios")
+        val PERMISO_EXISTENCIA = stringPreferencesKey("permiso_existencia")
+        val PERMISO_PEDIDOS = stringPreferencesKey("permiso_pedidos")
+        val PERMISO_CAPTURA = stringPreferencesKey("permiso_captura")
+        val PERMISO_CSV = stringPreferencesKey("permiso_csv")
+        val PERMISO_COTIZACION = stringPreferencesKey("permiso_cotizacion")
+        val PERMISO_OTRO_CARRITO = stringPreferencesKey("permiso_orto_carrito")
+
     }
 
     init {
@@ -113,6 +125,41 @@ class Sesion(
             preferences[SERVIDOR_PRINCIPAL] ?: ""
         }
 
+
+    val getPermisoPrecio: Flow<String> = dataStore.data
+        .map { preferences ->
+            preferences[PERMISO_PRECIOS] ?: ""
+        }
+
+    val getPermisoCotizacion: Flow<String> = dataStore.data
+        .map { preferences ->
+            preferences[PERMISO_COTIZACION] ?: ""
+        }
+
+    val getPermisoExistencia: Flow<String> = dataStore.data
+        .map { preferences ->
+            preferences[PERMISO_EXISTENCIA] ?: ""
+        }
+
+    val getPermisoPedidos: Flow<String> = dataStore.data
+        .map { preferences ->
+            preferences[PERMISO_PEDIDOS] ?: ""
+        }
+
+    val getPermisocCaptura: Flow<String> = dataStore.data
+        .map { preferences ->
+            preferences[PERMISO_CAPTURA] ?: ""
+        }
+
+    val getPermisoCsv: Flow<String> = dataStore.data
+        .map { preferences ->
+            preferences[PERMISO_CSV] ?: ""
+        }
+
+    val getPermisoOtroCarrito: Flow<String> = dataStore.data
+        .map { preferences ->
+            preferences[PERMISO_OTRO_CARRITO] ?: ""
+        }
 
     fun setCatelec() {
         CoroutineScope(Dispatchers.IO).launch {
@@ -273,7 +320,8 @@ class Sesion(
         u59: String,
         u60: String,
         u61: String,
-        u62: String
+        u62: String,
+        u63: String,
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             dataStore.edit { preferences ->
@@ -347,6 +395,8 @@ class Sesion(
                 preferences[TITULO_WEB_MUNDIAL] = u61
 
                 preferences[SGUIAS] = u62
+
+                preferences[BACKORDER] = u63
             }
 
         }
@@ -458,6 +508,12 @@ class Sesion(
     val loginCliente: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[LOGIN_CLIENTE] ?: ""
+        }
+
+
+    val getUrlBackOrder: Flow<String> = dataStore.data
+        .map { preferences ->
+            preferences[BACKORDER] ?: ""
         }
 
 
@@ -672,23 +728,42 @@ class Sesion(
         }
 
 
-    fun setLogin(
+    suspend fun setLogin(
         tipo: Int,
         id_user: String,
         id_responsable: String,
         password_user: String,
-        id_cedis: String
-    ) {
-        CoroutineScope(Dispatchers.IO).launch {
-            dataStore.edit { preferences ->
-                preferences[TIPO] = tipo
-                preferences[ID_USER] = id_user
-                preferences[PASSWORD_USER] = password_user
-                preferences[ID_RESPONSABLE] = id_responsable
-                preferences[LOGUEADO] = true
-                preferences[ID_CEDIS] = id_cedis
+        id_cedis: String,
+        perPrecio: String,
+        perExistencia: String,
+        perPedidos: String,
+        perCaptura: String,
+        perCsv: String,
+        perCotizacion: String,
+        perOtroCarrito: String
+    ): Boolean {
+        return CoroutineScope(Dispatchers.IO).async {
+            try {
+                dataStore.edit { preferences ->
+                    preferences[TIPO] = tipo
+                    preferences[ID_USER] = id_user
+                    preferences[PASSWORD_USER] = password_user
+                    preferences[ID_RESPONSABLE] = id_responsable
+                    preferences[LOGUEADO] = true
+                    preferences[ID_CEDIS] = id_cedis
+                    preferences[PERMISO_PRECIOS] = perPrecio
+                    preferences[PERMISO_EXISTENCIA] = perExistencia
+                    preferences[PERMISO_PEDIDOS] = perPedidos
+                    preferences[PERMISO_CAPTURA] = perCaptura
+                    preferences[PERMISO_CSV] = perCsv
+                    preferences[PERMISO_COTIZACION] = perCotizacion
+                    preferences[PERMISO_OTRO_CARRITO] = perOtroCarrito
+                }
+                return@async true // devolver verdadero si todo salió bien
+            } catch (e: Exception) {
+                return@async false // devolver falso si hubo algún error
             }
-        }
+        }.await()
     }
 
 

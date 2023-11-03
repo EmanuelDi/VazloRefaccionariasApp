@@ -1,18 +1,48 @@
 package vazlo.refaccionarias.ui.screens.login
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.util.Log
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresExtension
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -26,13 +56,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
-import kotlinx.coroutines.launch
 import vazlo.refaccionarias.ui.theme.VazloRefaccionariasTheme
 import java.net.UnknownHostException
 
@@ -49,6 +80,9 @@ fun LoginScreen(
     navigateToHome: () -> Unit,
     loginViewModel: LoginViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+    var tryLogeo by remember {
+        mutableStateOf(false)
+    }
     val isFocused = remember { mutableStateOf(false) }
     VazloRefaccionariasTheme {
         Surface(color = MaterialTheme.colorScheme.primary) {
@@ -67,11 +101,31 @@ fun LoginScreen(
                     )
                     LoginBody(loginViewModel = loginViewModel, isFocused = isFocused)
                     Spacer(modifier = modifier.height(70.dp))
-                    FooterLogin(navigateToHome = navigateToHome, loginViewModel = loginViewModel)
+                    FooterLogin(navigateToHome = navigateToHome, loginViewModel = loginViewModel, intentarLog = { tryLogeo = true})
                 }
             }
         }
     }
+        when (loginViewModel.logeado) {
+            is LogeandoState.Loading -> AlertLogeando(onDismiss = { tryLogeo = false }, mensaje = "Iniciando Sesion")
+            is LogeandoState.Success -> {
+                navigateToHome()
+                loginViewModel.logeado = LogeandoState.NoTry
+            }
+
+            is LogeandoState.Error -> {}
+            is LogeandoState.NoTry -> {}
+        }
+}
+
+@Composable
+fun AlertLogeando(onDismiss: () -> Unit, mensaje: String) {
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        confirmButton = { },
+        text = { Text(text = mensaje) },
+        containerColor = MaterialTheme.colorScheme.background
+    )
 }
 
 @Composable
@@ -241,14 +295,21 @@ private fun NoInicioSesionDialog(
 fun FooterLogin(
     modifier: Modifier = Modifier,
     navigateToHome: () -> Unit,
-    loginViewModel: LoginViewModel
+    loginViewModel: LoginViewModel,
+    intentarLog: () -> Unit
 ) {
+    val openWhatsAppLauncher: ManagedActivityResultLauncher<Intent, ActivityResult> =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartActivityForResult()
+        ) { _ ->
+            // Aquí puedes manejar el resultado si es necesario
+        }
     val scope = rememberCoroutineScope()
     var show by remember { mutableStateOf(false) }
     var mensaje by remember { mutableStateOf("") }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(60.dp),
+        verticalArrangement = Arrangement.spacedBy(30.dp),
         modifier = modifier.padding(start = 50.dp, end = 50.dp)
     ) {
         Button(
@@ -259,7 +320,7 @@ fun FooterLogin(
                             mensaje = "Verifique que el usuario o contraseña sean correctos"
                             show = true
                         } else {
-                            navigateToHome()
+                            intentarLog()
                         }
                     } catch (e: UnknownHostException) {
                         mensaje = "Sin conexión a internet"
@@ -278,32 +339,36 @@ fun FooterLogin(
             Text(
                 text = stringResource(R.string.iniciar_sesion),
                 fontSize = 15.sp,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold
             )
         }
 
         Row(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(top = 20.dp),
+                .padding(top = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.Center,
         ) {
-            Text(
-                text = stringResource(R.string.recuperar_contrasena),
-                fontSize = 15.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            HorizontalDivider(
-                modifier
-                    .height(40.dp)
-                    .width(2.dp)
-            )
-            Text(
-                text = stringResource(R.string.registrarse),
-                fontSize = 15.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            TextButton(onClick = {
+                val message =
+                    "Necesito ayuda para recuperar mi contraseña en la aplicación Vazlo Refaccionarias" // Puedes dejar esto en blanco si no deseas un mensaje predefinido
+                val uri = Uri.parse("https://wa.me/4931370436/?text=${Uri.encode(message)}")
+
+                val whatsappIntent = Intent(Intent.ACTION_VIEW, uri)
+
+                // Inicia la actividad de WhatsApp
+                openWhatsAppLauncher.launch(whatsappIntent)
+            }) {
+                Text(
+                    text = stringResource(R.string.recuperar_contrasena),
+                    color = MaterialTheme.colorScheme.outline,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
         }
     }
     if (show) {

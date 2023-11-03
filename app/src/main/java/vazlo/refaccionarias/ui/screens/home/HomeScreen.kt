@@ -1,27 +1,15 @@
 package vazlo.refaccionarias.ui.screens.home
 
+import android.content.Context
 import android.os.Build
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.*
 import androidx.annotation.RequiresExtension
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -31,14 +19,17 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -63,7 +54,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -75,13 +65,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import vazlo.refaccionarias.data.model.Producto
-import vazlo.refaccionarias.navigation.NavigationDestination
-import vazlo.refaccionarias.ui.AppViewModelProvider
-import vazlo.refaccionarias.ui.screens.login.LoginDestination
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import vazlo.refaccionarias.R
+import vazlo.refaccionarias.data.model.Producto
+import vazlo.refaccionarias.data.model.Promocion
+import vazlo.refaccionarias.navigation.NavigationDestination
+import vazlo.refaccionarias.ui.AppViewModelProvider
+import vazlo.refaccionarias.ui.screens.detallesNuevos.ProductoNuevoCompartiido
+import vazlo.refaccionarias.ui.screens.login.LoginDestination
+import vazlo.refaccionarias.ui.theme.Gris_Vazlo
 
 
 object HomeDestination : NavigationDestination {
@@ -90,38 +83,49 @@ object HomeDestination : NavigationDestination {
 }
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     drawerState: DrawerState,
     scope: CoroutineScope,
     homeViewModel: HomeViewModel,
+    navigateToDetallesNuevo: (String) -> Unit,
+    productoNuevoCompartiido: ProductoNuevoCompartiido
 ) {
-    val banners = listOf(
-        R.drawable.imagen,
-        R.drawable.imagen,
-        R.drawable.imagen,
-        R.drawable.imagen
-    )
-    val pagerState = rememberPagerState(
-        initialPage = 0,
-        initialPageOffsetFraction = 0f,
-        pageCount = { banners.size}
-    )
-
     Scaffold(
         topBar = { HomeTopAppBar(drawerState = drawerState, scope = scope) }
     ) {
         Surface(modifier = modifier.padding(it), color = MaterialTheme.colorScheme.background) {
             Column(modifier = modifier) {
-                CarrouselHome(pagerState = pagerState, banners = banners)
+                when (homeViewModel.bannerState) {
+                    is BannersState.Loading -> LoadingScreen(modifier = modifier)
+                    is BannersState.Success -> {
+                        val pagerState = rememberPagerState(
+                            initialPage = 0,
+                            initialPageOffsetFraction = 0f,
+                            pageCount = { (homeViewModel.bannerState as BannersState.Success).promos.size }
+                        )
+                        CarrouselHome(
+                            pagerState,
+                            banners = (homeViewModel.bannerState as BannersState.Success).promos
+                        )
+                    }
+
+                    is BannersState.Error -> ErrorScreen(modifier = modifier.fillMaxSize())
+                    else -> {}
+                }
                 when (homeViewModel.homeUiState) {
                     is HomeUiState.Loading -> LoadingScreen(modifier = modifier.fillMaxSize())
-                    is HomeUiState.Success -> ProdList(listProducts = (homeViewModel.homeUiState as HomeUiState.Success).productos)
+                    is HomeUiState.Success -> ProdList(
+                        listProducts = (homeViewModel.homeUiState as HomeUiState.Success).productos,
+                        navigateToDetallesNuevo = navigateToDetallesNuevo,
+                        productoNuevoCompartiido = productoNuevoCompartiido
+                    )
 
                     is HomeUiState.Error -> ErrorScreen(modifier = modifier.fillMaxSize())
+                    else -> {}
                 }
             }
         }
@@ -135,7 +139,13 @@ fun ErrorScreen(modifier: Modifier = Modifier) {
 
 @Composable
 fun LoadingScreen(modifier: Modifier = Modifier) {
-    Text(text = "Loading...", modifier)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier.fillMaxSize()
+    ) {
+        CircularProgressIndicator()
+    }
 }
 
 @Composable
@@ -180,7 +190,9 @@ private fun LogoutDialog(
 fun HomeContent(
     modifier: Modifier = Modifier,
     navController: NavController,
-    homeViewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    homeViewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    navigateToDetallesNuevo: (String) -> Unit,
+    productoNuevoCompartiido: ProductoNuevoCompartiido
 ) {
     val context = LocalContext.current
     var logoutConfrimation by remember{ mutableStateOf(false) }
@@ -248,7 +260,7 @@ fun HomeContent(
                             contentAlignment = Alignment.Center,
                             modifier = modifier
                                 .fillMaxWidth()
-                                .background(color = MaterialTheme.colorScheme.tertiary)
+                                .background(color = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Image(
                                 painter = painterResource(id = R.drawable.vazlo_logo),
@@ -258,8 +270,6 @@ fun HomeContent(
                             )
                         }
                     }
-
-                    //                Spacer(Modifier.height(12.dp))
 
                     LazyColumn(
                         verticalArrangement = Arrangement.SpaceBetween,
@@ -277,51 +287,33 @@ fun HomeContent(
                                 )
                             }
                             items(section.items) { item ->
-                                NavigationDrawerItem(
-                                    icon = {
-                                        Icon(
-                                            painterResource(id = item.icon),
-                                            contentDescription = "",
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    },
-                                    label = {
-                                        Text(
-                                            text = stringResource(item.label),
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            fontSize = 15.sp
-                                        )
-                                    },
-                                    selected = false,
-                                    onClick = {
-                                        scope.launch { drawerState.close() }
-                                        if (item.label == R.string.salir) {
-                                            homeViewModel.logout()
-                                            navController.popBackStack(item.destination, false)
-                                        } else if(item.label == R.string.eventos){
-                                            Log.e("Astruta", homeViewModel.hayEventos.toString())
-                                            if (!homeViewModel.hayEventos)
-                                            {
-                                                Toast.makeText(context, "No hay eventos", Toast.LENGTH_SHORT).show()
-                                            } else {
-                                                navController.navigate(item.destination)
-                                            }
-                                        }
-                                        else {
-                                            navController.navigate(item.destination)
-                                        }
-
-                                    },
-                                    colors = NavigationDrawerItemDefaults.colors(
-                                        unselectedContainerColor = MaterialTheme.colorScheme.background
+                                if (item.label != R.string.usuarios_y_permisos) {
+                                    ElementoMenu(
+                                        item,
+                                        scope,
+                                        drawerState,
+                                        homeViewModel,
+                                        navController,
+                                        context
                                     )
-                                )
+                                } else {
+                                    if (homeViewModel.esAdmin) {
+                                        ElementoMenu(
+                                            item,
+                                            scope,
+                                            drawerState,
+                                            homeViewModel,
+                                            navController,
+                                            context
+                                        )
+                                    }
+                                }
                             }
                             item {
                                 HorizontalDivider(
                                     modifier = Modifier.padding(vertical = 5.dp),
                                     thickness = 1.dp,
-                                    color = MaterialTheme.colorScheme.tertiary
+                                    color = MaterialTheme.colorScheme.surfaceVariant
                                 )
                             }
                         }
@@ -334,7 +326,9 @@ fun HomeContent(
                 modifier,
                 drawerState = drawerState,
                 scope = scope,
-                homeViewModel = homeViewModel
+                homeViewModel = homeViewModel,
+                navigateToDetallesNuevo = navigateToDetallesNuevo,
+                productoNuevoCompartiido = productoNuevoCompartiido
             )
 
         }
@@ -343,16 +337,75 @@ fun HomeContent(
 }
 
 @Composable
-fun ProdList(modifier: Modifier = Modifier, listProducts: List<Producto>) {
+private fun ElementoMenu(
+    item: MenuItem,
+    scope: CoroutineScope,
+    drawerState: DrawerState,
+    homeViewModel: HomeViewModel,
+    navController: NavController,
+    context: Context
+) {
+    NavigationDrawerItem(
+        icon = {
+            Icon(
+                painterResource(id = item.icon),
+                contentDescription = "",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        label = {
+            Text(
+                text = stringResource(item.label),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Normal
+            )
+        },
+        selected = false,
+        onClick = {
+            scope.launch { drawerState.close() }
+            if (item.label == R.string.salir) {
+                navController.popBackStack(item.destination, false)
+                homeViewModel.logout()
+            } else if (item.label == R.string.eventos) {
+                if (!homeViewModel.hayEventos) {
+                    navController.navigate(item.destination)
+                    Toast.makeText(context, "No hay eventos", Toast.LENGTH_SHORT).show()
+                } else {
+                    navController.navigate(item.destination)
+                }
+            } else {
+                navController.navigate(item.destination)
+            }
+
+        },
+        colors = NavigationDrawerItemDefaults.colors(
+            unselectedContainerColor = MaterialTheme.colorScheme.background
+        )
+    )
+}
+
+@Composable
+fun ProdList(
+    modifier: Modifier = Modifier,
+    listProducts: List<Producto>,
+    navigateToDetallesNuevo: (String) -> Unit,
+    productoNuevoCompartiido: ProductoNuevoCompartiido
+) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
-        contentPadding = PaddingValues(horizontal = 20.dp),
+        contentPadding = PaddingValues(horizontal = 10.dp),
         modifier = modifier
     ) {
         items(items = listProducts) { producto ->
-            CardProductoHome(producto = producto)
+            CardProductoHome(
+                producto = producto,
+                navigateToDetallesNuevo = navigateToDetallesNuevo,
+                productoNuevoCompartiido = productoNuevoCompartiido
+            )
         }
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -384,10 +437,7 @@ fun HomeTopAppBar(modifier: Modifier = Modifier, drawerState: DrawerState, scope
                 )
                 OptionMenu(
                     expanded = optionButtonExpanded,
-                    onDismmiss = { optionButtonExpanded = false },
-                    navigateToInfoCliente = { /*TODO*/ }) {
-                    
-                }
+                    onDismmiss = { optionButtonExpanded = false })
             }
 
         },
@@ -409,8 +459,6 @@ private fun OptionMenu(
     modifier: Modifier = Modifier,
     expanded: Boolean,
     onDismmiss: () -> Unit,
-    navigateToInfoCliente: () -> Unit,
-    navigateToAgendarServicio: () -> Unit
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -441,29 +489,37 @@ private fun OptionMenu(
 fun CarrouselHome(
     pagerState: PagerState,
     modifier: Modifier = Modifier,
-    banners: List<Int>
+    banners: MutableList<Promocion>
 ) {
     HorizontalPager(
         modifier = modifier
-            .shadow(2.dp)
             .fillMaxWidth(),
         state = pagerState,
         userScrollEnabled = true,
         pageSize = PageSize.Fill,
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 10.dp)
     ) {
-        Row(
-            horizontalArrangement = Arrangement.Center,
+        ElevatedCard(
+            shape = RoundedCornerShape(10.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
+            colors = CardDefaults.cardColors(contentColor = Gris_Vazlo),
             modifier = modifier.fillMaxWidth()
         ) {
-            Image(
-                painter = painterResource(
-                    banners[it]
-                ),
-                contentDescription = null,
-                modifier = Modifier.size(150.dp),
-                contentScale = ContentScale.Crop,
-                alignment = Alignment.Center
-            )
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = modifier.fillMaxWidth()
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(context = LocalContext.current)
+                        .data(banners[it].foto)
+                        .crossfade(true).build(),
+                    error = painterResource(R.drawable.imagen),
+                    placeholder = painterResource(R.drawable.download_file__1_),
+                    contentDescription = banners[it].descripcion,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
 
     }
@@ -481,19 +537,33 @@ fun PIimge(modifier: Modifier = Modifier, image: Int) {
 
 
 @Composable
-fun CardProductoHome(producto: Producto, modifier: Modifier = Modifier) {
-    Card(modifier = modifier.padding(10.dp)) {
+fun CardProductoHome(
+    producto: Producto,
+    modifier: Modifier = Modifier,
+    navigateToDetallesNuevo: (String) -> Unit,
+    productoNuevoCompartiido: ProductoNuevoCompartiido
+) {
+    ElevatedCard(
+        modifier = modifier
+            .padding(10.dp)
+            .clickable {
+                productoNuevoCompartiido.setProducto(producto)
+                navigateToDetallesNuevo(producto.nombreArticulo!!)
+            },
+        elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
+    ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             AsyncImage(
                 model = ImageRequest.Builder(context = LocalContext.current).data(producto.foto)
                     .crossfade(true).build(),
-                error = painterResource(R.drawable.imagen),
-                placeholder = painterResource(R.drawable.imagen),
+                error = painterResource(R.drawable.image_break),
+                placeholder = painterResource(R.drawable.download_file__1_),
                 contentDescription = producto.descripcion,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxWidth()
             )
-            Text(text = producto.nombreArticulo, style = MaterialTheme.typography.bodyMedium)
+            Text(text = producto.nombreArticulo!!, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

@@ -8,15 +8,20 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import vazlo.refaccionarias.RefaccionariasApplication
-import vazlo.refaccionarias.ui.eventos.RefacCercanasViewModel
+import vazlo.refaccionarias.ui.screens.busquedaPorPartes.BusquedaPorParteViewModel
+import vazlo.refaccionarias.ui.screens.eventos.RefacCercanasViewModel
 import vazlo.refaccionarias.ui.screens.cart.CartViewModel
 import vazlo.refaccionarias.ui.screens.catalagoElectronico.CatElectronicoViewModel
 import vazlo.refaccionarias.ui.screens.catalagoElectronico.ResultadosCatElViewModel
+import vazlo.refaccionarias.ui.screens.conversiones.ConversionesViewModel
+import vazlo.refaccionarias.ui.screens.detallesNuevos.DetallesNuevosViewModel
 import vazlo.refaccionarias.ui.screens.detallesParte.DetallesParteViewModel
 import vazlo.refaccionarias.ui.screens.folletosQuincenales.FolletosQuincenalesViewModel
 import vazlo.refaccionarias.ui.screens.folletosQuincenales.PdfViewViewModel
+import vazlo.refaccionarias.ui.screens.guia.GuiasViewModel
 import vazlo.refaccionarias.ui.screens.home.HomeViewModel
 import vazlo.refaccionarias.ui.screens.login.LoginViewModel
+import vazlo.refaccionarias.ui.screens.mamoan.MamoanViewModel
 import vazlo.refaccionarias.ui.screens.notificaciones.NotificacionesViewModel
 import vazlo.refaccionarias.ui.screens.pedidos.PedidosViewModel
 import vazlo.refaccionarias.ui.screens.resultadoPorPartes.ResultadoPorPartesViewModel
@@ -136,6 +141,33 @@ object AppViewModelProvider {
             RefacCercanasViewModel(
                 sesion, servicesAppRepository
             )
+        }
+        initializer {
+            val sesion = RefaccionariasApplication().sesion
+            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+            DetallesNuevosViewModel(
+                sesion = sesion,
+                servicesAppRepository = servicesAppRepository,
+                savedStateHandle = this.createSavedStateHandle()
+            )
+        }
+        initializer {
+            val sesion = RefaccionariasApplication().sesion
+            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+
+            GuiasViewModel(
+                sesion=sesion,
+                servicesAppRepository=servicesAppRepository
+            )
+        }
+        initializer {
+            BusquedaPorParteViewModel()
+        }
+        initializer {
+            ConversionesViewModel()
+        }
+        initializer {
+            MamoanViewModel()
         }
     }
 }

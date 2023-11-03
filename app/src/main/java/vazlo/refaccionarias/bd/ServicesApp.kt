@@ -21,6 +21,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Query
 import retrofit2.http.Url
 import vazlo.refaccionarias.data.model.CargarMarcadoresClientesResponse
+import vazlo.refaccionarias.data.model.PromosResponse
 
 interface ServicesApp {
     @GET
@@ -187,7 +188,7 @@ interface ServicesApp {
     ): ResultadoEmpresasResponse
 
     @GET
-    suspend fun actulaziarCantidadProucto(
+    suspend fun actualizarCantidadProucto(
         @Url url: String,
         @Query("id_cte") idCte: String,
         @Query("cantidad") cantidad: Int,
@@ -238,6 +239,7 @@ interface ServicesApp {
         @Query("lit") litros: String,
         @Query("aIni") anioInicial: String,
         @Query("aFin") anioFinal: String,
+        @Query("id_cte") idCte: String
     ): ResultadoPartes
 
 
@@ -248,6 +250,12 @@ interface ServicesApp {
         @Query("id_cliente") icCte: String,
         @Query("token") token: String
     ): NotificacionesResponse
+
+    @GET
+    suspend fun darBajaNotificaciones(
+        @Url url: String,
+        @Query("id") id: String
+    ): Response<JsonObject>
 
 
     @GET
@@ -262,4 +270,20 @@ interface ServicesApp {
         @Query("lat") lat: Double,
         @Query("long") long: Double
     ): CargarMarcadoresClientesResponse
+
+    @GET
+    suspend fun getPromos(
+        @Url url: String,
+        @Query("id_user") idUser: String
+    ): PromosResponse
+
+    @GET
+    suspend fun subirABackorder(
+        @Url url: String,
+        @Query("id_cte") idCte: String,
+        @Query("nomsop") nomsop: String,
+        @Query("cant") cant: Int,
+        @Query("id_sucursal") sucursal: String
+    ): Response<JsonObject>
+
 }

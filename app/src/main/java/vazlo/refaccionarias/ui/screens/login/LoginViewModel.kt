@@ -16,6 +16,17 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
+import vazlo.refaccionarias.data.model.Producto
+import vazlo.refaccionarias.ui.screens.home.HomeUiState
+
+interface LogeandoState {
+    object Success : LogeandoState
+    object Error : LogeandoState
+    object Loading : LogeandoState
+    object NoTry: LogeandoState
+}
+
+
 
 
 @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
@@ -25,17 +36,14 @@ class LoginViewModel(
     private val servicesAppRepository: ServicesAppRepository
 ) : ViewModel() {
 
+    var logeado: LogeandoState by mutableStateOf(LogeandoState.NoTry)
+
     var datosOb: JsonObject? = null
     var usuario by mutableStateOf("")
         private set
     var contrasenia by mutableStateOf("")
         private set
 
-    var showError = false
-        private set
-
-    var showSuccess = false
-        private set
 
     init {
         getWebSerivce()
@@ -61,10 +69,10 @@ class LoginViewModel(
                     sesion.setUrlParaConexiones(
                         u1 = datosOb?.get("ImagenCarrito")?.jsonPrimitive?.content ?: "",
                         u2 = datosOb?.get("FragmentsLineasExtension2023")?.jsonPrimitive?.content ?: "",
-                        u3 = datosOb?.get("ArticulosNuevosListaCuadrados")?.jsonPrimitive?.content ?: "",
+                        u3 = datosOb?.get("listaArticulosNuevosCuadrados")?.jsonPrimitive?.content ?: "",
                         u4 = datosOb?.get("AgregarProduCarritoV2023")?.jsonPrimitive?.content ?: "",
                         u5 = datosOb?.get("EliminarProdCarritoV2023")?.jsonPrimitive?.content ?: "",
-                        u6 = datosOb?.get("EnviarPedCarrito")?.jsonPrimitive?.content ?: "",
+                        u6 = datosOb?.get("ePedidoApp")?.jsonPrimitive?.content ?: "",
                         u7 = datosOb?.get("VaciarCarrito")?.jsonPrimitive?.content ?: "",
                         u8 = datosOb?.get("VerCarrito_junio23")?.jsonPrimitive?.content ?: "",
                         u9 = datosOb?.get("RastreoPedCarrito")?.jsonPrimitive?.content ?: "",
@@ -120,7 +128,8 @@ class LoginViewModel(
                         u59 = datosOb?.get("getURLObtenerWebMundial")?.jsonPrimitive?.content ?: "",
                         u60 = datosOb?.get("activarWebMundial")?.jsonPrimitive?.content ?: "",
                         u61 = datosOb?.get("tituloWebMundial")?.jsonPrimitive?.content ?: "",
-                        u62 = datosOb?.get("sguias")?.jsonPrimitive?.content ?: ""
+                        u62 = datosOb?.get("sguias")?.jsonPrimitive?.content ?: "",
+                        u63 = datosOb?.get("backOrder")?.jsonPrimitive?.content ?: ""
                     )
 
                 } else {
@@ -136,22 +145,32 @@ class LoginViewModel(
     suspend fun login(): Int {
 
         val url = sesion.loginCliente.first()
-        Log.i("URL", url)
         val response =
             servicesAppRepository.login(url = url, usuario = usuario, clave = contrasenia)
-        Log.i("Abraham", response.estado.toString())
-        if ((response.estado) == 1) {
-            Log.i("Abraham", response.mensaje)
-            sesion.setLogin(
-                tipo = 2,
-                id_user = response.usuario,
-                password_user = contrasenia,
-                id_cedis = response.cedis!!,
-                id_responsable = response.responsable!!
-            )
-            return response.estado
+        logeado = LogeandoState.Loading
+        val logear = sesion.setLogin(
+            tipo = 2,
+            id_user = response.usuario,
+            password_user = contrasenia,
+            id_cedis = response.cedis!!,
+            id_responsable = response.responsable!!,
+            perCaptura = response.captura!!,
+            perCotizacion = response.cotizacion!!,
+            perCsv = response.csv!!,
+            perExistencia = response.existencia!!,
+            perOtroCarrito = response.otroCarrito!!,
+            perPedidos = response.pedidos!!,
+            perPrecio = response.precio!!
+        )
+
+        return if ((response.estado) == 1) {
+           if(logear) {
+               logeado = LogeandoState.Success
+           }
+            response.estado
         } else {
-            return response.estado
+            logeado = LogeandoState.Error
+            response.estado
         }
     }
 

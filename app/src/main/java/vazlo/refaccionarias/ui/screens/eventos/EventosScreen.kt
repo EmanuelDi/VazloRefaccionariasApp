@@ -1,4 +1,4 @@
-package vazlo.refaccionarias.ui.eventos
+package vazlo.refaccionarias.ui.screens.eventos
 
 import android.os.Build
 import androidx.annotation.RequiresExtension
@@ -42,6 +42,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
 import coil.request.ImageRequest
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -58,6 +59,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.data.LocationService
 import vazlo.refaccionarias.data.model.Marcador
+import vazlo.refaccionarias.data.model.listaMarcadoresPrueba
 import vazlo.refaccionarias.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
 import vazlo.refaccionarias.ui.theme.VazloRefaccionariasTheme
@@ -109,11 +111,12 @@ fun EventosScreen(
                         .height(30.dp)
                         .background(color = MaterialTheme.colorScheme.primary)
                         .padding(start = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Aqui va textp",
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        text = "Eventos: ${ refacCercanasViewModel.cantEventos }",
+                        color = MaterialTheme.colorScheme.outline,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -122,14 +125,15 @@ fun EventosScreen(
                     is MarcadoresUiState.Success -> {
                         val marcadores =
                             (refacCercanasViewModel.marcadoresUiState as MarcadoresUiState.Success).marcadores
+                        val marcadoresPrueba = listaMarcadoresPrueba
                         RefacCercanasGoogleMap(
                             modifier = modifier,
-                            marcadores = marcadores,
+                            marcadores = marcadoresPrueba,
                             latitud = lat,
                             longitud = long
                         )
-                        LaunchedEffect(marcadores) {
-                            refCercanas = marcadores.size
+                        LaunchedEffect(marcadoresPrueba) {
+                            refCercanas = marcadoresPrueba.size
                         }
                     }
 
@@ -159,8 +163,8 @@ private fun RefacCercanasTAB(
                     modifier = modifier.size(30.dp)
                 )
                 Text(
-                    text = stringResource(R.string.refaccionarias_cercanas),
-                    color = MaterialTheme.colorScheme.onSecondary,
+                    text = stringResource(R.string.eventos),
+                    color = MaterialTheme.colorScheme.outline,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -228,7 +232,7 @@ private fun RefacCercanasGoogleMap(
         marcadores.forEach { marcador ->
             MarkerInfoWindow(
                 state = MarkerState(position = LatLng(marcador.lat, marcador.long)),
-                icon = BitmapDescriptorFactory.fromResource(R.drawable.imagen),
+                icon = BitmapDescriptorFactory.fromResource(R.drawable.eventos),
                 onInfoWindowClick = {
                     currentMarcador.value = marcador
                     show.value = true
@@ -237,7 +241,7 @@ private fun RefacCercanasGoogleMap(
                 Box (
                     modifier = modifier
                         .background(
-                            color = MaterialTheme.colorScheme.tertiary,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = RoundedCornerShape(15.dp)
                         )
                 ) {
@@ -246,21 +250,23 @@ private fun RefacCercanasGoogleMap(
                             .padding(15.dp)
                     ){
                         AsyncImage(
-                            model = painterResource(id = R.drawable.imagen),
+                            model = marcador.urlFoto,
                             error = painterResource(R.drawable.imagen),
                             placeholder = painterResource(R.drawable.imagen),
                             contentDescription = "",
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.size(50.dp)
                         )
                         Column {
                             Text(
                                 text = marcador.refacNombre,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp
+                                fontSize = 20.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = modifier.height(5.dp))
-                            Text(text = "Telefono: ${marcador.telefono}")
+                            Text(text = "Telefono: ${marcador.telefono}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+
                         }
                     }
                 }
@@ -319,7 +325,6 @@ private fun ImageDialog(
                         Icon(imageVector = Icons.Default.Close, contentDescription = "")
                     }
                 }
-
                 Spacer(modifier = modifier.height(50.dp))
 
                 Row(
@@ -331,10 +336,10 @@ private fun ImageDialog(
                         model = ImageRequest.Builder(context = LocalContext.current).data(marcador.urlFoto)
                             .crossfade(true).build(),
                         error = painterResource(R.drawable.imagen),
-                        placeholder = painterResource(R.drawable.imagen),
+                        placeholder = painterResource(R.drawable.downloading),
                         contentDescription = marcador.refacNombre,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
