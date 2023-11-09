@@ -73,6 +73,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.data.model.ProductosResult
@@ -790,6 +791,7 @@ private fun CardProducto(
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(context = LocalContext.current)
+                    .diskCachePolicy(CachePolicy.DISABLED)
                     .data(producto.urlSoporte)
                     .crossfade(true).build(),
                 error = painterResource(R.drawable.imagen),

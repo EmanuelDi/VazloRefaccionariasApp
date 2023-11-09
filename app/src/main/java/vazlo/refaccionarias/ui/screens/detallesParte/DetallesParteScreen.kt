@@ -67,6 +67,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -97,6 +98,18 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
+import com.skydoves.balloon.ArrowOrientation
+import com.skydoves.balloon.ArrowOrientationRules
+import com.skydoves.balloon.ArrowPositionRules
+import com.skydoves.balloon.Balloon
+import com.skydoves.balloon.BalloonAnimation
+import com.skydoves.balloon.BalloonHighlightAnimation
+import com.skydoves.balloon.BalloonSizeSpec
+import com.skydoves.balloon.compose.Balloon
+import com.skydoves.balloon.compose.rememberBalloonBuilder
+import com.skydoves.balloon.overlay.BalloonOverlayAnimation
+import com.skydoves.balloon.overlay.BalloonOverlayRoundRect
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.data.model.ProductosResult
@@ -128,6 +141,39 @@ fun DetallesParteScreen(
     dPViewModel: DetallesParteViewModel = viewModel(factory = AppViewModelProvider.Factory),
     viewModelCompartido: ProductoCompartidoViewModel
 ) {
+    var tooltipChaser by remember {
+        mutableIntStateOf(if (dPViewModel.tooltipEstado) 0 else 1)
+    }
+
+    if (tooltipChaser == 4){
+        dPViewModel.setTooltipDetalleParte()
+    }
+
+
+    val builder = rememberBalloonBuilder {
+        setArrowSize(10)
+        setArrowPosition(0.5f)
+        setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
+        setArrowOrientationRules(ArrowOrientationRules.ALIGN_ANCHOR)
+        setWidth(BalloonSizeSpec.WRAP)
+        setHeight(BalloonSizeSpec.WRAP)
+        setPadding(12)
+        setMarginHorizontal(12)
+        setCornerRadius(8f)
+        setBackgroundColorResource(R.color.rojo_vazlo)
+        setBalloonAnimation(BalloonAnimation.ELASTIC)
+        setBalloonHighlightAnimation(BalloonHighlightAnimation.SHAKE)
+        setIsVisibleOverlay(true)
+        setOverlayColorResource(R.color.overlay)
+        setOverlayPadding(6f)
+        setOverlayPaddingColorResource(R.color.overlayPadding)
+        setBalloonOverlayAnimation(BalloonOverlayAnimation.FADE)
+        setDismissWhenOverlayClicked(false)
+        setOverlayShape(BalloonOverlayRoundRect(12f, 12f))
+        setLifecycleOwner(lifecycleOwner)
+        setOnBalloonDismissListener { tooltipChaser++ }
+    }
+
 
     var showBottomSheet by remember {
         mutableStateOf(false)
@@ -195,7 +241,9 @@ fun DetallesParteScreen(
                     producto = producto,
                     detallesParteViewModel = dPViewModel,
                     onClick = { openedDialog = !openedDialog },
-                    url360 = url360
+                    url360 = url360,
+                    builder = builder,
+                    tooltipChaser = tooltipChaser
                 )
                 if (openedDialog)
                     DialogOpcionesCompra(
@@ -252,7 +300,9 @@ fun DetallesParteScreen(
                             viewModelCompartido = viewModelCompartido,
                             showBottomSheet = showBottomSheet,
                             cerrarBottomSheet = { showBottomSheet = false },
-                            agregar = agregar
+                            agregar = agregar,
+                            builder = builder,
+                            tooltipChaser = tooltipChaser
                         ) { openedDialog = false }
                     }
 
@@ -387,7 +437,14 @@ fun OptionCompraItem(
     aCarrito: () -> Unit,
     aBackOrder: () -> Unit
 ) {
-    val sucursalesFiltro = sucursalesList.filter { it.nombre == "MATRIZ" || it.nombre == "CDMX" }
+    val sucursalesFiltro: List<Sucursal>
+    val responsable = viewModel.idResponsable.toInt()
+    if (responsable == 18 || responsable == 5 ) {
+        sucursalesFiltro = sucursalesList.filter { it.nombre == "MATRIZ" || it.nombre == "CDMX" }
+    } else {
+        sucursalesFiltro = sucursalesList.filter { it.idSuc?.toInt() == responsable }
+    }
+
     LazyColumn(modifier.padding()) {
         items(sucursalesFiltro) { sucursal ->
             OptionItem(
@@ -991,7 +1048,9 @@ private fun DetalleParte(
     producto: ProductosResult,
     detallesParteViewModel: DetallesParteViewModel,
     onClick: () -> Unit,
-    url360: String
+    url360: String,
+    builder: Balloon.Builder,
+    tooltipChaser: Int
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant,
@@ -1009,32 +1068,48 @@ private fun DetalleParte(
                 producto = producto
             )
             Spacer(modifier = modifier.width(20.dp))
-            Column(
-                verticalArrangement = Arrangement.Center,
-                modifier = modifier.padding(horizontal = 10.dp)
-            ) {
-                Text(
-                    text = producto.nombreSoporte!!,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontSize = 17.sp
-                )
-                Text(
-                    text = stringResource(
-                        R.string.desc_prod_resultados,
-                        producto.nombrePosicion!!,
-                        producto.nombreCilidraje!!,
-                        producto.nombreLitro!!,
-                        producto.aIni!!,
-                        producto.aFin!!,
-                        producto.descripcion!!
-                    ),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp
-                )
+            Balloon(
+                builder = builder,
+                balloonContent = {
+                    Text(
+                        text = "Aqui puedes ver la informacion del producto",
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }) {
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    modifier = modifier.padding(horizontal = 10.dp)
+                ) {
+                    Text(
+                        text = producto.nombreSoporte!!,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontSize = 17.sp
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.desc_prod_resultados,
+                            producto.nombrePosicion!!,
+                            producto.nombreCilidraje!!,
+                            producto.nombreLitro!!,
+                            producto.aIni!!,
+                            producto.aFin!!,
+                            producto.descripcion!!
+                        ),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 17.sp
+                    )
+                }
+                if (tooltipChaser == 1) {
+                    LaunchedEffect(Unit) {
+                        delay(500)
+                        it.showAlignTop()
+                    }
+                }
             }
         }
     }
+
 
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.padding(10.dp)) {
         Row(
@@ -1046,19 +1121,34 @@ private fun DetalleParte(
         ) {
             val show360 = remember { mutableStateOf(false) }
             if (detallesParteViewModel.hay360) {
-                Button(
-                    onClick = {
-                        show360.value = true
-                    },
-                    modifier = modifier
-                        .width(130.dp),
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.vista_360),
-                        contentDescription = "360",
-                        modifier = modifier.size(30.dp),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
+                Balloon(
+                    builder = builder,
+                    balloonContent = {
+                        Text(
+                            text = "Presiona para ver la imagen en 360 grados",
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }) {
+                    Button(
+                        onClick = {
+                            show360.value = true
+                        },
+                        modifier = modifier
+                            .width(130.dp),
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.vista_360),
+                            contentDescription = "360",
+                            modifier = modifier.size(30.dp),
+                            tint = MaterialTheme.colorScheme.outline
+                        )
+                    }
+                    if (tooltipChaser == 2) {
+                        LaunchedEffect(Unit) {
+                            delay(500)
+                            it.showAlignTop()
+                        }
+                    }
                 }
             }
 
@@ -1071,15 +1161,29 @@ private fun DetalleParte(
             }
             Spacer(modifier = modifier.width(20.dp))
         }
-        Button(onClick = { onClick() }, modifier.height(40.dp)) {
-            Text(
-                text = stringResource(R.string.ver_opciones),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+        Balloon(
+            builder = builder,
+            balloonContent = {
+                Text(
+                    text = "Presiona para ver las opciones de agregar tu carrito",
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }) {
+            Button(onClick = { onClick() }, modifier.height(40.dp)) {
+                Text(
+                    text = stringResource(R.string.ver_opciones),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            if (tooltipChaser == 3) {
+                LaunchedEffect(Unit) {
+                    delay(500)
+                    it.showAlignTop()
+                }
+            }
         }
     }
-
     HorizontalDivider(
         modifier = modifier
             .fillMaxWidth()
@@ -1157,11 +1261,7 @@ private fun ImageDialog(
             ) {
                 Row(horizontalArrangement = Arrangement.End, modifier = modifier.fillMaxWidth()) {
                     IconButton(onClick = close) {
-                        /*Icon(
-                            painter = painterResource(id = R.drawable.close_icon),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )*/
+                        Icon(imageVector = Icons.Default.Close, contentDescription = "", tint = MaterialTheme.colorScheme.outline)
                     }
                 }
 
@@ -1216,19 +1316,30 @@ private fun Show360Dialog(
         Surface(
             modifier = modifier
                 .fillMaxSize(),
-            color = MaterialTheme.colorScheme.onTertiary
+            color = MaterialTheme.colorScheme.background
         ) {
             Column(
                 modifier = modifier
                     .fillMaxSize()
             ) {
-                Row(horizontalArrangement = Arrangement.End, modifier = modifier.fillMaxWidth()) {
-                    IconButton(onClick = close) {
-                        /*Icon(
-                            painter = painterResource(id = R.drawable.close_icon),
+                Box(modifier = modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface) ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically, modifier = modifier.align(
+                        Alignment.CenterStart)) {
+                        Icon(painter = painterResource(id = R.drawable.vazlo_blanco), contentDescription = "",
+                            modifier
+                                .size(50.dp)
+                                .padding(start = 10.dp))
+                        Text(text = "Vista 360", color = MaterialTheme.colorScheme.onSurface, modifier = modifier, fontSize = 25.sp, fontWeight = FontWeight.Normal)
+                    }
+                    IconButton(onClick = close, modifier.align(Alignment.CenterEnd)) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )*/
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = modifier.size(40.dp)
+                        )
                     }
                 }
 
@@ -1276,6 +1387,8 @@ private fun DetallesParteContent(
     viewModel: DetallesParteViewModel,
     viewModelCompartido: ProductoCompartidoViewModel,
     navigateToSelf: (String) -> Unit,
+    builder: Balloon.Builder,
+    tooltipChaser: Int,
     showBottomSheet: Boolean,
     agregar: Boolean,
     cerrarBottomSheet: () -> Unit,
@@ -1283,74 +1396,89 @@ private fun DetallesParteContent(
 ) {
     val showDialog = remember { mutableStateOf(false) }
     val productoCurrent = remember { mutableStateOf<ProductosResult?>(null) }
-    LazyColumn(
-        modifier = modifier
-            .padding(start = 20.dp, top = 20.dp, end = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-
-        ) {
-        item {
+    Balloon(
+        builder = builder.setArrowOrientation(ArrowOrientation.BOTTOM),
+        balloonContent = {
             Text(
-                text = stringResource(R.string.guia_de_comprador),
-                fontWeight = FontWeight.Bold,
-                modifier = modifier.padding(bottom = 20.dp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = "Aqui puedes ver las diferentes apliaciones de esta pieza",
+                color = MaterialTheme.colorScheme.onSurface
             )
-        }
-        items(productos) { producto ->
-            val linea = if (producto.linea?.isNotEmpty() == true) {
-                producto.linea
-            } else {
-                producto.cillitModSopId
-            }
-            ListItem(
-                modifier = modifier,
-                headlineContent = {
-                    Text(
-                        text = "${producto.nombreMarca} ${producto.nombreModeloCarro}  ${producto.aIni} - ${producto.aFin}",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                    )
-                },
-                supportingContent = {
-                    Text(
-                        text = "${producto.nombreCilidraje} ${producto.nombreLitro} $linea \n${producto.nombrePosicion}",
-                        fontSize = 15.sp
-                    )
-                },
-                trailingContent = {
-                    IconButton(
-                        onClick = {
-                            productoCurrent.value = producto
-                            showDialog.value = true
-                        },
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = Verde_Success
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                },
-                colors = ListItemColors(
-                    containerColor = MaterialTheme.colorScheme.onSurface,
-                    disabledHeadlineColor = MaterialTheme.colorScheme.onSurface,
-                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurface,
-                    disabledTrailingIconColor = MaterialTheme.colorScheme.onSurface,
-                    headlineColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    leadingIconColor = MaterialTheme.colorScheme.onSurface,
-                    overlineColor = MaterialTheme.colorScheme.onSurface,
-                    supportingTextColor = MaterialTheme.colorScheme.onTertiary,
-                    trailingIconColor = MaterialTheme.colorScheme.onSurface
+        }) {
+        LazyColumn(
+            modifier = modifier
+                .padding(start = 20.dp, top = 20.dp, end = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+
+            ) {
+            item {
+                Text(
+                    text = stringResource(R.string.guia_de_comprador),
+                    fontWeight = FontWeight.Bold,
+                    modifier = modifier.padding(bottom = 20.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            )
-            HorizontalDivider(
-                thickness = 1.dp,
-                color = MaterialTheme.colorScheme.surfaceVariant
-            )
+            }
+            items(productos) { producto ->
+                val linea = if (producto.linea?.isNotEmpty() == true) {
+                    producto.linea
+                } else {
+                    producto.cillitModSopId
+                }
+                ListItem(
+                    modifier = modifier,
+                    headlineContent = {
+                        Text(
+                            text = "${producto.nombreMarca} ${producto.nombreModeloCarro}  ${producto.aIni} - ${producto.aFin}",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                        )
+                    },
+                    supportingContent = {
+                        Text(
+                            text = "${producto.nombreCilidraje} ${producto.nombreLitro} $linea \n${producto.nombrePosicion}",
+                            fontSize = 15.sp
+                        )
+                    },
+                    trailingContent = {
+                        IconButton(
+                            onClick = {
+                                productoCurrent.value = producto
+                                showDialog.value = true
+                            },
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = Verde_Success
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    },
+                    colors = ListItemColors(
+                        containerColor = MaterialTheme.colorScheme.onSurface,
+                        disabledHeadlineColor = MaterialTheme.colorScheme.onSurface,
+                        disabledLeadingIconColor = MaterialTheme.colorScheme.onSurface,
+                        disabledTrailingIconColor = MaterialTheme.colorScheme.onSurface,
+                        headlineColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        leadingIconColor = MaterialTheme.colorScheme.onSurface,
+                        overlineColor = MaterialTheme.colorScheme.onSurface,
+                        supportingTextColor = MaterialTheme.colorScheme.onTertiary,
+                        trailingIconColor = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                )
+            }
+        }
+        if (tooltipChaser == 4) {
+            LaunchedEffect(Unit) {
+                delay(500)
+                it.showAlignTop()
+            }
         }
     }
 
@@ -1421,7 +1549,7 @@ private fun ResultadosDialog(
                         text = "${producto!!.nombreMarca} ${producto.nombreModeloCarro}",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     IconButton(onClick = close) {
                         /*Icon(
@@ -1515,7 +1643,7 @@ private fun HeaderTipo(
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
@@ -1534,7 +1662,7 @@ private fun Productos(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-            .background(color = MaterialTheme.colorScheme.tertiary)
+            .background(color = MaterialTheme.colorScheme.surfaceVariant)
             .padding(10.dp)
     ) {
         Row(
@@ -1578,7 +1706,8 @@ private fun Productos(
                         producto.aFin!!,
                         producto.descripcion!!
                     ),
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

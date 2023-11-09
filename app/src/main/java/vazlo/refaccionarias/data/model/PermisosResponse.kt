@@ -22,9 +22,19 @@ data class PermisosResponse(
     val carrito: Int? = 0,
     @SerialName("recompensas")
     val recompensas: Int? = 0,
+    @SerialName("estado_cuenta")
+    val estadoCuenta: Int? = 0,
+    @SerialName("permiso_factura")
+    val permisoFactura: Int? = 0,
+    @SerialName("permiso_complemento")
+    val permisoComplemento: Int? = 0,
+    @SerialName("permiso_nota")
+    val permisoNota: Int? = 0,
+
     @SerialName("estado")
     val estado: Int? = 0,
     @SerialName("mensaje")
     val mensaje: String? = ""
+
 )
 

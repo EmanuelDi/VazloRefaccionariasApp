@@ -30,6 +30,8 @@ class DetallesParteViewModel(
     private val criterio: String =
         checkNotNull(savedStateHandle[DetallesParteDestination.criterioArg])
 
+    var idResponsable by mutableStateOf("")
+
     var productosUiState: ProductosUiState by mutableStateOf(ProductosUiState.Loading)
 
     var productosExtraUiState: ProductosUiState by mutableStateOf(ProductosUiState.Loading)
@@ -43,6 +45,23 @@ class DetallesParteViewModel(
 
     var sucursal by mutableStateOf("")
     var idSucursal by mutableStateOf("")
+
+    var tooltipEstado by mutableStateOf(false)
+
+
+    init {
+        getTooltipDetalleParte()
+    }
+
+    fun setTooltipDetalleParte(){
+        sesion.setDetalleProd()
+    }
+
+    fun getTooltipDetalleParte(): Unit {
+        viewModelScope.launch {
+            tooltipEstado = sesion.detalleProd.first()
+        }
+    }
 
     fun onSucursalSelected(nombreSucursal: String, idSuc: String) {
         sucursal = nombreSucursal
@@ -60,6 +79,14 @@ class DetallesParteViewModel(
 
     init {
         cargarProductos()
+        setIdResponsable()
+    }
+
+
+    fun setIdResponsable(){
+        viewModelScope.launch {
+            idResponsable = sesion.idUserResponsable.first()
+        }
     }
 
     fun cargarProductos() {

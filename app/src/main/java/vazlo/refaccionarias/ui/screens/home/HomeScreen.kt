@@ -64,7 +64,17 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
+import com.skydoves.balloon.ArrowPositionRules
+import com.skydoves.balloon.Balloon
+import com.skydoves.balloon.BalloonAnimation
+import com.skydoves.balloon.BalloonHighlightAnimation
+import com.skydoves.balloon.BalloonSizeSpec
+import com.skydoves.balloon.compose.Balloon
+import com.skydoves.balloon.compose.rememberBalloonBuilder
+import com.skydoves.balloon.overlay.BalloonOverlayAnimation
+import com.skydoves.balloon.overlay.BalloonOverlayRoundRect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import vazlo.refaccionarias.R
@@ -83,7 +93,7 @@ object HomeDestination : NavigationDestination {
 }
 
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
 @Composable
 fun HomeScreen(
@@ -94,8 +104,30 @@ fun HomeScreen(
     navigateToDetallesNuevo: (String) -> Unit,
     productoNuevoCompartiido: ProductoNuevoCompartiido
 ) {
+    val builder = rememberBalloonBuilder {
+        setArrowSize(10)
+        setArrowPosition(0.5f)
+        setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
+        setWidth(BalloonSizeSpec.WRAP)
+        setHeight(BalloonSizeSpec.WRAP)
+        setPadding(12)
+        setMarginHorizontal(12)
+        setCornerRadius(8f)
+        setBackgroundColorResource(R.color.teal_200)
+        setBalloonAnimation(BalloonAnimation.ELASTIC)
+        setBalloonHighlightAnimation(BalloonHighlightAnimation.SHAKE)
+        setIsVisibleOverlay(true)
+        setOverlayColorResource(R.color.overlay)
+        setOverlayPadding(6f)
+        setOverlayPaddingColorResource(R.color.overlayPadding)
+        setBalloonOverlayAnimation(BalloonOverlayAnimation.FADE)
+        setDismissWhenOverlayClicked(false)
+        setOverlayShape(BalloonOverlayRoundRect(12f, 12f))
+        setLifecycleOwner(lifecycleOwner)
+    }
+
     Scaffold(
-        topBar = { HomeTopAppBar(drawerState = drawerState, scope = scope) }
+        topBar = { HomeTopAppBar(drawerState = drawerState, scope = scope, homeViewModel = homeViewModel) }
     ) {
         Surface(modifier = modifier.padding(it), color = MaterialTheme.colorScheme.background) {
             Column(modifier = modifier) {
@@ -109,11 +141,11 @@ fun HomeScreen(
                         )
                         CarrouselHome(
                             pagerState,
-                            banners = (homeViewModel.bannerState as BannersState.Success).promos
+                            banners = (homeViewModel.bannerState as BannersState.Success).promos,
                         )
                     }
 
-                    is BannersState.Error -> ErrorScreen(modifier = modifier.fillMaxSize())
+                    is BannersState.Error -> {}
                     else -> {}
                 }
                 when (homeViewModel.homeUiState) {
@@ -121,9 +153,9 @@ fun HomeScreen(
                     is HomeUiState.Success -> ProdList(
                         listProducts = (homeViewModel.homeUiState as HomeUiState.Success).productos,
                         navigateToDetallesNuevo = navigateToDetallesNuevo,
-                        productoNuevoCompartiido = productoNuevoCompartiido
+                        productoNuevoCompartiido = productoNuevoCompartiido,
+                        builder = builder
                     )
-
                     is HomeUiState.Error -> ErrorScreen(modifier = modifier.fillMaxSize())
                     else -> {}
                 }
@@ -369,7 +401,6 @@ private fun ElementoMenu(
                 homeViewModel.logout()
             } else if (item.label == R.string.eventos) {
                 if (!homeViewModel.hayEventos) {
-                    navController.navigate(item.destination)
                     Toast.makeText(context, "No hay eventos", Toast.LENGTH_SHORT).show()
                 } else {
                     navController.navigate(item.destination)
@@ -385,12 +416,14 @@ private fun ElementoMenu(
     )
 }
 
+
 @Composable
 fun ProdList(
     modifier: Modifier = Modifier,
     listProducts: List<Producto>,
     navigateToDetallesNuevo: (String) -> Unit,
-    productoNuevoCompartiido: ProductoNuevoCompartiido
+    productoNuevoCompartiido: ProductoNuevoCompartiido,
+    builder: Balloon.Builder
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -405,12 +438,11 @@ fun ProdList(
             )
         }
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopAppBar(modifier: Modifier = Modifier, drawerState: DrawerState, scope: CoroutineScope) {
+fun HomeTopAppBar(modifier: Modifier = Modifier, drawerState: DrawerState, scope: CoroutineScope, homeViewModel: HomeViewModel) {
     var optionButtonExpanded by remember { mutableStateOf(false) }
     TopAppBar(
         title = {
@@ -437,7 +469,9 @@ fun HomeTopAppBar(modifier: Modifier = Modifier, drawerState: DrawerState, scope
                 )
                 OptionMenu(
                     expanded = optionButtonExpanded,
-                    onDismmiss = { optionButtonExpanded = false })
+                    onDismmiss = { optionButtonExpanded = false },
+                    onClick = {homeViewModel.restablecerToolTips()}
+                )
             }
 
         },
@@ -459,6 +493,7 @@ private fun OptionMenu(
     modifier: Modifier = Modifier,
     expanded: Boolean,
     onDismmiss: () -> Unit,
+    onClick: () -> Unit
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -466,15 +501,11 @@ private fun OptionMenu(
         modifier = modifier.background(MaterialTheme.colorScheme.background)
     ) {
         DropdownMenuItem(
-            text = { Text(stringResource(id = R.string.ayuda)) },
-            onClick = { },
-            colors = MenuDefaults.itemColors(
-                textColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        )
-        DropdownMenuItem(
             text = { Text(stringResource(R.string.activar_tutorial)) },
-            onClick = {  },
+            onClick = {
+                onClick()
+                onDismmiss()
+            },
             colors = MenuDefaults.itemColors(
                 textColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -489,7 +520,7 @@ private fun OptionMenu(
 fun CarrouselHome(
     pagerState: PagerState,
     modifier: Modifier = Modifier,
-    banners: MutableList<Promocion>
+    banners: MutableList<Promocion>,
 ) {
     HorizontalPager(
         modifier = modifier
@@ -511,14 +542,15 @@ fun CarrouselHome(
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(context = LocalContext.current)
+                        .diskCachePolicy(CachePolicy.DISABLED)
                         .data(banners[it].foto)
                         .crossfade(true).build(),
                     error = painterResource(R.drawable.imagen),
                     placeholder = painterResource(R.drawable.download_file__1_),
                     contentDescription = banners[it].descripcion,
                     contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxWidth()
-                )
+
+                    )
             }
         }
 
@@ -556,6 +588,7 @@ fun CardProductoHome(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             AsyncImage(
                 model = ImageRequest.Builder(context = LocalContext.current).data(producto.foto)
+                    .diskCachePolicy(CachePolicy.DISABLED)
                     .crossfade(true).build(),
                 error = painterResource(R.drawable.image_break),
                 placeholder = painterResource(R.drawable.download_file__1_),

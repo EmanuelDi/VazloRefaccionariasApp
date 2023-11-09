@@ -149,14 +149,6 @@ fun PedidosTopAppBar(modifier: Modifier = Modifier, navigateBack: () -> Unit) {
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
-            IconButton(onClick = { /*TODO*/ }) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
         },
         modifier = modifier.height(50.dp)
         /*colors = TopAppBarDefaults.smallTopAppBarColors(

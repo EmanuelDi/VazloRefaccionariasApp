@@ -7,18 +7,20 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import vazlo.refaccionarias.data.model.ProductoCart
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
 import vazlo.refaccionarias.local.Sesion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
 import java.net.URLEncoder
 
 sealed interface CarritoUiState {
-    data class Success(val productos: MutableList<ProductoCart>) : CarritoUiState
+    data class Success(val productos: List<ProductoCart>) : CarritoUiState
     object Error : CarritoUiState
     object Loading : CarritoUiState
 }
@@ -46,6 +48,7 @@ class CartViewModel(
     var comentarios by mutableStateOf("")
         private set
 
+    var tooltipEstado by mutableStateOf(false)
 
     var nuevaCant by mutableStateOf("")
         private set
@@ -53,6 +56,21 @@ class CartViewModel(
     var productoSeleccionado by mutableStateOf("")
 
     val productosCargando = mutableStateListOf<String>()
+
+    init {
+        getToolTipCarrito()
+    }
+
+
+    fun getToolTipCarrito() {
+        viewModelScope.launch {
+            tooltipEstado = sesion.carrito.first()
+        }
+    }
+
+    fun setCarrito() {
+        sesion.setCarrito()
+    }
 
     fun onNuevaCantidadChange(inputCantidad: String) {
         nuevaCant = inputCantidad

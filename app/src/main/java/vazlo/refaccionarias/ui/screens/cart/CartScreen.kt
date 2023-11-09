@@ -24,7 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -36,7 +36,6 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DoNotDisturbAlt
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -58,11 +57,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.rememberPlainTooltipState
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -80,6 +76,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -87,19 +84,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntRect
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.PopupPositionProvider
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
+import com.skydoves.balloon.ArrowOrientation
+import com.skydoves.balloon.ArrowOrientationRules
+import com.skydoves.balloon.ArrowPositionRules
+import com.skydoves.balloon.Balloon
+import com.skydoves.balloon.BalloonAnimation
+import com.skydoves.balloon.BalloonHighlightAnimation
+import com.skydoves.balloon.BalloonSizeSpec
+import com.skydoves.balloon.compose.Balloon
+import com.skydoves.balloon.compose.rememberBalloonBuilder
+import com.skydoves.balloon.overlay.BalloonOverlayAnimation
+import com.skydoves.balloon.overlay.BalloonOverlayRoundRect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.data.model.ProductoCart
@@ -128,6 +133,40 @@ fun CartScreen(
     carritoViewModel: CartViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     LaunchedEffect(key1 = "", block = { carritoViewModel.cargarCarrito() })
+
+    var tooltipChaser by remember {
+        mutableIntStateOf(if (carritoViewModel.tooltipEstado) 0 else 1)
+    }
+
+    if (tooltipChaser == 7) {
+        carritoViewModel.setCarrito()
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val builder = rememberBalloonBuilder {
+        setArrowSize(10)
+        setArrowPosition(0.5f)
+        setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
+        setArrowOrientationRules(ArrowOrientationRules.ALIGN_ANCHOR)
+        setWidth(BalloonSizeSpec.WRAP)
+        setHeight(BalloonSizeSpec.WRAP)
+        setPadding(12)
+        setMarginHorizontal(12)
+        setCornerRadius(8f)
+        setBackgroundColorResource(R.color.rojo_vazlo)
+        setBalloonAnimation(BalloonAnimation.ELASTIC)
+        setBalloonHighlightAnimation(BalloonHighlightAnimation.SHAKE)
+        setIsVisibleOverlay(true)
+        setOverlayColorResource(R.color.overlay)
+        setOverlayPadding(6f)
+        setOverlayPaddingColorResource(R.color.overlayPadding)
+        setBalloonOverlayAnimation(BalloonOverlayAnimation.FADE)
+        setDismissWhenOverlayClicked(false)
+        setOverlayShape(BalloonOverlayRoundRect(12f, 12f))
+        setLifecycleOwner(lifecycleOwner)
+        setOnBalloonDismissListener { tooltipChaser++ }
+    }
+
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
     val sheetState = rememberModalBottomSheetState()
@@ -147,7 +186,6 @@ fun CartScreen(
 
     val window = (view.context as Activity).window
     WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = showBottomSheet
-
     var fabHeight by remember { mutableIntStateOf(0) }
     Scaffold(
         topBar = { CartTopBar(navigateBack = navigateBack) },
@@ -157,59 +195,104 @@ fun CartScreen(
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = modifier.fillMaxWidth()
             ) {
-                if (carritoViewModel.permisoCotizacion == "1") {
-                    FloatingActionButton(
-                        onClick = { showVaciarDialog = true },
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        modifier = modifier.onGloballyPositioned {
-                            fabHeight = it.size.height
+                Balloon(
+                    builder = builder.setArrowOrientation(ArrowOrientation.BOTTOM),
+                    balloonContent = {
+                        Text(
+                            text = "Presione para vaciar el carrito en su totalidad",
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }) {
+                    if (carritoViewModel.permisoCotizacion == "1") {
+                        FloatingActionButton(
+                            onClick = { showVaciarDialog = true },
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            modifier = modifier.onGloballyPositioned {
+                                fabHeight = it.size.height
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Clear,
+                                contentDescription = "",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
                         }
-                    ) {
+                    } else {
                         Icon(
-                            imageVector = Icons.Filled.Clear,
+                            imageVector = Icons.Filled.DoNotDisturbAlt,
                             contentDescription = "",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = modifier.size(30.dp)
                         )
                     }
-                } else {
-                    Icon(
-                        imageVector = Icons.Filled.DoNotDisturbAlt,
-                        contentDescription = "",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = modifier.size(30.dp)
-                    )
-                }
-                FloatingActionButton(onClick = { navigateToBusquedaParte() }) {
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = "",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = modifier.onGloballyPositioned {
-                            fabHeight = it.size.height
+                    if (tooltipChaser == 4) {
+                        LaunchedEffect(Unit) {
+                            delay(500)
+                            it.showAlignTop()
                         }
-                    )
+                    }
                 }
-                if (carritoViewModel.permisoHacerPedido == "1") {
-                    FloatingActionButton(
-                        onClick = { showEnviarDialog = true },
-                        containerColor = Verde_Success,
-                        modifier = modifier.onGloballyPositioned {
-                            fabHeight = it.size.height
-                        }
-                    ) {
+                Balloon(
+                    builder = builder,
+                    balloonContent = {
+                        Text(
+                            text = "Presiono para navegar hacia Busqueda Por Partes",
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }) {
+                    FloatingActionButton(onClick = { navigateToBusquedaParte() }) {
                         Icon(
-                            imageVector = Icons.Filled.Check,
+                            imageVector = Icons.Filled.Add,
                             contentDescription = "",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = modifier.onGloballyPositioned {
+                                fabHeight = it.size.height
+                            }
                         )
                     }
-                } else {
-                    Icon(
-                        imageVector = Icons.Filled.DoNotDisturbAlt,
-                        contentDescription = "",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = modifier.size(30.dp)
-                    )
+                    if (tooltipChaser == 5) {
+                        LaunchedEffect(Unit) {
+                            delay(500)
+                            it.showAlignTop()
+                        }
+                    }
+                }
+                Balloon(
+                    builder = builder,
+                    balloonContent = {
+                        Text(
+                            text = "Presione para enviar su carrito",
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }) {
+                    if (carritoViewModel.permisoHacerPedido == "1") {
+                        FloatingActionButton(
+                            onClick = { showEnviarDialog = true },
+                            containerColor = Verde_Success,
+                            modifier = modifier.onGloballyPositioned {
+                                fabHeight = it.size.height
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = "",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    } else {
+                        Icon(
+                            imageVector = Icons.Filled.DoNotDisturbAlt,
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = modifier.size(30.dp)
+                        )
+                    }
+                    if (tooltipChaser == 6) {
+                        LaunchedEffect(Unit) {
+                            delay(500)
+                            it.showAlignTop()
+                        }
+                    }
                 }
             }
         },
@@ -506,21 +589,46 @@ fun CartScreen(
                 is CarritoUiState.Success -> {
                     val productos =
                         (carritoViewModel.carritoUiState as CarritoUiState.Success).productos
+                    val productsGroup = productos.groupBy {producto ->
+                        producto.nombreSoporte.substringAfter("(").substringBefore(")")
+                    }
+                    val hayNoDisponibles = productos.filter {prod ->
+                        prod.cantidad == "NO DISPONIBLE"
+                    }
                     /*Log.i("sos1", "Encontrados: ${productos.size}")*/
                     Column {
                         ProductList(
-                            productList = productos,
+                            productList = productsGroup,
                             showBottomSheet = showBottomSheet,
                             onClick = { showBottomSheet = true },
                             viewModel = carritoViewModel,
-                            scope = scope
+                            scope = scope,
+                            builder = builder,
+                            tooltipChaser = tooltipChaser,
+                            hayNoDisponibles = hayNoDisponibles
                         )
-                        FooterCart(
-                            subtotal = subtotal,
-                            total = total,
-                            iva = iva,
-                            cantidad = cantidad
-                        )
+                        Balloon(
+                            builder = builder,
+                            balloonContent = {
+                                Text(
+                                    text = "Aqui se muestra la informacion general de su carrito",
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        ) {
+                            FooterCart(
+                                subtotal = subtotal,
+                                total = total,
+                                iva = iva,
+                                cantidad = cantidad
+                            )
+                            if (tooltipChaser == 2) {
+                                LaunchedEffect(Unit) {
+                                    delay(500)
+                                    it.showAlignTop()
+                                }
+                            }
+                        }
                     }
                 }
                 is CarritoUiState.Error -> {
@@ -675,14 +783,6 @@ fun CartTopBar(modifier: Modifier = Modifier, navigateBack: () -> Boolean) {
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
-            IconButton(onClick = { /*TODO*/ }) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
         },
         modifier = modifier.height(50.dp)
         /* colors = TopAppBarDefaults.smallTopAppBarColors(
@@ -696,24 +796,22 @@ fun CartTopBar(modifier: Modifier = Modifier, navigateBack: () -> Boolean) {
 @Composable
 fun ProductList(
     modifier: Modifier = Modifier,
-    productList: MutableList<ProductoCart>,
+    productList: Map<String, List<ProductoCart>>,
+    hayNoDisponibles: List<ProductoCart>,
     showBottomSheet: Boolean,
     onClick: () -> Unit,
     viewModel: CartViewModel,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    builder: Balloon.Builder,
+    tooltipChaser: Int
 ) {
 
     var showAlertNoDisp by remember {
         mutableStateOf(false)
     }
 
-    val productsGroup = productList.groupBy {
-        it.nombreSoporte.substringAfter("(").substringBefore(")")
-    }
 
-    val hayNoDisponibles = productList.filter {
-        it.cantidad == "NO DISPONIBLE"
-    }
+
 
 
     if (hayNoDisponibles.isNotEmpty()) {
@@ -729,7 +827,7 @@ fun ProductList(
         modifier.height(480.dp),
         contentPadding = PaddingValues(horizontal = 20.dp)
     ) {
-        productsGroup.forEach { (nombreSoporte, items) ->
+        productList.forEach { (nombreSoporte, items) ->
             item {
                 Row(
                     horizontalArrangement = Arrangement.Center,
@@ -752,13 +850,16 @@ fun ProductList(
                     )
                 }
             }
-            items(items) { producto ->
+            itemsIndexed(items) { index, producto ->
                 ItemProduct(
                     producto = producto,
                     showBottomSheet = showBottomSheet,
                     onClick = onClick,
                     viewModel = viewModel,
-                    scope = scope
+                    scope = scope,
+                    builder = builder,
+                    tooltipChaser = tooltipChaser,
+                    esPrimero = index == 0
                 )
                 HorizontalDivider(
                     modifier = modifier.padding(horizontal = 30.dp, vertical = 10.dp),
@@ -803,7 +904,10 @@ fun ItemProduct(
     onClick: () -> Unit,
     showBottomSheet: Boolean,
     viewModel: CartViewModel,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    builder: Balloon.Builder,
+    tooltipChaser: Int,
+    esPrimero: Boolean
 ) {
     if (viewModel.productosCargando.contains(producto.nombreSoporte)) {
 
@@ -823,24 +927,40 @@ fun ItemProduct(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 ImageProduct(imageId = producto.url)
-                if (viewModel.permisoCotizacion == "1") {
-                    IncrementInput(
-                        modifier,
-                        cantidad = producto.cantidad,
-                        onClick = onClick,
-                        onInputClick = {
-                            viewModel.onSelectProducto(
-                                producto.nombreSoporte
-                            )
-                        },
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Filled.DoNotDisturbAlt,
-                        contentDescription = "",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = modifier.size(30.dp)
-                    )
+                Balloon(
+                    builder = builder,
+                    balloonContent = {
+                        Text(
+                            text = "Presione para elegir o ingresar una cantidad nueva",
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                ) {
+                    if (viewModel.permisoCotizacion == "1") {
+                        IncrementInput(
+                            modifier,
+                            cantidad = producto.cantidad,
+                            onClick = onClick,
+                            onInputClick = {
+                                viewModel.onSelectProducto(
+                                    producto.nombreSoporte
+                                )
+                            },
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Filled.DoNotDisturbAlt,
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = modifier.size(30.dp)
+                        )
+                    }
+                    if (tooltipChaser == 3 && esPrimero) {
+                        LaunchedEffect(Unit) {
+                            delay(500)
+                            it.showAlignTop()
+                        }
+                    }
                 }
             }
             Spacer(modifier = modifier.width(20.dp))
@@ -855,7 +975,9 @@ fun ItemProduct(
                         }
                     }
                 },
-                carritoViewModel = viewModel
+                carritoViewModel = viewModel,
+                builder, tooltipChaser,
+                esPrimero
             )
         }
     }
@@ -893,29 +1015,6 @@ private fun IncrementInput(
 
         }
     }
-    /*OutlinedTextField(
-        value = cantidad,
-        placeholder = { Text(text = cantidad, color = MaterialTheme.colorScheme.onSurfaceVariant,)},
-        onValueChange = {},
-        modifier = modifier
-            .width(40.dp)
-            .height(50.dp),
-        colors = TextFieldDefaults.colors(
-            unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            focusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            focusedContainerColor = MaterialTheme.colorScheme.outline,
-            unfocusedContainerColor = MaterialTheme.colorScheme.outline,
-            focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            cursorColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        textStyle = TextStyle(
-            fontSize = 20.sp,
-            textAlign = TextAlign.Justify
-        )
-    )*/
 }
 
 
@@ -923,6 +1022,7 @@ private fun IncrementInput(
 fun ImageProduct( imageId: String, modifier: Modifier = Modifier) {
     AsyncImage(
         model = ImageRequest.Builder(context = LocalContext.current)
+            .diskCachePolicy(CachePolicy.DISABLED)
             .data(imageId)
             .crossfade(true).build(),
         error = painterResource(R.drawable.imagen),
@@ -934,7 +1034,15 @@ fun ImageProduct( imageId: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun InfoProduct(id: String, precio: String, onClick: () -> Job, carritoViewModel: CartViewModel) {
+fun InfoProduct(
+    id: String,
+    precio: String,
+    onClick: () -> Job,
+    carritoViewModel: CartViewModel,
+    builder: Balloon.Builder,
+    tooltipChaser: Int,
+    esPrimero: Boolean
+) {
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
@@ -950,7 +1058,6 @@ fun InfoProduct(id: String, precio: String, onClick: () -> Job, carritoViewModel
 
             )
         }
-
         Row(
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
@@ -970,23 +1077,39 @@ fun InfoProduct(id: String, precio: String, onClick: () -> Job, carritoViewModel
                 )
             }
         }
-        if (carritoViewModel.permisoCotizacion == "1") {
-            TextButton(
-                onClick = { onClick() }
-            ) {
+        Balloon(
+            builder = builder,
+            balloonContent = {
                 Text(
-                    text = stringResource(R.string.eliminar),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.secondaryContainer
+                    text = "Presione para eliminar el producto de su carrito",
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
-        } else {
-            Icon(
-                imageVector = Icons.Filled.DoNotDisturbAlt,
-                contentDescription = "",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(30.dp)
-            )
+        ) {
+            if (carritoViewModel.permisoCotizacion == "1") {
+                TextButton(
+                    onClick = { onClick() }
+                ) {
+                    Text(
+                        text = stringResource(R.string.eliminar),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.secondaryContainer
+                    )
+                }
+            } else {
+                Icon(
+                    imageVector = Icons.Filled.DoNotDisturbAlt,
+                    contentDescription = "",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+            if (tooltipChaser == 1 && esPrimero) {
+                LaunchedEffect(Unit) {
+                    delay(500)
+                    it.showAlignTop()
+                }
+            }
         }
     }
 }

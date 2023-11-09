@@ -109,7 +109,7 @@ fun CardFolleto(
     folleto: Folleto,
     navigateToPdfView: (String) -> Unit
 ) {
-    val url = URLEncoder.encode(folleto.url, StandardCharsets.UTF_8.toString())
+    val url = URLEncoder.encode(folleto.url, StandardCharsets.UTF_8.name())
     ElevatedCard(
         modifier = modifier
             .padding(10.dp)
@@ -165,14 +165,6 @@ fun FolletosQuincenalesTopBar(modifier: Modifier = Modifier, navigateBack: () ->
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
-            IconButton(onClick = { /*TODO*/ }) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
         },
         modifier = modifier.height(50.dp)
         /* colors = TopAppBarDefaults.smallTopAppBarColors(

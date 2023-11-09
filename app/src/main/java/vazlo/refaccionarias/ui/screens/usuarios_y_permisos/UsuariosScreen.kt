@@ -1,8 +1,13 @@
 package vazlo.refaccionarias.ui.screens.usuarios_y_permisos
 
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Build
+import android.speech.RecognizerIntent
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresExtension
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -24,6 +29,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -33,6 +39,8 @@ import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.sharp.MicNone
+import androidx.compose.material.icons.twotone.Clear
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -59,12 +67,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -79,6 +93,7 @@ import vazlo.refaccionarias.R
 import vazlo.refaccionarias.data.model.usuarios.Usuario
 import vazlo.refaccionarias.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
+import vazlo.refaccionarias.ui.screens.busquedaPorPartes.VoiceRecognitionButton
 import vazlo.refaccionarias.ui.theme.Amarillo_Vazlo
 import vazlo.refaccionarias.ui.theme.Blanco
 import vazlo.refaccionarias.ui.theme.Negro
@@ -214,13 +229,54 @@ fun ListaUsuarios(
     listUsuarios: List<Usuario>,
     usuariosViewModel: UsuariosViewModel
 ) {
+    val focusManager = LocalFocusManager.current
+    val focusRequester = remember { FocusRequester() }
+    OutlinedTextField(
+        value = usuariosViewModel.busquedaEntry,
+        onValueChange = {
+            usuariosViewModel.onBusquedaChange(it)
+        },
+        textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp),
+        label = { Text(text = stringResource(R.string.buscar), style = MaterialTheme.typography.bodyMedium) },
+        trailingIcon = {
+            VoiceRecognitionButtonUsuarios(usuariosViewModel = usuariosViewModel)
+        },
+        leadingIcon = {
+            IconButton(onClick = { usuariosViewModel.onBusquedaChange("") }) {
+                Icon(imageVector = Icons.TwoTone.Clear, contentDescription = "")
+            }
+        },
+        colors = TextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            focusedContainerColor = MaterialTheme.colorScheme.background,
+            unfocusedContainerColor = MaterialTheme.colorScheme.background,
+            disabledContainerColor = MaterialTheme.colorScheme.background,
+            focusedIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            errorLabelColor = MaterialTheme.colorScheme.error,
+            errorSupportingTextColor = MaterialTheme.colorScheme.error,
+            errorContainerColor = MaterialTheme.colorScheme.background
+        ),
+        modifier = modifier
+            .padding(horizontal = 20.dp)
+            .fillMaxWidth()
+            .focusRequester(focusRequester),
+        shape = RoundedCornerShape(10.dp),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus(force = true) })
+    )
+    var listaFiltrada = listUsuarios
+    if (usuariosViewModel.busquedaEntry.isNotEmpty()){
+        listaFiltrada = listUsuarios.filter { it.clienteId!!.contains(usuariosViewModel.busquedaEntry, ignoreCase = true) || it.clienteNombre!!.contains(usuariosViewModel.busquedaEntry, ignoreCase = true) }
+    }
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         modifier = modifier
             .padding(start = 20.dp, end = 20.dp, top = 20.dp)
             .fillMaxSize()
     ) {
-        items(listUsuarios, key = { it.clienteId.toString() }) { usuario ->
+        items(listaFiltrada, key = { it.clienteId.toString() }) { usuario ->
             UsuariosBody(
                 usuario = usuario,
                 navigateToPermisos = { navigateToPermisos(usuario.clienteId!!) },
@@ -232,6 +288,38 @@ fun ListaUsuarios(
             Spacer(modifier = Modifier.height(50.dp)) // Ajusta este valor según tus necesidades
         }
     }
+}
+
+@Composable
+fun VoiceRecognitionButtonUsuarios(usuariosViewModel: UsuariosViewModel) {
+    val context = LocalContext.current
+    val voiceRecognitionResult = remember { mutableStateOf("") }
+
+    val launcher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+                val matches = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                if (matches != null && matches.isNotEmpty()) {
+                    voiceRecognitionResult.value = matches[0]
+                    usuariosViewModel.onBusquedaChange(voiceRecognitionResult.value)
+                }
+            }
+        }
+
+    IconButton(onClick = {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH
+            )
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Diga, 1100")
+        }
+        launcher.launch(intent)
+    }) {
+        Icon(imageVector = Icons.Sharp.MicNone, contentDescription = "")
+    }
+
 }
 
 @Composable

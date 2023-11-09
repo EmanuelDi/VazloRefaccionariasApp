@@ -2,9 +2,7 @@ package vazlo.refaccionarias.ui.screens.notificaciones
 
 import android.os.Build
 import android.provider.Settings
-import android.util.Log
 import androidx.annotation.RequiresExtension
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -48,11 +46,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.data.model.Mensaje
-import vazlo.refaccionarias.data.model.mensajesPrueba
 import vazlo.refaccionarias.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
 import vazlo.refaccionarias.ui.theme.Azul_Vazlo
@@ -88,9 +86,8 @@ fun NotificacionesScreen(
                 is NotificacionesUiState.Success -> {
                     val mensajes =
                         (notificacionesViewModel.notificacionesUiState as NotificacionesUiState.Success).productos
-                    Log.i("sos1", "Encontrados: ${mensajes.size}")
                     ContentNot(
-                        mensajes = mensajesPrueba,
+                        mensajes = mensajes,
                         notificacionesViewModel = notificacionesViewModel
                     )
                 }
@@ -106,11 +103,15 @@ fun NotificacionesScreen(
 @Composable
 fun ErrorScreen(modifier: Modifier = Modifier) {
     Column(
-        modifier.fillMaxSize(),
+        modifier.fillMaxSize().padding(horizontal = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "No tienes notificaciones en este momento")
+        Text(
+            text = "No tienes notificaciones en este momento",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
@@ -253,14 +254,6 @@ fun NotificacionesTopBar(modifier: Modifier = Modifier, navigateBack: () -> Bool
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
-            IconButton(onClick = { /*TODO*/ }) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
         },
         modifier = modifier.height(50.dp)
         /* colors = TopAppBarDefaults.smallTopAppBarColors(

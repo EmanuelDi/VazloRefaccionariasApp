@@ -16,8 +16,10 @@ import vazlo.refaccionarias.data.model.ResultadoEmpresasResponse
 import vazlo.refaccionarias.data.model.ResultadoPartes
 import vazlo.refaccionarias.data.model.Verificar360Response
 import kotlinx.serialization.json.JsonObject
+import retrofit2.Call
 import retrofit2.Response
 import vazlo.refaccionarias.data.model.CargarMarcadoresClientesResponse
+import vazlo.refaccionarias.data.model.Mensaje
 import vazlo.refaccionarias.data.model.PromosResponse
 import vazlo.refaccionarias.data.model.Sucursal
 
@@ -72,7 +74,11 @@ interface ServicesAppRepository {
         p5: Int,
         p6: Int,
         p7: Int,
-        p8: Int
+        p8: Int,
+        p9: Int,
+        p10: Int,
+        p11: Int,
+        p12: Int,
     ): Response<JsonObject>
 
     suspend fun cargarProductosNuevos(
@@ -200,6 +206,8 @@ interface ServicesAppRepository {
 
     suspend fun cargarNotificaciones(url: String, idCte: String, token: String): NotificacionesResponse
 
+    suspend fun obtenerMensajes(url: String, idCliente: String, token: String): Call<List<Mensaje>>
+
     suspend fun getFolletos(url: String, idUser: String): FolletorResponse
 
     suspend fun getMarcadores(url: String, lat: Double, long: Double): CargarMarcadoresClientesResponse
@@ -209,6 +217,7 @@ interface ServicesAppRepository {
     suspend fun agregarBackOrder(url: String, idCte: String, nomsop: String, cant: Int, sucursal: String): Response<JsonObject>
 
     suspend fun bajarNotificacion(url: String, id: String): Response<JsonObject>
+
 }
 
 class NetServicesApp(
@@ -283,9 +292,14 @@ class NetServicesApp(
         p5: Int,
         p6: Int,
         p7: Int,
-        p8: Int
+        p8: Int,
+        p9: Int,
+        p10: Int,
+        p11: Int,
+        p12: Int,
+
     ): Response<JsonObject> {
-        return servicesApp.actualizarPermisos(url,idCte, p1, p2, p3, p4, p5, p6, p7, p8)
+        return servicesApp.actualizarPermisos(url,idCte, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12)
     }
 
     override suspend fun cargarProductosNuevos(url: String, idUser: String): ProductosNuevosResponse {
@@ -438,6 +452,14 @@ class NetServicesApp(
         token: String
     ): NotificacionesResponse {
         return servicesApp.getNotificaciones(url, idCte, token)
+    }
+
+    override suspend fun obtenerMensajes(
+        url: String,
+        idCliente: String,
+        token: String
+    ): Call<List<Mensaje>> {
+        return servicesApp.obtenerMensajesService(url, idCliente, token)
     }
 
     override suspend fun getFolletos(url: String, idUser: String): FolletorResponse {

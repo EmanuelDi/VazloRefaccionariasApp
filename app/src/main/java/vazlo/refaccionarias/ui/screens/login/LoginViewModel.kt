@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
 import vazlo.refaccionarias.data.repositorios.WebServicesRefacRepository
 import vazlo.refaccionarias.local.Sesion
@@ -44,9 +45,57 @@ class LoginViewModel(
     var contrasenia by mutableStateOf("")
         private set
 
+    var userActual by mutableStateOf("")
+    var contraseniaActual by mutableStateOf("")
+
+    suspend fun getSesionActual() {
+        userActual = sesion.id.first()
+        contraseniaActual = sesion.password.first()
+
+        if (sesion.logueado.first()) {
+            loginAuto()
+        }
+    }
+
+
+    suspend fun loginAuto(): Int {
+        logeado = LogeandoState.Loading
+        val url = sesion.loginCliente.first()
+        val response =
+            servicesAppRepository.login(url = url, usuario = userActual, clave = contraseniaActual)
+
+        val logear = sesion.setLogin(
+            tipo = 2,
+            id_user = response.usuario,
+            password_user = contraseniaActual,
+            id_cedis = response.cedis!!,
+            id_responsable = response.responsable!!,
+            perCaptura = response.captura!!,
+            perCotizacion = response.cotizacion!!,
+            perCsv = response.csv!!,
+            perExistencia = response.existencia!!,
+            perOtroCarrito = response.otroCarrito!!,
+            perPedidos = response.pedidos!!,
+            perPrecio = response.precio!!
+        )
+        return if ((response.estado) == 1) {
+            if(logear) {
+                logeado = LogeandoState.Success
+            }
+            response.estado
+        } else {
+            logeado = LogeandoState.Error
+            response.estado
+        }
+    }
+
 
     init {
-        getWebSerivce()
+        viewModelScope.launch {
+            getWebSerivce()
+            delay(500)
+            getSesionActual()
+        }
     }
 
 
@@ -56,6 +105,11 @@ class LoginViewModel(
 
     fun onPassChanged(pass: String) {
         contrasenia = pass
+    }
+
+    fun clearCampos() {
+        usuario = ""
+        contrasenia = ""
     }
 
 
@@ -104,7 +158,7 @@ class LoginViewModel(
                         u35 = datosOb?.get("getURLActualizarUsuario")?.jsonPrimitive?.content ?: "",
                         u36 = datosOb?.get("getURLEliminarUsuario")?.jsonPrimitive?.content ?: "",
                         u37 = datosOb?.get("getURLVerificarPermisos")?.jsonPrimitive?.content ?: "",
-                        u38 = datosOb?.get("getURLActualizarPermisos")?.jsonPrimitive?.content ?: "",
+                        u38 = datosOb?.get("getURLActualizarPermisos2023")?.jsonPrimitive?.content ?: "",
                         u39 = datosOb?.get("AtencionNombre")?.jsonPrimitive?.content ?: "",
                         u40 = datosOb?.get("AtencionNumero")?.jsonPrimitive?.content ?: "",
                         u41 = datosOb?.get("AtencionCorreo")?.jsonPrimitive?.content ?: "",
@@ -143,11 +197,11 @@ class LoginViewModel(
 
 
     suspend fun login(): Int {
-
+        logeado = LogeandoState.Loading
         val url = sesion.loginCliente.first()
         val response =
             servicesAppRepository.login(url = url, usuario = usuario, clave = contrasenia)
-        logeado = LogeandoState.Loading
+
         val logear = sesion.setLogin(
             tipo = 2,
             id_user = response.usuario,

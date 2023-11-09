@@ -54,6 +54,10 @@ class HomeViewModel(
         longitud = long
     }
 
+    fun restablecerToolTips() {
+        sesion.restablecerToolTips()
+    }
+
 
     init {
         cargarPromos()

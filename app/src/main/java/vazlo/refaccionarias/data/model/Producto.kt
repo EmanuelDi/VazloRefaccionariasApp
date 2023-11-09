@@ -9,7 +9,7 @@ data class Producto(
     @SerialName("id")
     val id: String? = "",
     @SerialName("precio")
-    val precio: String? = "",
+    val precio: String = "",
     @SerialName("foto")
     val foto: String? = "",
     @SerialName("descripcion")
@@ -19,7 +19,7 @@ data class Producto(
     @SerialName("nombreArticulo")
     val nombreArticulo: String? = "",
     @SerialName("disponible")
-    val disponible: String? = "",
+    val disponible: String = "",
     @SerialName("tabla")
     val tabla: List<RelacionadoDetalle>? = emptyList(),
     @SerialName("sucursales")

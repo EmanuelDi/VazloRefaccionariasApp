@@ -32,6 +32,10 @@ class PermisosViewModel(
     private var checkedCotizacion = mutableStateOf(false)
     private var checkedCotizarCarrito = mutableStateOf(false)
     private var checkedHistorial = mutableStateOf(false)
+    private var checkedFacturas = mutableStateOf(false)
+    private var checkedComplementos = mutableStateOf(false)
+    private var checkedNotas = mutableStateOf(false)
+    private var checkedEstadoCuenta = mutableStateOf(false)
 
 
     val permisosList = listOf<Permisos>(
@@ -70,7 +74,30 @@ class PermisosViewModel(
             R.string.mismo_carrito_info,
             checkedCotizarCarrito
         ),
-        Permisos(R.string.productos_historial, R.string.habilita_historial_info, checkedHistorial)
+        Permisos(
+            R.string.productos_historial,
+            R.string.habilita_historial_info,
+            checkedHistorial),
+        Permisos(
+            R.string.descargar_facturas,
+            R.string.descarga_xml_y_pdf_de_facturas,
+            checkedFacturas
+        ),
+        Permisos(
+            R.string.descargar_complementos,
+            R.string.descargar_xml_y_pdf_de_complementos,
+            checkedComplementos
+        ),
+        Permisos(
+            R.string.descargar_notas,
+            R.string.descargar_xml_y_pdf_de_notas,
+            checkedNotas
+        ),
+        Permisos(
+            R.string.visualizar_estado_cuenta,
+            R.string.visualizar_el_estado_de_cuenta,
+            checkedEstadoCuenta
+        )
     )
 
     init {
@@ -89,7 +116,11 @@ class PermisosViewModel(
             if (checkedCargarArchivo.value) 1 else 0,
             if (checkedCotizacion.value) 1 else 0,
             if (checkedCotizarCarrito.value) 1 else 0,
-            if (checkedHistorial.value) 1 else 0
+            if (checkedHistorial.value) 1 else 0,
+            if (checkedEstadoCuenta.value) 1 else 0,
+            if (checkedFacturas.value) 1 else 0,
+            if (checkedComplementos.value) 1 else 0,
+            if (checkedNotas.value) 1 else 0
         )
         val datosOb = response.body()!!
         return datosOb["estado"]?.jsonPrimitive?.int == 1
@@ -112,6 +143,10 @@ class PermisosViewModel(
                 checkedCotizacion.value = response.cotizacion == 1
                 checkedCotizarCarrito.value = response.carrito == 1
                 checkedHistorial.value = response.recompensas == 1
+                checkedEstadoCuenta.value = response.estadoCuenta == 1
+                checkedFacturas.value = response.permisoFactura == 1
+                checkedComplementos.value = response.permisoComplemento == 1
+                checkedNotas.value = response.permisoNota == 1
             }
         }
     }

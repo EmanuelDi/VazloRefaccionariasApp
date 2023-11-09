@@ -3,7 +3,6 @@ package vazlo.refaccionarias.ui.screens.login
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
@@ -30,6 +29,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -123,7 +123,17 @@ fun AlertLogeando(onDismiss: () -> Unit, mensaje: String) {
     AlertDialog(
         onDismissRequest = { onDismiss() },
         confirmButton = { },
-        text = { Text(text = mensaje) },
+        icon = {
+            Icon(
+                painter = painterResource(id = R.drawable.vazlo_logos_1_1),
+                contentDescription = "",
+                Modifier.size(40.dp)
+            )
+        },
+        text = {
+            Row (horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()){
+                Text(text = mensaje, textAlign = TextAlign.Center)
+            } },
         containerColor = MaterialTheme.colorScheme.background
     )
 }
@@ -161,7 +171,8 @@ fun LoginBody(
             text = stringResource(R.string.bienvenido),
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center
         )
         FormLogin(loginViewModel = loginViewModel, isFocused = isFocused)
     }
@@ -320,6 +331,7 @@ fun FooterLogin(
                             mensaje = "Verifique que el usuario o contraseña sean correctos"
                             show = true
                         } else {
+                            loginViewModel.clearCampos()
                             intentarLog()
                         }
                     } catch (e: UnknownHostException) {

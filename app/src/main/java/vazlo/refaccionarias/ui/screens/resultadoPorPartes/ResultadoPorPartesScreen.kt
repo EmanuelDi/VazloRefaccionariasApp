@@ -33,9 +33,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,12 +51,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.data.model.ProductosResult
 import vazlo.refaccionarias.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
-import vazlo.refaccionarias.ui.screens.resultadoPorPartes.ProductoCompartidoViewModel
 import vazlo.refaccionarias.ui.theme.Gris_Vazlo
 import vazlo.refaccionarias.ui.theme.VazloRefaccionariasTheme
 
@@ -76,6 +78,8 @@ fun ResultadoPorPartesScreen(
     resultadoPorPartesViewModel: ResultadoPorPartesViewModel = viewModel(factory = AppViewModelProvider.Factory),
     viewModelCompartido: ProductoCompartidoViewModel
 ) {
+    var show by rememberSaveable { mutableStateOf(false) }
+    var cantProductos by remember { mutableStateOf(0) }
     VazloRefaccionariasTheme {
         Scaffold(topBar = {
             ResultadoPorPartesTopBar(modifier = modifier, navigateBack = navigateBack)
@@ -92,32 +96,69 @@ fun ResultadoPorPartesScreen(
                     is ResultadoParteUiState.Success -> {
                         val productos =
                             (resultadoPorPartesViewModel.resultadoPartesUiState as ResultadoParteUiState.Success).productos
+                        cantProductos = resultadoPorPartesViewModel.totalProductos
                         /*Log.i("sos1", "Encontrados: ${productos.size}")*/
                         Content(
                             navigateToDetallesParte = navigateToDetallesParte,
                             productos = productos,
                             viewModelCompartido = viewModelCompartido
                         )
-                        show = true
+                        LaunchedEffect(cantProductos) {
+                            show = true
+                        }
                     }
 
                     is ResultadoParteUiState.Error -> {
-                        ErrorScreenCart(modifier = modifier, texto = "Parece que tu carrito esta vacio si crees que es un error comunicate con soporte")
+                        ErrorScreenCart(
+                            modifier = modifier,
+                            texto = "Parece que no se encontraron productos en base a tu bsuqueda"
+                        )
                     }
 
                     else -> {}
                 }
             }
-            /*if (show) {
-                productosDialog(
+            if (show) {
+                ProductosDialog(
                     modifier = modifier,
-                    show = show,
                     onDismiss = { show = false },
                     mensaje = "Se encontraron: $cantProductos productos"
                 )
-            }*/
+            }
         }
     }
+}
+
+@Composable
+private fun ProductosDialog(
+    modifier: Modifier,
+    onDismiss: () -> Unit,
+    mensaje: String
+) {
+    AlertDialog(
+        modifier = modifier,
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Resultados de Búsqueda",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.titleMedium
+            )
+        },
+        text = {
+            Text(
+                text = mensaje,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = "Aceptar", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surfaceVariant
+    )
 }
 
 @Composable
@@ -126,36 +167,14 @@ fun ErrorScreenCart(modifier: Modifier = Modifier, texto: String) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = texto, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Justify)
-    }
-}
-
-
-@Composable
-fun ProductosDialog(
-    modifier: Modifier,
-    show: Boolean,
-    onDismiss: () -> Unit,
-    mensaje: String
-) {
-    if (show) {
-        AlertDialog(
-            modifier = modifier,
-            onDismissRequest = onDismiss,
-            text = {
-                Text(
-                    text = mensaje,
-                    color = MaterialTheme.colorScheme.onTertiary
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = onDismiss) {
-                    Text(text = "Aceptar")
-                }
-            }
+        Text(
+            text = texto,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Justify
         )
     }
 }
+
 
 @Composable
 fun AltScreen(
@@ -299,6 +318,7 @@ fun Productos(
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(context = LocalContext.current)
+                    .diskCachePolicy(CachePolicy.DISABLED)
                     .data(producto.urlSoporte)
                     .crossfade(true).build(),
                 error = painterResource(R.drawable.imagen),

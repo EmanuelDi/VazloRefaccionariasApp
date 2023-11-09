@@ -35,7 +35,7 @@ class NotificacionesViewModel(
             val response = servicesAppRepository.cargarNotificaciones(url, idCte, token)
             Log.i("pop", response.mensaje)
             notificacionesUiState =
-                if (response.estado == 1) NotificacionesUiState.Success(response.mensajes) else NotificacionesUiState.Success(response.mensajes)
+                if (response.estado == 1) NotificacionesUiState.Success(response.mensajes) else NotificacionesUiState.Error
         } catch (e: Exception) {
             Log.e("Notis", e.toString())
             notificacionesUiState = NotificacionesUiState.Error

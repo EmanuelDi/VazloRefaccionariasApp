@@ -13,7 +13,7 @@ android {
         applicationId = "vazlo.refaccionarias"
         minSdk = 21
         targetSdk = 34
-        versionCode = 10
+        versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -24,7 +24,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -77,6 +77,8 @@ dependencies {
     implementation("com.google.maps.android:maps-compose:2.11.4")
     implementation("com.google.android.gms:play-services-maps:18.1.0")
     implementation ("com.google.android.gms:play-services-code-scanner:16.1.0")
+    val balloonVersion = "1.6.1"
+    implementation ("com.github.skydoves:balloon-compose:$balloonVersion")
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
     //retrofit

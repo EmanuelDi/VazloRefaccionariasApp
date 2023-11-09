@@ -80,7 +80,7 @@ fun DetallesPedidoScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Carrito",
+                        text = "Detalle Pedido",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -118,13 +118,7 @@ fun CartTopBar(modifier: Modifier = Modifier, navigateBack: () -> Unit) {
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
-            IconButton(onClick = {  }) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
+
 
         },
         modifier = modifier.height(50.dp)

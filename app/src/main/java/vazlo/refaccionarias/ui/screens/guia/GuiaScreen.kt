@@ -118,9 +118,7 @@ fun MyContent( idCliente: String, url: String){
 fun GuiaTopAppBar(
     modifier: Modifier = Modifier,
     navigateBack: () -> Unit
-
 ) {
-
     TopAppBar(
         title = {
             Row(
@@ -143,13 +141,6 @@ fun GuiaTopAppBar(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "",
                     modifier = modifier.size(30.dp),
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            IconButton(onClick = {}) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "",
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }

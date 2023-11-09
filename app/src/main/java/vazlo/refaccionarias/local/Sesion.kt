@@ -164,7 +164,7 @@ class Sesion(
     fun setCatelec() {
         CoroutineScope(Dispatchers.IO).launch {
             dataStore.edit { preferences ->
-                preferences[CATELEC] ?: ""
+                preferences[CATELEC] = true
             }
         }
     }
@@ -177,7 +177,7 @@ class Sesion(
     fun setPorParte() {
         CoroutineScope(Dispatchers.IO).launch {
             dataStore.edit { preferences ->
-                preferences[POR_PARTE] ?: false
+                preferences[POR_PARTE] = true
             }
         }
     }
@@ -190,7 +190,7 @@ class Sesion(
     fun setConver(): Unit {
         CoroutineScope(Dispatchers.IO).launch {
             dataStore.edit { preferences ->
-                preferences[CONVER] ?: false
+                preferences[CONVER] = true
             }
         }
     }
@@ -204,7 +204,7 @@ class Sesion(
     fun setMaMoAn(): Unit {
         CoroutineScope(Dispatchers.IO).launch {
             dataStore.edit { preferences ->
-                preferences[MAMOAN] ?: false
+                preferences[MAMOAN] = true
             }
         }
     }
@@ -217,7 +217,7 @@ class Sesion(
     fun setDetalleProd(): Unit {
         CoroutineScope(Dispatchers.IO).launch {
             dataStore.edit { preferences ->
-                preferences[DETALLE_PROD] ?: false
+                preferences[DETALLE_PROD] = true
             }
         }
     }
@@ -231,7 +231,7 @@ class Sesion(
     fun setCarrito(): Unit {
         CoroutineScope(Dispatchers.IO).launch {
             dataStore.edit { preferences ->
-                preferences[CARRITO] ?: false
+                preferences[CARRITO] = true
             }
         }
     }
@@ -245,12 +245,12 @@ class Sesion(
     fun restablecerToolTips() {
         CoroutineScope(Dispatchers.IO).launch {
             dataStore.edit { preferences ->
-                preferences[CATELEC] ?: true
-                preferences[CARRITO] ?: true
-                preferences[POR_PARTE] ?: true
-                preferences[CONVER] ?: true
-                preferences[MAMOAN] ?: true
-                preferences[DETALLE_PROD] ?: true
+                preferences[CATELEC] = false
+                preferences[CARRITO] = false
+                preferences[POR_PARTE] = false
+                preferences[CONVER] = false
+                preferences[MAMOAN] = false
+                preferences[DETALLE_PROD] = false
             }
         }
     }

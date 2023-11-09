@@ -2,6 +2,7 @@ package vazlo.refaccionarias.ui.screens.resultadoPorPartes
 
 import android.util.Log
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
@@ -29,6 +30,8 @@ class ResultadoPorPartesViewModel(
     var resultadoPartesUiState: ResultadoParteUiState by mutableStateOf(ResultadoParteUiState.Loading)
         private set
 
+    var totalProductos by mutableIntStateOf(0)
+
     init {
         if (funcArg == "M"){
             cargarProductosMamoan()
@@ -51,12 +54,11 @@ class ResultadoPorPartesViewModel(
                     idUser = user,
                     bmamoan = criterio
                 )
-                Log.i("pop", response.total.toString())
+                totalProductos = response.total!!
                 resultadoPartesUiState = if (response.estado == 1) ResultadoParteUiState.Success(
                     response.lineas
                 ) else ResultadoParteUiState.Error
             } catch (e: Exception) {
-                Log.i("pop", e.toString())
                 resultadoPartesUiState = ResultadoParteUiState.Error
             }
         }
@@ -74,7 +76,7 @@ class ResultadoPorPartesViewModel(
                     tipo = tipo,
                     soporte = criterio
                 )
-                Log.i("pop", response.lineas[0].cillitModSopId.toString())
+                 totalProductos = response.total!!
                 resultadoPartesUiState = if (response.estado == 1) ResultadoParteUiState.Success(
                     response.lineas
                 ) else ResultadoParteUiState.Error
@@ -96,7 +98,7 @@ class ResultadoPorPartesViewModel(
                     tipo = tipo,
                     soporte = criterio
                 )
-                Log.i("pop", response.lineas[0].cillitModSopId.toString())
+                totalProductos = response.total!!
                 resultadoPartesUiState = if (response.estado == 1) ResultadoParteUiState.Success(
                     response.lineas
                 ) else ResultadoParteUiState.Error

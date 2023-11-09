@@ -128,15 +128,14 @@ fun EventosScreen(
                         val marcadoresPrueba = listaMarcadoresPrueba
                         RefacCercanasGoogleMap(
                             modifier = modifier,
-                            marcadores = marcadoresPrueba,
+                            marcadores = marcadores,
                             latitud = lat,
                             longitud = long
                         )
-                        LaunchedEffect(marcadoresPrueba) {
-                            refCercanas = marcadoresPrueba.size
+                        LaunchedEffect(marcadores) {
+                            refCercanas = marcadores.size
                         }
                     }
-
                     is MarcadoresUiState.Error -> AltScreen(estado = "Error")
                     else -> {}
                 }

@@ -14,6 +14,7 @@ import vazlo.refaccionarias.data.model.ResultadoEmpresasResponse
 import vazlo.refaccionarias.data.model.ResultadoPartes
 import vazlo.refaccionarias.data.model.Verificar360Response
 import kotlinx.serialization.json.JsonObject
+import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -21,6 +22,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Query
 import retrofit2.http.Url
 import vazlo.refaccionarias.data.model.CargarMarcadoresClientesResponse
+import vazlo.refaccionarias.data.model.Mensaje
 import vazlo.refaccionarias.data.model.PromosResponse
 
 interface ServicesApp {
@@ -94,6 +96,11 @@ interface ServicesApp {
         @Query("p6") p6: Int,
         @Query("p7") p7: Int,
         @Query("p8") p8: Int,
+        @Query("p9") p9: Int,
+        @Query("p10") p10: Int,
+        @Query("p11") p11: Int,
+        @Query("p12") p12: Int,
+
     ): Response<JsonObject>
 
     @GET
@@ -250,6 +257,13 @@ interface ServicesApp {
         @Query("id_cliente") icCte: String,
         @Query("token") token: String
     ): NotificacionesResponse
+
+    @GET
+    suspend fun obtenerMensajesService (
+        @Url url: String,
+        @Query("id_cliente") icCte: String,
+        @Query("token") token: String
+    ): Call<List<Mensaje>>
 
     @GET
     suspend fun darBajaNotificaciones(

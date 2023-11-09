@@ -46,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +60,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -70,6 +72,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.common.moduleinstall.ModuleInstall
 import com.google.android.gms.common.moduleinstall.ModuleInstallRequest
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
+import com.skydoves.balloon.ArrowPositionRules
+import com.skydoves.balloon.Balloon
+import com.skydoves.balloon.BalloonAnimation
+import com.skydoves.balloon.BalloonHighlightAnimation
+import com.skydoves.balloon.BalloonSizeSpec
+import com.skydoves.balloon.compose.Balloon
+import com.skydoves.balloon.compose.rememberBalloonBuilder
+import com.skydoves.balloon.overlay.BalloonOverlayAnimation
+import com.skydoves.balloon.overlay.BalloonOverlayRect
+import com.skydoves.balloon.overlay.BalloonOverlayRoundRect
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
@@ -89,6 +101,28 @@ fun BusquedaPorPartesScreen(
     navigateToResultadoParte: (String, String) -> Unit,
     busquedaPorParteViewModel: BusquedaPorParteViewModel  = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val builder = rememberBalloonBuilder {
+        setArrowSize(10)
+        setArrowPosition(0.0f)
+        setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
+        setWidth(BalloonSizeSpec.WRAP)
+        setHeight(BalloonSizeSpec.WRAP)
+        setPadding(12)
+        setMarginHorizontal(12)
+        setCornerRadius(8f)
+        setBackgroundColorResource(R.color.teal_200)
+        setBalloonAnimation(BalloonAnimation.ELASTIC)
+        setBalloonHighlightAnimation(BalloonHighlightAnimation.SHAKE)
+        setIsVisibleOverlay(true)
+        setOverlayColorResource(R.color.overlay)
+        setOverlayPadding(10f)
+        setOverlayPaddingColorResource(R.color.overlayPadding)
+        setBalloonOverlayAnimation(BalloonOverlayAnimation.FADE)
+        setDismissWhenOverlayClicked(false)
+        setOverlayShape(BalloonOverlayRoundRect(12f, 12f))
+        setLifecycleOwner(lifecycleOwner)
+    }
     Scaffold(
         topBar = { PorPartesTopAppBar(navigateBack = navigateBack) }
     ) {
@@ -111,7 +145,8 @@ fun BusquedaPorPartesScreen(
             }
             BodyPorPartes(
                 navigateToResultadoParte = navigateToResultadoParte,
-                viewModel = busquedaPorParteViewModel
+                viewModel = busquedaPorParteViewModel,
+                builder = builder
             )
         }
     }
@@ -123,7 +158,9 @@ fun BodyPorPartes(
     modifier: Modifier = Modifier,
     navigateToResultadoParte: (String, String) -> Unit,
     viewModel: BusquedaPorParteViewModel,
+    builder: Balloon.Builder
 ) {
+
     val context = LocalContext.current
     val scanner = GmsBarcodeScanning.getClient(context)
     val sharedPreferences = context.getSharedPreferences("preferencias", Context.MODE_PRIVATE)
@@ -162,56 +199,60 @@ fun BodyPorPartes(
             viewModel = viewModel,
             errorSearch = errorSearch,
             navigateToResultadoParte = navigateToResultadoParte,
-            onErrorResolve = { errorSearch.value = false })
+            onErrorResolve = { errorSearch.value = false }
+        )
         Row(
-            horizontalArrangement = Arrangement.spacedBy(20.dp)
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            Button(
-                onClick = {
-                    scanner.startScan()
-                        .addOnSuccessListener { barcode ->
-                            barcode.rawValue?.let { viewModel.onCriterioChange(it) }
+
+                Button(
+                    onClick = {
+                        scanner.startScan()
+                            .addOnSuccessListener { barcode ->
+                                barcode.rawValue?.let { viewModel.onCriterioChange(it) }
+                            }
+                            .addOnFailureListener {
+                                // Handle failure...
+                            }
+                            .addOnCanceledListener {
+                                // Task canceled
+                            }
+                            .addOnFailureListener {
+                            }
+                    },
+                    modifier
+                        .height(50.dp)
+                        .width(150.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.barcode),
+                        contentDescription = "",
+                        modifier = modifier
+                            .size(30.dp),
+                        tint = MaterialTheme.colorScheme.outline
+                    )
+                }
+
+                Button(
+                    onClick = {
+                        if (viewModel.busqueda.isNotBlank()) {
+                            navigateToResultadoParte(viewModel.busqueda, "B")
+                        } else {
+                            errorSearch.value = true
                         }
-                        .addOnFailureListener {
-                            // Handle failure...
-                        }
-                        .addOnCanceledListener {
-                            // Task canceled
-                        }
-                        .addOnFailureListener {
-                        }
-                },
-                modifier
-                    .height(50.dp)
-                    .width(150.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.barcode),
-                    contentDescription = "",
-                    modifier = modifier
-                        .size(30.dp),
-                    tint = MaterialTheme.colorScheme.outline
-                )
+                    },
+                    modifier
+                        .height(50.dp)
+                        .width(150.dp)
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.buscar),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
             }
-            Button(
-                onClick = {
-                    if (viewModel.busqueda.isNotBlank()) {
-                        navigateToResultadoParte(viewModel.busqueda, "B")
-                    } else {
-                        errorSearch.value = true
-                    }
-                },
-                modifier
-                    .height(50.dp)
-                    .width(150.dp)
-            ) {
-                Text(
-                    text = stringResource(id = R.string.buscar),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.outline
-                )
-            }
-        }
+
         Spacer(modifier = Modifier.height(30.dp))
         PartesAyudaCard()
     }

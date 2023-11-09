@@ -324,7 +324,7 @@ private fun SoporteCard(
                                     .size(38.dp)
                                     .clickable {
                                         val message =
-                                            "Soy el mecánico. Necesito ayuda en la aplicación Vazlo Mecánicos" // Puedes dejar esto en blanco si no deseas un mensaje predefinido
+                                            "Soy el mecánico. Necesito ayuda en la aplicación Vazlo Refaccionarias" // Puedes dejar esto en blanco si no deseas un mensaje predefinido
                                         val uri = Uri.parse(
                                             "https://wa.me/$phone/?text=${
                                                 Uri.encode(message)

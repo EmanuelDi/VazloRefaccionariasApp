@@ -1,12 +1,12 @@
 <resources>
-    <string name="app_name">Refaccionarias</string>
+    <string name="app_name">Vazlo Refaccionarías</string>
     <string name="usuario">Usuario</string>
     <string name="contrasena">Contraseña</string>
     <string name="recuperar_contrasena">Recuperar\nContraseña</string>
     <string name="recuperar_contrasena_grande">Recuperar Contraseña</string>
     <string name="registrarse">Registrarse</string>
-    <string name="bienvenido">Bienvenido a Vazlo Refaccionarias</string>
-    <string name="iniciar_sesion">Iniciar Sesion</string>
+    <string name="bienvenido">Bienvenido a Vazlo Refaccionarías</string>
+    <string name="iniciar_sesion">Iniciar Sesión</string>
     <string name="eliminar">Eliminar</string>
     <string name="product_text">Producto: %1$s</string>
     <string name="precio_text">Precio Unitario: %1$s</string>
@@ -14,7 +14,7 @@
     <string name="subtotal">"Subtotal: "</string>
     <string name="iva">"IVA 16%: "</string>
     <string name="total">Total: %1$s</string>
-    <string name="refaccionarias">Refaccionarias</string>
+    <string name="refaccionarias">Refaccionarías</string>
     <string name="folio_android">Folio Android: %1$s</string>
     <string name="fecha_de_recepcion">%1$s</string>
     <string name="status">Status: %1$s</string>
@@ -26,11 +26,11 @@
     <string name="mostrara_existencia_del_producto_al_usuario">Mostrara existencia del producto al usuario</string>
     <string name="consultar_existencias">Consultar Existencias</string>
     <string name="hacer_pedido">Hacer Pedido</string>
-    <string name="habilita_la_opcion_de_enviar_pedido_desde_el_carrito_de_compra">Habilita la opcion de enviar pedido desde el carrito de compra</string>
+    <string name="habilita_la_opcion_de_enviar_pedido_desde_el_carrito_de_compra">Habilita la opción de enviar pedido desde el carrito de compra</string>
     <string name="captura_rapida">Captura Rapida</string>
     <string name="habilita_menu_captura_rapida">Habilita menu captura rapida</string>
-    <string name="hacer_cotizacion">Hacer Cotizacion</string>
-    <string name="habilita_la_opcion_de_agregar_carrito_de_compra">Habilita la opcion de agregar carrito de compra</string>
+    <string name="hacer_cotizacion">Hacer Cotización</string>
+    <string name="habilita_la_opcion_de_agregar_carrito_de_compra">Habilita la opción de agregar carrito de compra</string>
     <string name="cargar_archivo_csv">Cargar Archivo CSV</string>
     <string name="habilita_men_cargar_archivo_csv">Habilita menú cargar archivo CSV</string>
     <string name="mismo_carrito_info">Todos los productos que agregue el usuario seran agregados a un carrito diferente. Pero el pedido en vazlo será enviado a nombre del usuario administrador</string>
@@ -78,7 +78,7 @@
     <string name="desc_ayuda_cat">Aquí podrá realizar una búsqueda de productos (los cuáles pueden llegar a necesitar para el servicio de sus clientes), realizando un filtrado por año, marca, modelo y motor.</string>
     <string name="soporte_t_cnico">Soporte técnico</string>
     <string name="clientes">Clientes</string>
-    <string name="refaccionarias_cercanas">Refaccionarias cercanas</string>
+    <string name="refaccionarias_cercanas">Refaccionarías cercanas</string>
     <string name="informaci_n_t_cnica">Información técnica</string>
     <string name="b_squeda_por_partes">Búsqueda por partes</string>
     <string name="agenda">Agenda</string>
@@ -92,7 +92,7 @@
     <string name="search_bar_placeholder">Buscar Cliente</string>
     <string name="ver_editar">Ver/Editar</string>
     <string name="conversiones">Conversiones</string>
-    <string name="catalagoelectronico">Catalago Electronico</string>
+    <string name="catalagoelectronico">Catálago Electrónico</string>
     <string name="carrito">Carrito</string>
     <string name="mis_pedidos">Mis pedidos</string>
     <string name="seguimiento_de_gu_as">Seguimiento de guías</string>
@@ -110,7 +110,7 @@
     <string name="nombre">Nombre: %1$s </string>
     <string name="correo">Correo:  %1$s</string>
     <string name="domicilio">Domicilio: %1$s</string>
-    <string name="poblacion">Poblacion: %1$s</string>
+    <string name="poblacion">Población: %1$s</string>
     <string name="correo_alternativo">Correo Alternativo: %1$s</string>
     <string name="no_se_ha_iniciado">No se ha podido iniciar sesión</string>
     <string name="desc_prod_resultados">%1$s\n%2$s %3$s\n%4$s - %5$s\n%6$s</string>
@@ -118,4 +118,12 @@
     <string name="cantidad">"Cantidad: "</string>
     <string name="cargando">Cargando</string>
     <string name="no_hay_registros_para_mostrar">No hay registros para mostrar</string>
+    <string name="descargar_facturas">Descargar Facturas</string>
+    <string name="descarga_xml_y_pdf_de_facturas">Descargar XML Y PDF de Facturas</string>
+    <string name="descargar_complementos">Descargar Complementos</string>
+    <string name="descargar_xml_y_pdf_de_complementos">Descargar XML y PDF de Complementos</string>
+    <string name="descargar_notas">Descargar Notas</string>
+    <string name="descargar_xml_y_pdf_de_notas">Descargar XML y PDF de Notas</string>
+    <string name="visualizar_estado_cuenta">Visualizar Estado Cuenta</string>
+    <string name="visualizar_el_estado_de_cuenta">Visualizar el Estado de Cuenta</string>
 </resources>

@@ -14,6 +14,9 @@ import vazlo.refaccionarias.data.model.usuarios.Usuario
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
 import vazlo.refaccionarias.local.Sesion
 
+
+
+
 sealed interface UsuariosUiState {
     data class Success(val usuarios: MutableList<Usuario>) : UsuariosUiState
     object Error : UsuariosUiState
@@ -25,6 +28,8 @@ class UsuariosViewModel(
     private val servicesAppRepository: ServicesAppRepository
 ) : ViewModel() {
 
+
+    var busquedaEntry by mutableStateOf("")
     var userSeleccionado by mutableStateOf("")
         private set
     var usuariosUiState: UsuariosUiState by mutableStateOf(UsuariosUiState.Loading)
@@ -39,6 +44,14 @@ class UsuariosViewModel(
     var entryCorreo1 by mutableStateOf("")
 
     var nuevoUsuario: NuevoUsuario? = null
+
+
+
+
+
+    fun onBusquedaChange(criterio: String){
+        busquedaEntry = criterio
+    }
 
     fun onSelectUser(userId: String) {
         userSeleccionado = userId
