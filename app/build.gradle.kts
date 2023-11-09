@@ -77,6 +77,7 @@ dependencies {
     implementation("com.google.maps.android:maps-compose:2.11.4")
     implementation("com.google.android.gms:play-services-maps:18.1.0")
     implementation ("com.google.android.gms:play-services-code-scanner:16.1.0")
+    implementation("com.google.firebase:firebase-messaging:23.3.1")
     val balloonVersion = "1.6.1"
     implementation ("com.github.skydoves:balloon-compose:$balloonVersion")
 
