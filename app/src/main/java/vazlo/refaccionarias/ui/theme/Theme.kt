@@ -31,7 +31,7 @@ private val DarkColors = darkColorScheme(
     background = Blanco,
     error = Rojo_Vazlo,
     inversePrimary = Amarillo_Vazlo,
-    onPrimary = Blanco
+    onPrimary = Blanco,
 )
 
 private val LightColors = lightColorScheme(

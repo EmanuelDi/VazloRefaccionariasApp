@@ -640,12 +640,12 @@ class Sesion(
             preferences[SOPORTE_TECNICO_CORREO] ?: ""
         }
 
-    val empreseNumero: Flow<String> = dataStore.data
+    val empresaNumero: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[EMPRESA_NUMERO] ?: ""
         }
 
-    val getUrlSoporteWhats: Flow<String> = dataStore.data
+    val soporteWhats: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[GET_URL_SOPORTE_WHATS] ?: ""
         }

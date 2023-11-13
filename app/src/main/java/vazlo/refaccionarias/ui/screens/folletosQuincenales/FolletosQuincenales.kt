@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -38,6 +37,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import vazlo.refaccionarias.R
@@ -94,7 +94,7 @@ fun FolletosQuincelasScreen(
 @Composable
 fun ContentFolletos(folletos: List<Folleto>, navigateToPdfView: (String) -> Unit) {
     LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
+        columns = GridCells.Adaptive(150.dp),
         contentPadding = PaddingValues(horizontal = 20.dp)
     ) {
         items(folletos) { folleto ->
@@ -132,7 +132,8 @@ fun CardFolleto(
                 text = folleto.nombre,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
-                color = Blanco
+                color = Blanco,
+                textAlign = TextAlign.Center,
             )
         }
     }

@@ -11,6 +11,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.annotation.RequiresExtension
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -57,8 +58,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.navigation.NavigationDestination
+import vazlo.refaccionarias.ui.AppViewModelProvider
 import vazlo.refaccionarias.ui.theme.VazloRefaccionariasTheme
 
 
@@ -66,10 +69,12 @@ object SoporteTecnicoDestination : NavigationDestination {
     override val route = "soporte-tecnico"
 }
 
+@RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SoporteTecnicoScreen(
-    modifier: Modifier = Modifier, navigateBack: () -> Unit
+    modifier: Modifier = Modifier, navigateBack: () -> Unit,
+    viewModel: SoporteTecnicoViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     VazloRefaccionariasTheme {
         Scaffold(
@@ -95,14 +100,17 @@ fun SoporteTecnicoScreen(
                         )
                     }
                 }
-                Content()
+                Content(soporteTecnicoViewModel = viewModel)
             }
         }
     }
 }
 
 @Composable
-private fun Content(modifier: Modifier = Modifier) {
+private fun Content(
+    modifier: Modifier = Modifier,
+    soporteTecnicoViewModel: SoporteTecnicoViewModel
+) {
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -110,39 +118,48 @@ private fun Content(modifier: Modifier = Modifier) {
             .padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(15.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-
-        ) {
+    ) {
         //type: true equals full width
 
         item {
             Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 SoporteCard(
                     title = "Atención a cliente",
-                    name = "Virginia Cruz",
-                    mail = "atención.clientes@vazlo.com.mx",
-                    phone = "4931202279",
-                    whatsapp = ""
+                    name = soporteTecnicoViewModel.atencionNombre,
+                    mail = soporteTecnicoViewModel.atencionCorreo,
+                    phone = soporteTecnicoViewModel.atencionNumero,
+                    whatsapp = "",
+                    soporteTecnicoViewModel = soporteTecnicoViewModel,
+                    //builder = builder
                 )
                 SoporteCard(
                     title = "Soporte para func. de la app",
-                    name = "Antonio Pichardo",
+                    name = soporteTecnicoViewModel.soporteNombre,
                     mail = "",
-                    phone = "4931202279",
-                    whatsapp = "4931370436"
+                    phone = soporteTecnicoViewModel.soporteNumero,
+                    whatsapp = soporteTecnicoViewModel.numeroWhatsapp,
+                    soporteTecnicoViewModel = soporteTecnicoViewModel,
+                    //builder = builder
                 )
+
                 SoporteCard(
                     title = "Soporte técnico",
-                    name = "Tomás Santos",
-                    mail = "supervisortecnico@vazlo.com",
+                    name = soporteTecnicoViewModel.soporteTecnicoNombre,
+                    mail = soporteTecnicoViewModel.soporteTecnicoCorreo,
                     phone = "",
-                    whatsapp = ""
+                    whatsapp = "",
+                    soporteTecnicoViewModel = soporteTecnicoViewModel,
+                    //builder = builder
                 )
+
                 SoporteCard(
                     title = "Corporativo VAZLO",
                     name = "",
                     mail = "",
-                    phone = "4939331660",
-                    whatsapp = ""
+                    phone = soporteTecnicoViewModel.empresaNumero,
+                    whatsapp = "",
+                    soporteTecnicoViewModel = soporteTecnicoViewModel,
+                    //builder = builder
                 )
             }
         }
@@ -194,7 +211,8 @@ private fun SoporteCard(
     name: String,
     mail: String,
     phone: String,
-    whatsapp: String
+    whatsapp: String,
+    soporteTecnicoViewModel: SoporteTecnicoViewModel,
 ) {
     val context = LocalContext.current
     val dialPhoneLauncher =
@@ -267,21 +285,21 @@ private fun SoporteCard(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     if (mail.isNotEmpty()) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.clickable {
+                            val clipboard =
+                                context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            val clip = ClipData.newPlainText("", mail)
+                            clipboard.setPrimaryClip(clip)
+                            val intent = Intent(Intent.ACTION_VIEW)
+                            intent.data = Uri.parse("mailto:?subject=$mail")
+                            mailLauncher.launch(intent)
+                        }) {
                             Image(painter = painterResource(id = R.drawable.mail_icon),
                                 contentDescription = "",
                                 modifier = modifier
                                     .padding(end = 10.dp)
                                     .size(38.dp)
-                                    .clickable {
-                                        val clipboard =
-                                            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                        val clip = ClipData.newPlainText("", mail)
-                                        clipboard.setPrimaryClip(clip)
-                                        val intent = Intent(Intent.ACTION_VIEW)
-                                        intent.data = Uri.parse("mailto:?subject=$mail")
-                                        mailLauncher.launch(intent)
-                                    })
+                                    )
                             Text(
                                 text = mail,
                                 color = MaterialTheme.colorScheme.onTertiary,
@@ -293,18 +311,19 @@ private fun SoporteCard(
                     }
 
                     if (phone.isNotEmpty()) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.clickable {
+                            val intent = Intent(Intent.ACTION_DIAL)
+                            intent.data =
+                                Uri.parse("tel:$phone") // Reemplaza esto con el número de teléfono deseado
+                            dialPhoneLauncher.launch(intent)
+                        }) {
                             Image(painter = painterResource(id = R.drawable.llamada_icon),
                                 contentDescription = "",
                                 modifier = modifier
                                     .padding(end = 10.dp)
                                     .size(38.dp)
-                                    .clickable {
-                                        val intent = Intent(Intent.ACTION_DIAL)
-                                        intent.data =
-                                            Uri.parse("tel:$phone") // Reemplaza esto con el número de teléfono deseado
-                                        dialPhoneLauncher.launch(intent)
-                                    })
+
+                            )
                             Text(
                                 text = phone,
                                 color = MaterialTheme.colorScheme.onTertiary,
@@ -315,27 +334,29 @@ private fun SoporteCard(
                         }
                     }
                     if (whatsapp.isNotEmpty()) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = modifier.clickable {
+                                val message =
+                                    "Soy la refaccionaria. Necesito ayuda en la aplicación Vazlo Refaccionarias" // Puedes dejar esto en blanco si no deseas un mensaje predefinido
+                                val uri = Uri.parse(
+                                    "${soporteTecnicoViewModel.urlSoporteWhatsapp}&text=${
+                                        Uri.encode(message)
+                                    }"
+                                )
+
+                                val whatsappIntent = Intent(Intent.ACTION_VIEW, uri)
+
+                                // Inicia la actividad de WhatsApp
+                                openWhatsAppLauncher.launch(whatsappIntent)
+                            }
+                        ) {
                             Image(
                                 painter = painterResource(id = R.drawable.whatsapp_icon),
                                 contentDescription = "",
                                 modifier = modifier
                                     .padding(end = 10.dp)
                                     .size(38.dp)
-                                    .clickable {
-                                        val message =
-                                            "Soy el mecánico. Necesito ayuda en la aplicación Vazlo Refaccionarias" // Puedes dejar esto en blanco si no deseas un mensaje predefinido
-                                        val uri = Uri.parse(
-                                            "https://wa.me/$phone/?text=${
-                                                Uri.encode(message)
-                                            }"
-                                        )
-
-                                        val whatsappIntent = Intent(Intent.ACTION_VIEW, uri)
-
-                                        // Inicia la actividad de WhatsApp
-                                        openWhatsAppLauncher.launch(whatsappIntent)
-                                    }
                             )
                             Text(
                                 text = whatsapp,

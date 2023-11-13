@@ -1,5 +1,6 @@
 package vazlo.refaccionarias.ui.screens.pedidos
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.text.isDigitsOnly
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import vazlo.refaccionarias.R
@@ -61,14 +63,20 @@ fun DetallesPedidoScreen(
 ) {
     val infoPedido = sharedViewModel.productos!!.first
     val productos = sharedViewModel.productos!!.second
-    val cantidad = productos.sumOf { it.cantidad.toInt() }
+    var cantidad = productos.size
+
+    if (productos.size == 1) {
+        if (productos[0].producto.isNullOrBlank()) {
+            cantidad = 0
+        }
+    }
+
     Scaffold(
         topBar = { CartTopBar(navigateBack = navigateBack) },
         bottomBar = { FooterCart(infoPedido = infoPedido, cantidad = cantidad) },
         floatingActionButton = {},
         floatingActionButtonPosition = FabPosition.End
     ) {
-
         Column(modifier = modifier.padding(it)) {
             Surface {
                 Row(
@@ -135,8 +143,10 @@ fun ProductList(modifier: Modifier = Modifier, productList: List<ProductoPedido>
         contentPadding = PaddingValues(10.dp)
     ) {
         items(productList) { producto ->
-            ItemProduct(producto = producto)
-            HorizontalDivider(modifier = modifier.padding(30.dp), color = Rojo_Vazlo)
+            if (!producto.producto.isNullOrEmpty()) {
+                ItemProduct(producto = producto)
+                HorizontalDivider(modifier = modifier.padding(30.dp), color = Rojo_Vazlo)
+            }
         }
     }
 }
@@ -154,7 +164,7 @@ fun ItemProduct(producto: ProductoPedido, modifier: Modifier = Modifier) {
         }
 
         Spacer(modifier = modifier.width(20.dp))
-        InfoProduct(id = producto.producto, precio = producto.precio, cantidad = producto.cantidad)
+        InfoProduct(id = producto.producto!!, precio = producto.precio, cantidad = producto.cantidad!!)
     }
 
 }

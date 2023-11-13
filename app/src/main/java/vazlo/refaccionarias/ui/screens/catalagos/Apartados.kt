@@ -1,4 +1,4 @@
-package vazlo.refaccionarias.ui.screens.folletosQuincenales
+package vazlo.refaccionarias.ui.screens.catalagos
 
 import android.os.Build
 import android.view.ViewGroup
@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +26,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -35,40 +35,87 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
+import vazlo.refaccionarias.ui.screens.folletosQuincenales.PdfDestination
 
-
-object PdfDestination : NavigationDestination {
-    override val route = "pdf_view"
-    const val pdf = "pdf"
-    val routeWithArgs = "$route/{$pdf}"
-    /* override val titleRes = R.string.app_name*/
+object ApartadosDestination : NavigationDestination {
+    override val route = "apartados"
+    const val url = "url"
+    val routeWithArgs = "$route/{$url}"
+    /*override val titleRes = R.string.item_entry_title*/
 }
 
 @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
 @Composable
-fun PdfScreen(
+fun ApartadosScreen(
     modifier: Modifier = Modifier,
-    navigateBack: () -> Boolean,
-    navigateHome: () -> Boolean,
-    pdfViewViewModel: PdfViewViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    navigateBack: () -> Unit,
+    viewModel: ApartadosWebViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     Scaffold(
-        topBar = { PdfTopBar(navigateBack = navigateBack, navigateHome = navigateHome) }
+        topBar = { PiezaPedidoTopAppBar(navigateBack = navigateBack) },
     ) {
+
         Box(modifier = modifier.padding(it).fillMaxSize()) {
-            PdfViewContainer(url = pdfViewViewModel.pdfUrl)
+            MyContentApartados(viewModel.idCliente, viewModel.apartadoUrl)
         }
     }
+}
+
+@Composable
+fun MyContentApartados( idCliente: String, url: String){
+    // Declare a string that contains a url
+    val mUrl = "${url}${idCliente}"
+
+    if (mUrl.isNotEmpty()) {
+        AndroidView(factory = {
+            WebView(it).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+                webViewClient = WebViewClient()
+                settings.apply {
+                    javaScriptEnabled=true
+                    builtInZoomControls=true
+                    displayZoomControls=false
+                }
+
+                loadUrl(mUrl)
+            }
+        }, update = {
+            it.loadUrl(mUrl)
+        })
+    } else {
+        // Manejar el caso de URL nula o vacía
+    }
+    // Adding a WebView inside AndroidView
+    // with layout as full screen
+    AndroidView(factory = {
+        WebView(it).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            webViewClient = WebViewClient()
+            settings.apply {
+                javaScriptEnabled=true
+                builtInZoomControls=true
+                displayZoomControls=false
+            }
+            loadUrl(mUrl)
+        }
+    }, update = {
+        it.loadUrl(mUrl)
+    })
 }
 
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PdfTopBar(
+fun PiezaPedidoTopAppBar(
     modifier: Modifier = Modifier,
-    navigateBack: () -> Boolean,
-    navigateHome: () -> Boolean
+    navigateBack: () -> Unit
 ) {
     TopAppBar(
         title = {
@@ -80,7 +127,8 @@ fun PdfTopBar(
                 Image(
                     painter = painterResource(id = R.drawable.vazlo_blanco),
                     contentDescription = "",
-                    modifier = modifier.size(30.dp)
+                    modifier = modifier.size(33.dp),
+                    contentScale = ContentScale.Crop
                 )
                 Text(text = stringResource(R.string.refaccionarias))
             }
@@ -94,32 +142,7 @@ fun PdfTopBar(
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
-
         },
         modifier = modifier.height(50.dp)
-        /* colors = TopAppBarDefaults.smallTopAppBarColors(
-             containerColor = MaterialTheme.colorScheme.secondaryContainer
-         )*/
     )
-
-}
-
-
-@Composable
-fun PdfViewContainer(url: String) {
-    AndroidView(factory = { context ->
-        WebView(context).apply {
-            layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-            webViewClient = WebViewClient()
-            settings.apply {
-                javaScriptEnabled = true
-                builtInZoomControls = true
-                displayZoomControls = false
-            }
-            loadUrl("https://docs.google.com/gview?embedded=true&url=$url")
-        }
-    })
 }

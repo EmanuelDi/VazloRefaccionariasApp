@@ -110,8 +110,8 @@ fun ResultadoPorPartesScreen(
 
                     is ResultadoParteUiState.Error -> {
                         ErrorScreenCart(
-                            modifier = modifier,
-                            texto = "Parece que no se encontraron productos en base a tu bsuqueda"
+                            modifier = modifier.padding(horizontal = 20.dp),
+                            texto = "Parece que no se encontraron productos en base a tu búsqueda"
                         )
                     }
 
@@ -165,7 +165,8 @@ private fun ProductosDialog(
 fun ErrorScreenCart(modifier: Modifier = Modifier, texto: String) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier.fillMaxSize()
     ) {
         Text(
             text = texto,

@@ -437,16 +437,8 @@ fun OptionCompraItem(
     aCarrito: () -> Unit,
     aBackOrder: () -> Unit
 ) {
-    val sucursalesFiltro: List<Sucursal>
-    val responsable = viewModel.idResponsable.toInt()
-    if (responsable == 18 || responsable == 5 ) {
-        sucursalesFiltro = sucursalesList.filter { it.nombre == "MATRIZ" || it.nombre == "CDMX" }
-    } else {
-        sucursalesFiltro = sucursalesList.filter { it.idSuc?.toInt() == responsable }
-    }
-
     LazyColumn(modifier.padding()) {
-        items(sucursalesFiltro) { sucursal ->
+        items(sucursalesList) { sucursal ->
             OptionItem(
                 sucursal,
                 precio = precio,
@@ -665,6 +657,7 @@ fun BottomCantidad(
                     sheetState.hide()
                     cerrarBottomSheet()
                     backOption()
+                    showInputCantidad = false
                 }
             },
             sheetState = sheetState,

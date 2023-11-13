@@ -7,6 +7,7 @@ import vazlo.refaccionarias.ui.screens.eventos.Eventos
 import vazlo.refaccionarias.ui.screens.busquedaPorPartes.BusquedaPorPartesDestination
 import vazlo.refaccionarias.ui.screens.cart.CartDestination
 import vazlo.refaccionarias.ui.screens.catalagoElectronico.CatalogoElectronicoDestination
+import vazlo.refaccionarias.ui.screens.catalagos.EstadisticasDestination
 import vazlo.refaccionarias.ui.screens.conversiones.ConversionesDestination
 import vazlo.refaccionarias.ui.screens.folletosQuincenales.FolletosQuincenalesDestination
 import vazlo.refaccionarias.ui.screens.guia.GuiaDestination
@@ -37,7 +38,7 @@ val menuItemsBusquedas = listOf(
         destination = CatalogoElectronicoDestination.route ,
     ),
     MenuItem(
-        icon = R.drawable.busq_partes1,
+        icon = R.drawable.paper,
         label = R.string.busqueda_por_partes,
         destination = BusquedaPorPartesDestination.route,
     ),
@@ -67,7 +68,7 @@ val menuItemsSecciones = listOf(
         destination = CartDestination.route,
     ),
     MenuItem(
-        icon = R.drawable.cat_electronico,
+        icon = R.drawable.list__2_,
         label = R.string.mis_pedidos,
         destination = PedidosDestination.route,
     ),
@@ -77,7 +78,7 @@ val menuItemsSecciones = listOf(
         destination = GuiaDestination.route,
     ),
     MenuItem(
-        icon = R.drawable.baseline_event_24,
+        icon = R.drawable.calendar,
         label = R.string.eventos,
         destination = Eventos.route,
     ),
@@ -95,6 +96,11 @@ val menuItemsSecciones = listOf(
         icon = R.drawable.soporte_tecnico1,
         label = R.string.soporte_t_cnico,
         destination = SoporteTecnicoDestination.route,
+    ),
+    MenuItem(
+        icon = R.drawable.line_chart,
+        label = R.string.estadisticas,
+        destination = EstadisticasDestination.route
     ),
     MenuItem(
         icon = R.drawable.salir1,

@@ -180,6 +180,8 @@ private fun Content(
         }
         is BusqCatElecUiState.Error ->
             ErroScreenCatEl(estado = "Error")
+
+        else -> {}
     }
 }
 

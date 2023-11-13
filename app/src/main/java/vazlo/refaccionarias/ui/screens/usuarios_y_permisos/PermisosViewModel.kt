@@ -1,6 +1,5 @@
 package vazlo.refaccionarias.ui.screens.usuarios_y_permisos
 
-import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -9,12 +8,10 @@ import vazlo.refaccionarias.R
 import vazlo.refaccionarias.data.model.Permisos
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
 import vazlo.refaccionarias.local.Sesion
-import vazlo.refaccionarias.ui.screens.usuarios_y_permisos.PermisosDestination
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
-import vazlo.refaccionarias.data.model.ProductosResult
 
 class PermisosViewModel(
     savedStateHandle: SavedStateHandle,
@@ -31,7 +28,7 @@ class PermisosViewModel(
     private var checkedCargarArchivo = mutableStateOf(false)
     private var checkedCotizacion = mutableStateOf(false)
     private var checkedCotizarCarrito = mutableStateOf(false)
-    private var checkedHistorial = mutableStateOf(false)
+    private var checkedEntrar = mutableStateOf(false)
     private var checkedFacturas = mutableStateOf(false)
     private var checkedComplementos = mutableStateOf(false)
     private var checkedNotas = mutableStateOf(false)
@@ -75,9 +72,10 @@ class PermisosViewModel(
             checkedCotizarCarrito
         ),
         Permisos(
-            R.string.productos_historial,
-            R.string.habilita_historial_info,
-            checkedHistorial),
+            R.string.permiso_para_entrar,
+            R.string.el_usuario_tendra_permiso_para_acceder_a_la_web_y_a_la_app,
+            checkedEntrar
+        ),
         Permisos(
             R.string.descargar_facturas,
             R.string.descarga_xml_y_pdf_de_facturas,
@@ -116,7 +114,7 @@ class PermisosViewModel(
             if (checkedCargarArchivo.value) 1 else 0,
             if (checkedCotizacion.value) 1 else 0,
             if (checkedCotizarCarrito.value) 1 else 0,
-            if (checkedHistorial.value) 1 else 0,
+            if (checkedEntrar.value) 1 else 0,
             if (checkedEstadoCuenta.value) 1 else 0,
             if (checkedFacturas.value) 1 else 0,
             if (checkedComplementos.value) 1 else 0,
@@ -142,7 +140,7 @@ class PermisosViewModel(
                 checkedCargarArchivo.value = response.csv == 1
                 checkedCotizacion.value = response.cotizacion == 1
                 checkedCotizarCarrito.value = response.carrito == 1
-                checkedHistorial.value = response.recompensas == 1
+                checkedEntrar.value = response.recompensas == 1
                 checkedEstadoCuenta.value = response.estadoCuenta == 1
                 checkedFacturas.value = response.permisoFactura == 1
                 checkedComplementos.value = response.permisoComplemento == 1

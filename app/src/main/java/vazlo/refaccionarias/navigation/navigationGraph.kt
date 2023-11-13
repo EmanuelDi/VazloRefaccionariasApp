@@ -24,6 +24,10 @@ import vazlo.refaccionarias.ui.screens.catalagoElectronico.CatElectronicoScreen
 import vazlo.refaccionarias.ui.screens.catalagoElectronico.CatalogoElectronicoDestination
 import vazlo.refaccionarias.ui.screens.catalagoElectronico.ResultadosCatElDestination
 import vazlo.refaccionarias.ui.screens.catalagoElectronico.ResultadosCatElScreen
+import vazlo.refaccionarias.ui.screens.catalagos.ApartadosDestination
+import vazlo.refaccionarias.ui.screens.catalagos.ApartadosScreen
+import vazlo.refaccionarias.ui.screens.catalagos.EstadisticasScreen
+import vazlo.refaccionarias.ui.screens.catalagos.EstadisticasDestination
 import vazlo.refaccionarias.ui.screens.conversiones.ConversionesDestination
 import vazlo.refaccionarias.ui.screens.conversiones.ConversionesScreen
 import vazlo.refaccionarias.ui.screens.detallesNuevos.DetallesNuevoDestination
@@ -366,6 +370,28 @@ fun RefaccionariNavHost(
             GuiaScreen(
                 navigateBack = { navController.popBackStack() }
             )
+        }
+        composable(
+            route = EstadisticasDestination.route,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
+        ) {
+            EstadisticasScreen(
+                navigateBack = { navController.popBackStack() },
+                navigateToApartado = {navController.navigate("${ApartadosDestination.route}/${it}")}
+            )
+        }
+        composable(
+            route = ApartadosDestination.routeWithArgs,
+            enterTransition = { slideIn },
+            exitTransition = { slideOut },
+            arguments = listOf(
+                navArgument(ApartadosDestination.url) {
+                    type = NavType.StringType
+                },
+            )
+        ){
+            ApartadosScreen(navigateBack = { navController.popBackStack() })
         }
     }
 }

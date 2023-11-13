@@ -28,9 +28,9 @@ data class ProductoPedido(
     @SerialName("url")
     val url: String,
     @SerialName("producto")
-    val producto: String,
+    val producto: String? = "",
     @SerialName("cantidad")
-    val cantidad: String,
+    val cantidad: String? = "",
     @SerialName("precio")
     val precio: String
 )

@@ -9,6 +9,11 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -54,11 +59,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.consumeAllChanges
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -382,7 +393,8 @@ private fun ElementoMenu(
             Icon(
                 painterResource(id = item.icon),
                 contentDescription = "",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(25.dp)
             )
         },
         label = {
@@ -426,7 +438,7 @@ fun ProdList(
     builder: Balloon.Builder
 ) {
     LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
+        columns = GridCells.Adaptive(160.dp),
         contentPadding = PaddingValues(horizontal = 10.dp),
         modifier = modifier
     ) {
@@ -528,18 +540,21 @@ fun CarrouselHome(
         state = pagerState,
         userScrollEnabled = true,
         pageSize = PageSize.Fill,
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 10.dp)
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 10.dp),
+        pageSpacing = 20.dp
     ) {
         ElevatedCard(
             shape = RoundedCornerShape(10.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
             colors = CardDefaults.cardColors(contentColor = Gris_Vazlo),
-            modifier = modifier.fillMaxWidth()
+            modifier = modifier
         ) {
             Row(
                 horizontalArrangement = Arrangement.Center,
                 modifier = modifier.fillMaxWidth()
             ) {
+                val scale = remember { mutableStateOf(1f) }
+                val offset = remember { mutableStateOf(Offset.Zero) }
                 AsyncImage(
                     model = ImageRequest.Builder(context = LocalContext.current)
                         .diskCachePolicy(CachePolicy.DISABLED)
@@ -549,11 +564,25 @@ fun CarrouselHome(
                     placeholder = painterResource(R.drawable.download_file__1_),
                     contentDescription = banners[it].descripcion,
                     contentScale = ContentScale.Fit,
+                    modifier = modifier
+                        .scale(scale.value)
+                        .offset { IntOffset(offset.value.x.toInt(), offset.value.y.toInt()) }
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onDoubleTap = {
+                                    scale.value = if (scale.value == 1f) 2f else 1f
+                                    if (scale.value == 1f) {
+                                        offset.value = Offset.Zero
+                                    }
+                                }
+                            )
+                        }.let { if (scale.value > 1f) it.transformable(state = rememberTransformableState { zoomChange, offsetChange, _ ->
+                            offset.value += offsetChange
+                        }) else it }
 
-                    )
+                )
             }
         }
-
     }
 }
 

@@ -3,6 +3,7 @@
 package vazlo.refaccionarias.ui.screens.pedidos
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresExtension
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -104,7 +105,7 @@ fun PedidosScreen(
                 is PedidosUiState.Success -> {
                     val pedidos =
                         (pedidosViewModel.pedidosUiState as PedidosUiState.Success).pedidos
-                    /*Log.i("sos1", "Encontrados: ${productos.size}")*/
+                        //Log.i("sos1", "Encontrados: ${pedidos.size}")
                     ListaPedidos(
                         navigateToDetallesPedido = navigateToDetallesPedido,
                         pedidos = pedidos,

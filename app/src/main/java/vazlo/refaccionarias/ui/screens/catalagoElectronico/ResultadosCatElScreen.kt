@@ -138,6 +138,8 @@ fun ResultadosCatElScreen(
         is EmpresasUiState.Error -> {
             AltScreen(texto = stringResource(R.string.no_hay_registros_para_mostrar))
         }
+
+        else -> {}
     }
 
     val pagerState = rememberPagerState(
@@ -457,6 +459,8 @@ private fun EagleContent(
         is ProductosUiState.Error -> {
             AltScreen(texto = stringResource(R.string.no_hay_registros_para_mostrar))
         }
+
+        else -> {}
     }
 
 }
@@ -750,6 +754,8 @@ private fun TrackContent(
         is ProductosUiState.Error -> {
             AltScreen(texto = stringResource(R.string.no_hay_registros_para_mostrar))
         }
+
+        else -> {}
     }
 }
 

@@ -382,9 +382,8 @@ fun OptionCompraItem(
     aCarrito: () -> Unit,
     aBackOrder: () -> Unit
 ) {
-    val sucursalesFiltro = sucursalesList.filter { it.nombre == "MATRIZ" || it.nombre == "CDMX" }
     LazyColumn(modifier.padding()) {
-        items(sucursalesFiltro) { sucursal ->
+        items(sucursalesList) { sucursal ->
             OptionItem(
                 sucursal,
                 precio = precio,
@@ -606,6 +605,7 @@ fun BottomCantidad(
                     sheetState.hide()
                     cerrarBottomSheet()
                     backOption()
+                    showInputCantidad = false
                 }
             },
             sheetState = sheetState,

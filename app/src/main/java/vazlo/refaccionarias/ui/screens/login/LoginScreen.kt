@@ -49,6 +49,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -83,6 +84,7 @@ fun LoginScreen(
     var tryLogeo by remember {
         mutableStateOf(false)
     }
+
     val isFocused = remember { mutableStateOf(false) }
     VazloRefaccionariasTheme {
         Surface(color = MaterialTheme.colorScheme.primary) {
@@ -127,12 +129,52 @@ fun AlertLogeando(onDismiss: () -> Unit, mensaje: String) {
             Icon(
                 painter = painterResource(id = R.drawable.vazlo_logos_1_1),
                 contentDescription = "",
-                Modifier.size(40.dp)
+                Modifier.size(100.dp)
             )
         },
         text = {
             Row (horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()){
                 Text(text = mensaje, textAlign = TextAlign.Center)
+            } },
+        containerColor = MaterialTheme.colorScheme.background
+    )
+}
+
+@Composable
+fun AlertConexion(onDismiss: () -> Unit, mensaje: String){
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        confirmButton = { },
+        icon = {
+            Icon(
+                painter = painterResource(id = R.drawable.vazlo_logos_1_1),
+                contentDescription = "",
+                Modifier.size(100.dp)
+            )
+        },
+        text = {
+            Row (horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()){
+                Text(text = mensaje, textAlign = TextAlign.Center)
+            } },
+        containerColor = MaterialTheme.colorScheme.background
+    )
+}
+
+@Composable
+fun AlertConexionAlArrancar(onDismiss: () -> Unit, mensaje: String){
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        confirmButton = { },
+        icon = {
+            Icon(
+                painter = painterResource(id = R.drawable.vazlo_logos_1_1),
+                contentDescription = "",
+                Modifier.size(150.dp)
+            )
+        },
+        text = {
+            Row (horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()){
+                Text(text = mensaje, textAlign = TextAlign.Center, fontSize = 25.sp)
             } },
         containerColor = MaterialTheme.colorScheme.background
     )
@@ -300,6 +342,8 @@ private fun NoInicioSesionDialog(
         )
     }
 }
+
+
 
 @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
 @Composable

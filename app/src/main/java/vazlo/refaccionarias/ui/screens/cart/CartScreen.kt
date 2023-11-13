@@ -4,6 +4,7 @@ package vazlo.refaccionarias.ui.screens.cart
 
 import android.app.Activity
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresExtension
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -325,6 +326,7 @@ fun CartScreen(
                     scope.launch {
                         sheetState.hide()
                         showBottomSheet = false
+                        showInputCantidad = false
                     }
                 },
                 sheetState = sheetState,
@@ -611,7 +613,7 @@ fun CartScreen(
                             builder = builder,
                             balloonContent = {
                                 Text(
-                                    text = "Aqui se muestra la informacion general de su carrito",
+                                    text = "Aqui se muestra la información general de su carrito",
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
@@ -823,6 +825,7 @@ fun ProductList(
         AlertNoDisp { showAlertNoDisp = false }
     }
 
+    var contador = 0
     LazyColumn(
         modifier.height(480.dp),
         contentPadding = PaddingValues(horizontal = 20.dp)
@@ -839,17 +842,18 @@ fun ProductList(
                         text = "Sucursal: ",
                         color = MaterialTheme.colorScheme.surface,
                         style = MaterialTheme.typography.titleLarge,
-                        fontSize = 30.sp
+                        fontSize = 25.sp
                     )
                     Spacer(modifier = modifier.width(10.dp))
                     Text(
                         text = nombreSoporte,
                         color = MaterialTheme.colorScheme.surface,
                         style = MaterialTheme.typography.titleLarge,
-                        fontSize = 30.sp
+                        fontSize = 25.sp
                     )
                 }
             }
+            contador++
             itemsIndexed(items) { index, producto ->
                 ItemProduct(
                     producto = producto,
@@ -859,7 +863,7 @@ fun ProductList(
                     scope = scope,
                     builder = builder,
                     tooltipChaser = tooltipChaser,
-                    esPrimero = index == 0
+                    esPrimero = contador == 1 && index == 0
                 )
                 HorizontalDivider(
                     modifier = modifier.padding(horizontal = 30.dp, vertical = 10.dp),

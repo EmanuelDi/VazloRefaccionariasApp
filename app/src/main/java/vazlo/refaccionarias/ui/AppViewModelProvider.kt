@@ -16,6 +16,8 @@ import vazlo.refaccionarias.ui.screens.catalagoElectronico.ResultadosCatElViewMo
 import vazlo.refaccionarias.ui.screens.conversiones.ConversionesViewModel
 import vazlo.refaccionarias.ui.screens.detallesNuevos.DetallesNuevosViewModel
 import vazlo.refaccionarias.ui.screens.detallesParte.DetallesParteViewModel
+import vazlo.refaccionarias.ui.screens.catalagos.ApartadosWebViewModel
+import vazlo.refaccionarias.ui.screens.catalagos.CatalagoViewModel
 import vazlo.refaccionarias.ui.screens.folletosQuincenales.FolletosQuincenalesViewModel
 import vazlo.refaccionarias.ui.screens.folletosQuincenales.PdfViewViewModel
 import vazlo.refaccionarias.ui.screens.guia.GuiasViewModel
@@ -25,6 +27,7 @@ import vazlo.refaccionarias.ui.screens.mamoan.MamoanViewModel
 import vazlo.refaccionarias.ui.screens.notificaciones.NotificacionesViewModel
 import vazlo.refaccionarias.ui.screens.pedidos.PedidosViewModel
 import vazlo.refaccionarias.ui.screens.resultadoPorPartes.ResultadoPorPartesViewModel
+import vazlo.refaccionarias.ui.screens.soporteTecnico.SoporteTecnicoViewModel
 import vazlo.refaccionarias.ui.screens.usuarios_y_permisos.PermisosViewModel
 import vazlo.refaccionarias.ui.screens.usuarios_y_permisos.UsuariosViewModel
 
@@ -158,6 +161,30 @@ object AppViewModelProvider {
             GuiasViewModel(
                 sesion=sesion,
                 servicesAppRepository=servicesAppRepository
+            )
+        }
+        initializer {
+            val sesion = RefaccionariasApplication().sesion
+            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+
+            SoporteTecnicoViewModel(
+                sesion=sesion,
+            )
+        }
+        initializer {
+            val sesion = RefaccionariasApplication().sesion
+            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+            ApartadosWebViewModel(
+                sesion=sesion,
+                savedStateHandle = this.createSavedStateHandle()
+            )
+        }
+        initializer {
+            val sesion = RefaccionariasApplication().sesion
+            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+            CatalagoViewModel(
+                sesion=sesion,
+                servicesAppRepository = servicesAppRepository
             )
         }
         initializer {
