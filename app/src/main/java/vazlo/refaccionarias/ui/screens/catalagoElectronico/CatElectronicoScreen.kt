@@ -30,7 +30,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -63,11 +62,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import vazlo.refaccionarias.R
-import vazlo.refaccionarias.data.model.Anio
-import vazlo.refaccionarias.navigation.NavigationDestination
+import vazlo.refaccionarias.data.model.catalagoElectronicoData.Anio
+import vazlo.refaccionarias.ui.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
-import vazlo.refaccionarias.ui.screens.catalagoElectronico.BusqCatElecUiState
-import vazlo.refaccionarias.ui.screens.catalagoElectronico.CatElectronicoViewModel
 import vazlo.refaccionarias.ui.theme.Blanco
 import vazlo.refaccionarias.ui.theme.VazloRefaccionariasTheme
 
@@ -216,7 +213,7 @@ private fun DropDownAnio(
             value = busquedaCatElecViewModel.anio,
             onValueChange = { selectedText = it },
             modifier = Modifier
-                .width(size.dp),
+                .width(size.dp).clickable { expanded = !expanded },
             label = {
                 Text(
                     text = label,
@@ -261,7 +258,6 @@ private fun DropDownAnio(
                         selectedText = anio.ani_nombre
                         expanded = false
                         busquedaCatElecViewModel.onAnioChange(selectedText)
-                        Log.i("anioOnClick", busquedaCatElecViewModel.anio)
                         busquedaCatElecViewModel.cargarMarcas(selectedText)
                     }
 
@@ -288,7 +284,6 @@ private fun DropDownMarca(
         selectedText = busquedaCatElecViewModel.marcaPrimera
         selectedMarca = busquedaCatElecViewModel.idMarcaPrimera
         busquedaCatElecViewModel.onMarcaChange(busquedaCatElecViewModel.idMarcaPrimera)
-        Log.i("marcaInicializada", busquedaCatElecViewModel.marca)
     }
     val size = if (type)
         confguration.screenWidthDp - 20
@@ -308,7 +303,7 @@ private fun DropDownMarca(
             value = selectedText,
             onValueChange = { selectedText = it },
             modifier = Modifier
-                .width(size.dp),
+                .width(size.dp).clickable { expanded = !expanded },
             label = {
                 Text(
                     text = label,
@@ -368,7 +363,6 @@ private fun DropDownMarca(
                             selectedMarca = marca.marca_id
                             expanded = false
                             busquedaCatElecViewModel.onMarcaChange(selectedMarca)
-                            Log.i("marcaOnClick", busquedaCatElecViewModel.marca)
                             busquedaCatElecViewModel.cargarModelos(selectedMarca)
                         }
 
@@ -396,7 +390,6 @@ private fun DropDownModelo(
         selectedText = busquedaCatElecViewModel.modeloPrimero
         selectedModelo = busquedaCatElecViewModel.idModeloPrimero
         busquedaCatElecViewModel.onModeloChange(busquedaCatElecViewModel.idModeloPrimero)
-        Log.i("modeloInicializado", busquedaCatElecViewModel.modelo)
     }
     val size = if (type)
         confguration.screenWidthDp - 20
@@ -416,7 +409,7 @@ private fun DropDownModelo(
             value = selectedText,
             onValueChange = { selectedText = it },
             modifier = Modifier
-                .width(size.dp),
+                .width(size.dp).clickable { expanded = !expanded },
             label = {
                 Text(
                     text = label,
@@ -476,7 +469,6 @@ private fun DropDownModelo(
                             selectedModelo = modelo.modelocarro_id
                             expanded = false
                             busquedaCatElecViewModel.onModeloChange(selectedModelo)
-                            Log.i("modeloOnClick", busquedaCatElecViewModel.modelo)
                             busquedaCatElecViewModel.cargarMotores(selectedModelo)
                         }
                     )
@@ -505,9 +497,7 @@ private fun DropDownMotor(
         selectedCilindraje = busquedaCatElecViewModel.idCilindrajePrimero
         selectedLitro = busquedaCatElecViewModel.idLitroPrimero
         busquedaCatElecViewModel.onCilindrajeChange(busquedaCatElecViewModel.idCilindrajePrimero)
-        Log.i("cilindrajeInicializado", busquedaCatElecViewModel.cilindraje)
         busquedaCatElecViewModel.onLitrosChange(busquedaCatElecViewModel.idLitroPrimero)
-        Log.i("litrosInicializado", busquedaCatElecViewModel.litros)
     }
     val size = if (type)
         confguration.screenWidthDp - 20
@@ -527,7 +517,7 @@ private fun DropDownMotor(
             value = selectedText,
             onValueChange = { selectedText = it },
             modifier = Modifier
-                .width(size.dp),
+                .width(size.dp).clickable { expanded = !expanded },
             label = {
                 Text(
                     text = label,
@@ -600,9 +590,7 @@ private fun DropDownMotor(
                             busquedaCatElecViewModel.idCilindrajePrimero = selectedCilindraje
                             busquedaCatElecViewModel.idLitroPrimero = selectedLitro
                             busquedaCatElecViewModel.onCilindrajeChange(selectedCilindraje)
-                            Log.i("cilindrajeOnClick", busquedaCatElecViewModel.cilindraje)
                             busquedaCatElecViewModel.onLitrosChange(selectedLitro)
-                            Log.i("litrosOnClick", busquedaCatElecViewModel.litros)
                         }
                     )
                 }
@@ -752,7 +740,7 @@ private fun SuccessScreen(
                             busquedaCatElecViewModel.litros,
                         )
                         busquedaCatElecViewModel.limpiar()
-                        Log.i("boton", "boton")
+
                     },
                     contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                     colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),

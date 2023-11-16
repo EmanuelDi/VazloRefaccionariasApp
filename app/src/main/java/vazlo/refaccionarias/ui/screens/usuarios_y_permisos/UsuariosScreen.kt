@@ -45,6 +45,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -52,7 +53,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -69,7 +69,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -81,19 +80,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import okhttp3.internal.notify
 import vazlo.refaccionarias.R
-import vazlo.refaccionarias.data.model.usuarios.Usuario
-import vazlo.refaccionarias.navigation.NavigationDestination
+import vazlo.refaccionarias.data.model.usuariosData.Usuario
 import vazlo.refaccionarias.ui.AppViewModelProvider
-import vazlo.refaccionarias.ui.screens.busquedaPorPartes.VoiceRecognitionButton
+import vazlo.refaccionarias.ui.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.theme.Amarillo_Vazlo
 import vazlo.refaccionarias.ui.theme.Blanco
 import vazlo.refaccionarias.ui.theme.Negro
@@ -218,7 +214,14 @@ fun ErrorScreen(modifier: Modifier) {
 
 @Composable
 fun LoadingScreen(modifier: Modifier) {
-    Text(text = "Cargando", modifier = modifier)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier.fillMaxSize()
+    )
+    {
+        CircularProgressIndicator()
+    }
 }
 
 
@@ -281,7 +284,14 @@ fun ListaUsuarios(
                 usuario = usuario,
                 navigateToPermisos = { navigateToPermisos(usuario.clienteId!!) },
                 usuariosViewModel = usuariosViewModel,
-                onSelectUser = { usuariosViewModel.onSelectUser(usuario.clienteId!!) }
+                onSelectUser = {
+                    usuariosViewModel.onSelectUser(usuario.clienteId!!)
+                    usuariosViewModel.onNombreChange(usuario.clienteNombre!!)
+                    usuariosViewModel.onPoblacionChange(usuario.poblacion!!)
+                    usuariosViewModel.onDomicilioChange(usuario.domicilio!!)
+                    usuariosViewModel.onCorreoChange(usuario.correo!!)
+                    usuariosViewModel.onCorreo1Change(usuario.correo1!!)
+                }
             )
         }
         item {
@@ -505,7 +515,6 @@ fun ImageVazlo(modifier: Modifier = Modifier) {
 @Composable
 fun ImageFlecha(modifier: Modifier = Modifier, navigateBack: () -> Unit) {
     IconButton(onClick = {
-        Log.i("Amanda", "Atra")
         navigateBack()
     }) {
         Icon(
@@ -555,10 +564,16 @@ fun SimpleDialogExample(
         if (showDialog) {
             SimpleDialog(
                 showDialog = showDialog,
-                onDismiss = { showDialog = false },//funcionamiento de close,
+                onDismiss = {
+                    showDialog = false
+                    usuariosViewModel.onNombreChange("")
+                    usuariosViewModel.onPoblacionChange("")
+                    usuariosViewModel.onDomicilioChange("")
+                    usuariosViewModel.onCorreoChange("")
+                    usuariosViewModel.onCorreo1Change("")
+                },//funcionamiento de close,
                 navigateToPermisos = navigateToPermisos,
                 usuariosViewModel = usuariosViewModel
-
             )
         }
     }
@@ -580,6 +595,11 @@ fun Di(
         mutableStateOf(false)
     }
     var showValidate by remember { mutableStateOf(false) }
+
+    var validateCorreo by remember {
+        mutableStateOf(false)
+    }
+
     if (showDialog) {
         AlertDialog(
             title = {
@@ -608,13 +628,18 @@ fun Di(
                         if (usuariosViewModel.entryUsuario.isEmpty() || usuariosViewModel.entryNombre.isEmpty() || usuariosViewModel.entryPassword.isEmpty() || usuariosViewModel.entryDomicilio.isEmpty() || usuariosViewModel.entryPoblacion.isEmpty() || usuariosViewModel.entryCorreo.isEmpty() || usuariosViewModel.entryCorreo1.isEmpty()) {
                             showValidate = true
                         } else {
-                            scope.launch {
-                                if (usuariosViewModel.setNuevoUsuario()) {
-                                    showSuccess = true
-                                } else {
-                                    showError = false
+
+                            if (usuariosViewModel.entryCorreo1.esCorreo() && usuariosViewModel.entryCorreo.esCorreo()) {
+                                scope.launch {
+                                    if (usuariosViewModel.setNuevoUsuario()) {
+                                        showSuccess = true
+                                    } else {
+                                        showError = false
+                                    }
+                                    onDismiss()
                                 }
-                                onDismiss()
+                            } else {
+                                validateCorreo = true
                             }
                         }
                     },
@@ -647,6 +672,12 @@ fun Di(
     SuccessMessage(onDismiss = { showSuccess = false }, showDialog = showSuccess, mensaje = "Se agregó el usuario correctamente")
 
     ErrorMessage(onDismiss = { showError = false }, showDialog = showError, mensaje = "No se pudo agregar el usuario")
+
+    ErrorMessage(onDismiss = { validateCorreo = false }, showDialog = validateCorreo, mensaje = "Verifíque que los correos esten escritos correctamente")}
+
+fun String.esCorreo(): Boolean {
+    val patronCorreo = "^[A-Za-z](.*)(@)(.+)(\\.)(.+)"
+    return this.matches(patronCorreo.toRegex())
 }
 
 @Composable
@@ -734,7 +765,8 @@ private fun BodyFormDialog(modifier: Modifier = Modifier, usuariosViewModel: Usu
                 onValueChange = {
                     usuariosViewModel.onUserChange(it)
                 },
-                textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp)
+                textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp),
+                singleLine = true
             )
 
 
@@ -750,7 +782,8 @@ private fun BodyFormDialog(modifier: Modifier = Modifier, usuariosViewModel: Usu
                 onValueChange = {
                     usuariosViewModel.onNombreChange(it)
                 },
-                textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp)
+                textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp),
+                singleLine = true
             )
             OutlinedTextField(
                 value = usuariosViewModel.entryPassword,
@@ -765,7 +798,8 @@ private fun BodyFormDialog(modifier: Modifier = Modifier, usuariosViewModel: Usu
                 onValueChange = {
                     usuariosViewModel.onPassChange(it)
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                singleLine = true
             )
 
             OutlinedTextField(
@@ -780,7 +814,8 @@ private fun BodyFormDialog(modifier: Modifier = Modifier, usuariosViewModel: Usu
                 textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp),
                 onValueChange = {
                     usuariosViewModel.onDomicilioChange(it)
-                }
+                },
+                singleLine = true
             )
             OutlinedTextField(
                 value = usuariosViewModel.entryPoblacion,
@@ -795,7 +830,8 @@ private fun BodyFormDialog(modifier: Modifier = Modifier, usuariosViewModel: Usu
                 textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp),
                 onValueChange = {
                     usuariosViewModel.onPoblacionChange(it)
-                }
+                },
+                singleLine = true
             )
 
             OutlinedTextField(
@@ -811,7 +847,8 @@ private fun BodyFormDialog(modifier: Modifier = Modifier, usuariosViewModel: Usu
                 onValueChange = {
                     usuariosViewModel.onCorreoChange(it)
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                singleLine = true
             )
 
             OutlinedTextField(
@@ -827,7 +864,8 @@ private fun BodyFormDialog(modifier: Modifier = Modifier, usuariosViewModel: Usu
                 onValueChange = {
                     usuariosViewModel.onCorreo1Change(it)
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                singleLine = true
             )
         }
     }
@@ -938,7 +976,7 @@ private fun CambiarContraseniaDialog(usuariosViewModel: UsuariosViewModel) {
                     disabledContainerColor = Blanco,
                 ),
                 onValueChange = { },
-                enabled = false
+                enabled = false,
             )
 
             OutlinedTextField(
@@ -953,7 +991,8 @@ private fun CambiarContraseniaDialog(usuariosViewModel: UsuariosViewModel) {
                 onValueChange = {
                     usuariosViewModel.onPassChange(it)
                 },
-                textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp)
+                textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp),
+                singleLine = true
             )
         }
     }
@@ -973,6 +1012,10 @@ fun EditarUsuario(onDismiss: () -> Unit, editUser: Boolean, userViewModel: Usuar
         mutableStateOf(false)
     }
 
+    var validateCorreo by remember {
+        mutableStateOf(false)
+    }
+
     if (editUser) {
         AlertDialog(
             onDismissRequest = { onDismiss() },
@@ -983,13 +1026,17 @@ fun EditarUsuario(onDismiss: () -> Unit, editUser: Boolean, userViewModel: Usuar
                         if (userViewModel.entryNombre.isEmpty() || userViewModel.entryDomicilio.isEmpty() || userViewModel.entryPoblacion.isEmpty() || userViewModel.entryCorreo.isEmpty() || userViewModel.entryCorreo1.isEmpty()) {
                             showAlert = true
                         } else {
-                            scope.launch {
-                                if (userViewModel.actualizarUsuario()) {
-                                    showSuccess = true
-                                } else {
-                                    showError = true
+                            if (userViewModel.entryCorreo.esCorreo() && userViewModel.entryCorreo1.esCorreo()) {
+                                scope.launch {
+                                    if (userViewModel.actualizarUsuario()) {
+                                        showSuccess = true
+                                    } else {
+                                        showError = true
+                                    }
+                                    onDismiss()
                                 }
-                                onDismiss()
+                            } else {
+                                validateCorreo = true
                             }
                         }
 
@@ -1030,6 +1077,8 @@ fun EditarUsuario(onDismiss: () -> Unit, editUser: Boolean, userViewModel: Usuar
     SuccessMessage(onDismiss = { showSuccess = false }, showDialog = showSuccess, mensaje = "Se  ha actualizado con exito el usuario")
 
     ErrorMessage(onDismiss = { showError = false }, showDialog = showError, mensaje = "Ha ocurrido un error al actualizar")
+
+    ErrorMessage(onDismiss = { validateCorreo = false }, showDialog = validateCorreo, mensaje = "Verifíque que los correos esten escritos correctamente")
 
 }
 
@@ -1084,7 +1133,6 @@ fun SuccessMessage(onDismiss: () -> Unit, showDialog: Boolean, mensaje: String) 
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 private fun EditarDialogBody(usuariosViewModel: UsuariosViewModel) {
     Surface(
         color = Color.White
@@ -1120,7 +1168,9 @@ private fun EditarDialogBody(usuariosViewModel: UsuariosViewModel) {
                 onValueChange = {
                     usuariosViewModel.onNombreChange(it)
                 },
-                textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp)
+                textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp),
+                enabled = true,
+                singleLine = true
             )
 
             OutlinedTextField(
@@ -1135,7 +1185,9 @@ private fun EditarDialogBody(usuariosViewModel: UsuariosViewModel) {
                 onValueChange = {
                     usuariosViewModel.onDomicilioChange(it)
                 },
-                textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp)
+                textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp),
+                enabled = true,
+                singleLine = true
             )
 
 
@@ -1151,7 +1203,9 @@ private fun EditarDialogBody(usuariosViewModel: UsuariosViewModel) {
                 onValueChange = {
                     usuariosViewModel.onPoblacionChange(it)
                 },
-                textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp)
+                textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp),
+                enabled = true,
+                singleLine = true
             )
             OutlinedTextField(
                 value = usuariosViewModel.entryCorreo,
@@ -1165,7 +1219,8 @@ private fun EditarDialogBody(usuariosViewModel: UsuariosViewModel) {
                 onValueChange = {
                     usuariosViewModel.onCorreoChange(it)
                 },
-                textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp)
+                textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp),
+                singleLine = true
             )
             OutlinedTextField(
                 value = usuariosViewModel.entryCorreo1,
@@ -1179,7 +1234,8 @@ private fun EditarDialogBody(usuariosViewModel: UsuariosViewModel) {
                 onValueChange = {
                     usuariosViewModel.onCorreo1Change(it)
                 },
-                textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp)
+                textStyle = TextStyle(fontWeight = FontWeight.Normal, fontSize = 20.sp),
+                singleLine = true
             )
         }
     }
@@ -1199,17 +1255,22 @@ fun EliminarUsuario(
         mutableStateOf(false)
     }
     val scope = rememberCoroutineScope()
+
     if (deleteUser) {
         AlertDialog(
-            onDismissRequest = { onDismiss() },
+            onDismissRequest = { /*onDismiss()*/ },
             text = { EliminarUsuarioDialogBody(usuariosViewModel = usuariosViewModel) },
             confirmButton = {
                 Button(
                     onClick = {
                         scope.launch {
-                            usuariosViewModel.eliminarUsuario()
-                            onDismiss()
-                            onDelete()
+                            if (usuariosViewModel.eliminarUsuario()) {
+                                showSuccess = true
+                            } else {
+                                showError = true
+                            }
+                            //onDismiss()
+                            //onDelete()
                         }
                     },
                     colors = ButtonDefaults.buttonColors(Color.White)
@@ -1244,6 +1305,22 @@ fun EliminarUsuario(
             containerColor = Color.White
         )
     }
+    SuccessMessage(
+        onDismiss = {
+            showSuccess = false
+            scope.launch { usuariosViewModel.cargarUsuarios() }
+            //onDelete()
+        },
+        showDialog =
+        showSuccess,
+        mensaje = "Se eliminó el usuario correctamente"
+    )
+
+    ErrorMessage(
+        onDismiss = { showError = false },
+        showDialog = showError,
+        mensaje = "No se pudo eliminar el usuario"
+    )
 }
 
 @Composable
@@ -1279,6 +1356,7 @@ fun SimpleDialog(
     var nuevaContrasenia by remember { mutableStateOf(false) }
     var editUser by remember { mutableStateOf(false) }
     var deleteUser by remember { mutableStateOf(false) }
+    Log.e("Perra", deleteUser.toString())
 
     if (showDialog) {
         AlertDialog(
@@ -1375,7 +1453,6 @@ fun SimpleDialog(
                             .fillMaxWidth()
                             .background(color = MaterialTheme.colorScheme.onSurface),//color de la barra de refaccionarias
                         horizontalArrangement = Arrangement.SpaceBetween
-
                     ) {
                         var textoColor by remember { mutableStateOf(Color.Black) }
                         Row(verticalAlignment = Alignment.CenterVertically,
@@ -1388,7 +1465,9 @@ fun SimpleDialog(
                             TextButton(
                                 modifier = Modifier
                                     .fillMaxWidth(),
-                                onClick = { editUser = true },
+                                onClick = {
+                                    editUser = true
+                                },
                             ) {
                                 Text(
                                     text = "EDITAR USUARIO",
@@ -1429,7 +1508,7 @@ fun SimpleDialog(
                             }
                             EliminarUsuario(
                                 onDismiss = { deleteUser = false },
-                                onDelete = onDismiss ,
+                                onDelete = {  } ,
                                 deleteUser = deleteUser,
                                 usuariosViewModel = usuariosViewModel
                             )

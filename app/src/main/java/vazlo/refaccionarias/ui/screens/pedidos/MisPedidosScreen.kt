@@ -3,7 +3,6 @@
 package vazlo.refaccionarias.ui.screens.pedidos
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresExtension
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -27,7 +26,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -55,9 +53,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import vazlo.refaccionarias.R
-import vazlo.refaccionarias.data.model.InfoPedido
-import vazlo.refaccionarias.data.model.ProductoPedido
-import vazlo.refaccionarias.navigation.NavigationDestination
+import vazlo.refaccionarias.data.model.pedidoData.InfoPedido
+import vazlo.refaccionarias.data.model.pedidoData.ProductoPedido
+import vazlo.refaccionarias.ui.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
 import vazlo.refaccionarias.ui.screens.resultadoPorPartes.AltScreen
 import vazlo.refaccionarias.ui.theme.Amarillo_Vazlo

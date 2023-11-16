@@ -3,7 +3,6 @@ package vazlo.refaccionarias.ui.screens.detallesNuevos
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.os.Build
-import android.util.Log
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -19,30 +18,24 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DoNotDisturbAlt
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,17 +45,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -79,13 +67,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -97,14 +82,19 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
-import kotlinx.coroutines.launch
 import vazlo.refaccionarias.R
-import vazlo.refaccionarias.data.model.Producto
-import vazlo.refaccionarias.data.model.ProductosResult
-import vazlo.refaccionarias.data.model.Sucursal
-import vazlo.refaccionarias.navigation.NavigationDestination
+import vazlo.refaccionarias.data.model.busquedasData.ProductosResult
+import vazlo.refaccionarias.data.model.homeData.Producto
 import vazlo.refaccionarias.ui.AppViewModelProvider
+import vazlo.refaccionarias.ui.navigation.NavigationDestination
+import vazlo.refaccionarias.ui.screens.detallesParte.AltTable
+import vazlo.refaccionarias.ui.screens.detallesParte.BackOrderDialog
+import vazlo.refaccionarias.ui.screens.detallesParte.BottomCantidad
 import vazlo.refaccionarias.ui.screens.detallesParte.DetallesParteViewModel
+import vazlo.refaccionarias.ui.screens.detallesParte.DialogCantidadNoDisp
+import vazlo.refaccionarias.ui.screens.detallesParte.DialogOpcionesCompra
+import vazlo.refaccionarias.ui.screens.detallesParte.ErrorAlert
+import vazlo.refaccionarias.ui.screens.detallesParte.MensajeAlert
 import vazlo.refaccionarias.ui.screens.detallesParte.ProductosUiState
 import vazlo.refaccionarias.ui.screens.resultadoPorPartes.ProductoCompartidoViewModel
 import vazlo.refaccionarias.ui.theme.Blanco
@@ -140,6 +130,14 @@ fun DetallesNuevoScreen(
         mutableStateOf(false)
     }
 
+    var showCanitadError by remember {
+        mutableStateOf(false)
+    }
+
+    var showBackOrderDialog by remember {
+        mutableStateOf(false)
+    }
+
     val view = LocalView.current
 
     val window = (view.context as Activity).window
@@ -155,14 +153,19 @@ fun DetallesNuevoScreen(
 
     var url360 by remember { mutableStateOf("") }
 
-    var scope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
+
+    var cantidadAlt by remember {
+        mutableStateOf(0)
+    }
+
+    val setCantidadAlt: (Int) -> Unit = { cantidad -> cantidadAlt = cantidad }
 
     dPViewModel.verificar360(producto.nombreArticulo!!)
 
     LaunchedEffect(viewModelCompartido.getProducto().nombreArticulo) {
         dPViewModel.get360()
         url360 = dPViewModel.url360 + "?soporte=" + viewModelCompartido.getProducto().nombreArticulo
-        Log.i("360", url360)
     }
 
     var openedDialog by remember { mutableStateOf(false) }
@@ -206,7 +209,7 @@ fun DetallesNuevoScreen(
                     DialogOpcionesCompra(
                         onDismiss = { openedDialog = !openedDialog },
                         sucursales = producto.sucursales!!,
-                        precio = producto.precio!!,
+                        precio = producto.precio,
                         viewModel = dPViewModel,
                         abrirSheetCantidad = { showBottomSheet = true },
                         aCarrito = { agregar = true },
@@ -222,8 +225,19 @@ fun DetallesNuevoScreen(
                     showSucces = { showAlert = true },
                     showError = { showAlertError = true },
                     backOption = { openedDialog = true },
+                    setCantidadAlt = setCantidadAlt,
+                    showCantidadError = {showCanitadError = true},
+                    showBackOrderDialog = { showBackOrderDialog = true }
                 )
 
+                DialogCantidadNoDisp(
+                    onDismiss = { showCanitadError = false },
+                    showAlert = showCanitadError,
+                    navigateToCart = navigateToCart,
+                    cantidad = cantidadAlt,
+                    viewModel = dPViewModel,
+                    scope = scope
+                )
 
                 MensajeAlert(
                     onDismiss = {
@@ -233,6 +247,12 @@ fun DetallesNuevoScreen(
                     navigateToCart = navigateToCart
                 )
 
+                BackOrderDialog(
+                    onDismiss = {
+                        showBackOrderDialog = false
+                    },
+                    showBackOrderDialog
+                )
 
                 ErrorAlert(
                     onDismiss = {
@@ -324,663 +344,691 @@ private fun DetallesPTopAppBar(
 }
 
 
-@Composable
-fun DialogOpcionesCompra(
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
-    sucursales: List<Sucursal>,
-    precio: String,
-    viewModel: DetallesParteViewModel,
-    aCarrito: () -> Unit,
-    aBackOrder: () -> Unit,
-    abrirSheetCantidad: () -> Unit
-) {
-    AlertDialog(
-        modifier = modifier.padding(horizontal = 10.dp),
-        confirmButton = { },
-        onDismissRequest = { onDismiss() },
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-        text = {
-            OptionCompraItem(
-                sucursalesList = sucursales,
-                precio = precio,
-                viewModel = viewModel,
-                onDismiss = onDismiss,
-                aCarrito = aCarrito,
-                aBackOrder = aBackOrder,
-                abrirSheetCantidad = abrirSheetCantidad
-            )
-        },
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { onDismiss() }) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = modifier.size(30.dp)
-                    )
-                }
-                Text(
-                    text = "Opciones de Compra",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-    )
-}
+//@Composable
+//fun DialogOpcionesCompra(
+//    onDismiss: () -> Unit,
+//    modifier: Modifier = Modifier,
+//    sucursales: List<Sucursal>,
+//    precio: String,
+//    viewModel: DetallesParteViewModel,
+//    aCarrito: () -> Unit,
+//    aBackOrder: () -> Unit,
+//    abrirSheetCantidad: () -> Unit
+//) {
+//    AlertDialog(
+//        modifier = modifier.padding(horizontal = 10.dp),
+//        confirmButton = { },
+//        onDismissRequest = { onDismiss() },
+//        properties = DialogProperties(usePlatformDefaultWidth = false),
+//        text = {
+//            OptionCompraItem(
+//                sucursalesList = sucursales,
+//                precio = precio,
+//                viewModel = viewModel,
+//                onDismiss = onDismiss,
+//                aCarrito = aCarrito,
+//                aBackOrder = aBackOrder,
+//                abrirSheetCantidad = abrirSheetCantidad
+//            )
+//        },
+//        title = {
+//            Row(verticalAlignment = Alignment.CenterVertically) {
+//                IconButton(onClick = { onDismiss() }) {
+//                    Icon(
+//                        imageVector = Icons.Default.Close,
+//                        contentDescription = "",
+//                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+//                        modifier = modifier.size(30.dp)
+//                    )
+//                }
+//                Text(
+//                    text = "Opciones de Compra",
+//                    color = MaterialTheme.colorScheme.onSurfaceVariant
+//                )
+//            }
+//        },
+//        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+//    )
+//}
 
-@Composable
-fun OptionCompraItem(
-    sucursalesList: List<Sucursal>,
-    modifier: Modifier = Modifier,
-    precio: String,
-    viewModel: DetallesParteViewModel,
-    onDismiss: () -> Unit,
-    abrirSheetCantidad: () -> Unit,
-    aCarrito: () -> Unit,
-    aBackOrder: () -> Unit
-) {
-    LazyColumn(modifier.padding()) {
-        items(sucursalesList) { sucursal ->
-            OptionItem(
-                sucursal,
-                precio = precio,
-                onDismiss = onDismiss,
-                onClick = {
-                    abrirSheetCantidad()
-                    aCarrito()
-                    viewModel.onSucursalSelected(sucursal.nombre!!, sucursal.idSuc!!)
-                    onDismiss()
-                },
-                onBackOrder = {
-                    abrirSheetCantidad()
-                    aBackOrder()
-                    viewModel.onSucursalSelected(sucursal.nombre!!, sucursal.idSuc!!)
-                    onDismiss()
-                },
-                permisoCotizacion = viewModel.permisoCotizacion,
-                permisoExistencias = viewModel.permisoCotizacion,
-                permisoPrecio = viewModel.permisoPrecio,
-            )
-        }
-    }
+//@Composable
+//fun OptionCompraItem(
+//    sucursalesList: List<Sucursal>,
+//    modifier: Modifier = Modifier,
+//    precio: String,
+//    viewModel: DetallesParteViewModel,
+//    onDismiss: () -> Unit,
+//    abrirSheetCantidad: () -> Unit,
+//    aCarrito: () -> Unit,
+//    aBackOrder: () -> Unit
+//) {
+//    LazyColumn(modifier.padding()) {
+//        items(sucursalesList) { sucursal ->
+//            OptionItem(
+//                sucursal,
+//                precio = precio,
+//                onDismiss = onDismiss,
+//                onClick = {
+//                    abrirSheetCantidad()
+//                    aCarrito()
+//                    viewModel.onSucursalSelected(sucursal.nombre!!, sucursal.idSuc!!)
+//                    onDismiss()
+//                },
+//                onBackOrder = {
+//                    abrirSheetCantidad()
+//                    aBackOrder()
+//                    viewModel.onSucursalSelected(sucursal.nombre!!, sucursal.idSuc!!)
+//                    onDismiss()
+//                },
+//                permisoCotizacion = viewModel.permisoCotizacion,
+//                permisoExistencias = viewModel.permisoCotizacion,
+//                permisoPrecio = viewModel.permisoPrecio,
+//            )
+//        }
+//    }
+//
+//}
 
-}
+//@Composable
+//fun MensajeAlert(onDismiss: () -> Unit, showAlert: Boolean, navigateToCart: () -> Unit) {
+//
+//    if (showAlert) {
+//        AlertDialog(
+//            onDismissRequest = { onDismiss() },
+//            confirmButton = {
+//                Button(
+//                    onClick = {
+//                        onDismiss()
+//                        navigateToCart()
+//                        //onDismissPadre()
+//                    },
+//                    colors = ButtonDefaults.buttonColors(Color.White)
+//                ) {
+//                    Text(
+//                        text = "Cerrar",
+//                        color = Color.Black
+//                    )
+//                }
+//            },
+//            title = { Text(text = "Aviso", color = Negro) },
+//            text = { Text(text = "El producto se agregó a tu carrito", color = Negro) },
+//            icon = {
+//                Icon(
+//                    imageVector = Icons.Filled.CheckCircle,
+//                    contentDescription = "",
+//                    modifier = Modifier.size(70.dp)
+//                )
+//            },
+//            iconContentColor = Verde_Success,
+//            containerColor = Blanco
+//        )
+//    }
+//
+//}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MensajeAlert(onDismiss: () -> Unit, showAlert: Boolean, navigateToCart: () -> Unit) {
+//@Composable
+//fun ErrorAlert(onDismiss: () -> Unit, showAlert: Boolean) {
+//
+//    if (showAlert) {
+//        AlertDialog(
+//            onDismissRequest = { onDismiss() },
+//            confirmButton = {
+//                Button(
+//                    onClick = {
+//                        onDismiss()
+//                        //onDismissPadre()
+//                    },
+//                    colors = ButtonDefaults.buttonColors(Color.White)
+//                ) {
+//                    Text(
+//                        text = "Cerrar",
+//                        color = Color.Black
+//                    )
+//                }
+//            },
+//            title = { Text(text = "Aviso") },
+//            text = { Text(text = "El producto no se pudo agregar al carrito") },
+//            icon = {
+//                Icon(
+//                    imageVector = Icons.Filled.Error,
+//                    contentDescription = "",
+//                    modifier = Modifier.size(70.dp)
+//                )
+//            },
+//            iconContentColor = Rojo_Vazlo,
+//            containerColor = Blanco
+//        )
+//    }
+//
+//}
 
-    if (showAlert) {
-        AlertDialog(
-            onDismissRequest = { onDismiss() },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        onDismiss()
-                        navigateToCart()
-                        //onDismissPadre()
-                    },
-                    colors = ButtonDefaults.buttonColors(Color.White)
-                ) {
-                    Text(
-                        text = "Cerrar",
-                        color = Color.Black
-                    )
-                }
-            },
-            title = { Text(text = "Aviso", color = Negro) },
-            text = { Text(text = "El producto se agregó a tu carrito", color = Negro) },
-            icon = {
-                Icon(
-                    imageVector = Icons.Filled.CheckCircle,
-                    contentDescription = "",
-                    modifier = Modifier.size(70.dp)
-                )
-            },
-            iconContentColor = Verde_Success,
-            containerColor = Blanco
-        )
-    }
+//@Composable
+//fun OptionItem(
+//    sucursal: Sucursal,
+//    modifier: Modifier = Modifier,
+//    precio: String,
+//    onClick: () -> Unit,
+//    onBackOrder: () -> Unit,
+//    onDismiss: () -> Unit,
+//    permisoCotizacion: String,
+//    permisoExistencias: String,
+//    permisoPrecio: String,
+//
+//) {
+//    var color = Negro
+//    var disponibilidad = "Sin Permisos"
+//    var precioText = "Precio: Sin Permiso"
+//    if (permisoExistencias == "1") {
+//        color =
+//            if (sucursal.existencia?.toInt()!! > 0) Verde_Success else MaterialTheme.colorScheme.surface
+//        disponibilidad = if (sucursal.existencia!!.toInt() > 0) "Disponible" else "No disponible"
+//    }
+//    if (permisoPrecio == "1") {
+//        precioText = "Precio: $ $precio"
+//    }
+//    ListItem(
+//        overlineContent = {
+//            Text(
+//                text = sucursal.nombre!!,
+//                fontSize = 15.sp,
+//                fontWeight = FontWeight.Bold
+//            )
+//        },
+//        headlineContent = {
+//            Text(
+//                text = disponibilidad,
+//                color = color,
+//                fontSize = 17.sp
+//            )
+//        },
+//        supportingContent = { Text(text = precioText) },
+//        trailingContent = {
+//            if (permisoCotizacion == "1") {
+//                ActionCartButton(
+//                    disponible = sucursal.existencia!!,
+//                    onCarrito = onClick,
+//                    onDismiss = onDismiss,
+//                    onBackorder = onBackOrder,
+//                )
+//            } else {
+//                Icon(
+//                    imageVector = Icons.Filled.DoNotDisturbAlt,
+//                    contentDescription = "",
+//                    modifier.size(30.dp)
+//                )
+//            }
+//        },
+//        colors = ListItemDefaults.colors(
+//            containerColor = MaterialTheme.colorScheme.surfaceVariant
+//        )
+//    )
+//    HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant)
+//}
 
-}
+//@Composable
+//fun ActionCartButton(
+//    modifier: Modifier = Modifier,
+//    disponible: String,
+//    onCarrito: () -> Unit,
+//    onDismiss: () -> Unit,
+//    onBackorder: () -> Unit
+//) {
+//
+//
+//    if (disponible.toInt() > 0) {
+//        IconButton(onClick = {
+//            onCarrito()
+//        }) {
+//            Icon(
+//                painter = painterResource(id = R.drawable.add_cart_icon),
+//                contentDescription = "",
+//                modifier = modifier.size(30.dp)
+//            )
+//        }
+//    } else {
+//        Button(
+//            onClick = { onBackorder() },
+//            colors = ButtonDefaults.buttonColors(
+//                containerColor = MaterialTheme.colorScheme.surface
+//            ),
+//            modifier = modifier
+//        ) {
+//            Text(text = "BackOrder", color = MaterialTheme.colorScheme.onSurface, fontSize = 17.sp)
+//        }
+//    }
+//
+//}
 
-@Composable
-fun ErrorAlert(onDismiss: () -> Unit, showAlert: Boolean) {
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun BottomCantidad(
+//    modifier: Modifier = Modifier,
+//    showBottomSheet: Boolean,
+//    cerrarBottomSheet: () -> Unit,
+//    agregar: Boolean,
+//    viewModel: DetallesParteViewModel,
+//    cerrarOptions: () -> Unit,
+//    showSucces: () -> Unit,
+//    showError: () -> Unit,
+//    backOption: () -> Unit,
+//) {
+//    val cantidad = 0
+//    val focusManager = LocalFocusManager.current
+//    val scope = rememberCoroutineScope()
+//    val sheetState = rememberModalBottomSheetState()
+//    var showInputCantidad by remember {
+//        mutableStateOf(false)
+//    }
+//    if (showBottomSheet) {
+//        ModalBottomSheet(
+//            onDismissRequest = {
+//                scope.launch {
+//                    sheetState.hide()
+//                    cerrarBottomSheet()
+//                    backOption()
+//                    showInputCantidad = false
+//                }
+//            },
+//            sheetState = sheetState,
+//            containerColor = Blanco,
+//            contentColor = Negro,
+//            windowInsets = WindowInsets(0, 0, 0, 0)
+//        ) {
+//            // Sheet content
+//            if (!showInputCantidad) {
+//                Column(
+//                    horizontalAlignment = Alignment.CenterHorizontally,
+//                    verticalArrangement = Arrangement.Center,
+//                    modifier = modifier.fillMaxWidth()
+//                ) {
+//                    BotonCantidad(
+//                        1,
+//                        modifier,
+//                        scope,
+//                        agregar,
+//                        viewModel,
+//                        sheetState,
+//                        cerrarBottomSheet,
+//                        cerrarOptions,
+//                        showSucces,
+//                        showError
+//                    )
+//                    HorizontalDivider(
+//                        modifier
+//                            .fillMaxWidth()
+//                            .padding(horizontal = 30.dp, vertical = 10.dp),
+//                        thickness = 1.dp,
+//                        color = Negro
+//                    )
+//                    Text(
+//                        text = "2 unidades",
+//                        color = Negro,
+//                        modifier = modifier
+//                            .clickable {
+//                                scope.launch {
+//                                    if (agregar) {
+//                                        if (viewModel.agregarProducto(2)) {
+//                                            sheetState.hide()
+//                                            cerrarBottomSheet()
+//                                            cerrarOptions()
+//                                            showSucces()
+//                                        } else {
+//                                            sheetState.hide()
+//                                            cerrarBottomSheet()
+//                                            cerrarOptions()
+//                                            showError()
+//                                        }
+//                                    } else {
+//                                        if (viewModel.agregarABackOrder(2)
+//                                        ) {
+//                                            sheetState.hide()
+//                                            cerrarBottomSheet()
+//                                            cerrarOptions()
+//                                            showSucces()
+//                                        } else {
+//                                            sheetState.hide()
+//                                            cerrarBottomSheet()
+//                                            cerrarOptions()
+//                                            showError()
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                            .fillMaxWidth(),
+//                        textAlign = TextAlign.Center
+//                    )
+//                    HorizontalDivider(
+//                        modifier
+//                            .fillMaxWidth()
+//                            .padding(horizontal = 30.dp, vertical = 10.dp),
+//                        thickness = 1.dp,
+//                        color = Negro
+//                    )
+//                    Text(
+//                        text = "3 unidades",
+//                        color = Negro,
+//                        modifier = modifier
+//                            .clickable {
+//                                scope.launch {
+//                                    if (agregar) {
+//                                        if (viewModel.agregarProducto(3)) {
+//                                            sheetState.hide()
+//                                            cerrarBottomSheet()
+//                                            cerrarOptions()
+//                                            showSucces()
+//                                        } else {
+//                                            sheetState.hide()
+//                                            cerrarBottomSheet()
+//                                            cerrarOptions()
+//                                            showError()
+//                                        }
+//                                    } else {
+//                                        if (viewModel.agregarABackOrder(3)
+//                                        ) {
+//                                            sheetState.hide()
+//                                            cerrarBottomSheet()
+//                                            cerrarOptions()
+//                                            showSucces()
+//                                        } else {
+//                                            sheetState.hide()
+//                                            cerrarBottomSheet()
+//                                            cerrarOptions()
+//                                            showError()
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                            .fillMaxWidth(),
+//                        textAlign = TextAlign.Center
+//                    )
+//                    HorizontalDivider(
+//                        modifier
+//                            .fillMaxWidth()
+//                            .padding(horizontal = 30.dp, vertical = 10.dp),
+//                        thickness = 1.dp,
+//                        color = Negro
+//                    )
+//                    Text(
+//                        text = "4 unidades",
+//                        color = Negro,
+//                        modifier = modifier
+//                            .clickable {
+//                                scope.launch {
+//                                    if (agregar) {
+//                                        if (viewModel.agregarProducto(4)) {
+//                                            sheetState.hide()
+//                                            cerrarBottomSheet()
+//                                            cerrarOptions()
+//                                            showSucces()
+//                                        } else {
+//                                            sheetState.hide()
+//                                            cerrarBottomSheet()
+//                                            cerrarOptions()
+//                                            showError()
+//                                        }
+//                                    } else {
+//                                        if (viewModel.agregarABackOrder(4)
+//                                        ) {
+//                                            sheetState.hide()
+//                                            cerrarBottomSheet()
+//                                            cerrarOptions()
+//                                            showSucces()
+//                                        } else {
+//                                            sheetState.hide()
+//                                            cerrarBottomSheet()
+//                                            cerrarOptions()
+//                                            showError()
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                            .fillMaxWidth(),
+//                        textAlign = TextAlign.Center
+//                    )
+//                    HorizontalDivider(
+//                        modifier
+//                            .fillMaxWidth()
+//                            .padding(horizontal = 30.dp, vertical = 10.dp),
+//                        thickness = 1.dp,
+//                        color = Negro
+//                    )
+//                    Text(
+//                        text = "5 unidades",
+//                        color = Negro,
+//                        modifier = modifier.clickable {
+//                            scope.launch {
+//                                if (agregar) {
+//                                    if (viewModel.agregarProducto(5)) {
+//                                        sheetState.hide()
+//                                        cerrarBottomSheet()
+//                                        cerrarOptions()
+//                                        showSucces()
+//                                    } else {
+//                                        sheetState.hide()
+//                                        cerrarBottomSheet()
+//                                        cerrarOptions()
+//                                        showError()
+//                                    }
+//                                } else {
+//                                    if (viewModel.agregarABackOrder(5)) {
+//                                        sheetState.hide()
+//                                        cerrarBottomSheet()
+//                                        cerrarOptions()
+//                                        showSucces()
+//                                    } else {
+//                                        sheetState.hide()
+//                                        cerrarBottomSheet()
+//                                        cerrarOptions()
+//                                        showError()
+//                                    }
+//                                }
+//                            }
+//                        })
+//                    HorizontalDivider(
+//                        modifier
+//                            .fillMaxWidth()
+//                            .padding(horizontal = 30.dp, vertical = 10.dp),
+//                        thickness = 1.dp,
+//                        color = Negro
+//                    )
+//                    Text(
+//                        text = "6 unidades",
+//                        color = Negro,
+//                        modifier = modifier
+//                            .clickable {
+//                                scope.launch {
+//                                    if (agregar) {
+//                                        if (viewModel.agregarProducto(6)) {
+//                                            sheetState.hide()
+//                                            cerrarBottomSheet()
+//                                            cerrarOptions()
+//                                            showSucces()
+//                                        } else {
+//                                            sheetState.hide()
+//                                            cerrarBottomSheet()
+//                                            cerrarOptions()
+//                                            showError()
+//                                        }
+//                                    } else {
+//                                        if (viewModel.agregarABackOrder(6)
+//                                        ) {
+//                                            sheetState.hide()
+//                                            cerrarBottomSheet()
+//                                            cerrarOptions()
+//                                            showSucces()
+//                                        } else {
+//                                            sheetState.hide()
+//                                            cerrarBottomSheet()
+//                                            cerrarOptions()
+//                                            showError()
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                            .fillMaxWidth(),
+//                        textAlign = TextAlign.Center
+//                    )
+//                    HorizontalDivider(
+//                        modifier
+//                            .fillMaxWidth()
+//                            .padding(horizontal = 30.dp, vertical = 10.dp),
+//                        thickness = 1.dp,
+//                        color = Negro
+//                    )
+//                    Text(
+//                        text = "Más de 6 unidades",
+//                        color = Negro,
+//                        modifier = modifier
+//                            .clickable { showInputCantidad = true }
+//                            .fillMaxWidth(),
+//                        textAlign = TextAlign.Center
+//                    )
+//                    Spacer(Modifier.navigationBarsPadding())
+//                }
+//            } else {
+//                Column(
+//                    modifier
+//                        .fillMaxWidth()
+//                        .padding(horizontal = 10.dp),
+//                    horizontalAlignment = Alignment.CenterHorizontally,
+//                    verticalArrangement = Arrangement.spacedBy(10.dp),
+//                ) {
+//                    Text(text = "Ingresa una cantidad")
+//                    OutlinedTextField(
+//                        value = viewModel.nuevaCant,
+//                        onValueChange = { input ->
+//                            viewModel.onNuevaCantidadChange(input)
+//                        },
+//                        label = { Text(text = "Cantidad") },
+//                        colors = TextFieldDefaults.colors(
+//                            focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+//                            unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+//                            focusedContainerColor = MaterialTheme.colorScheme.background,
+//                            unfocusedContainerColor = MaterialTheme.colorScheme.background,
+//                            disabledContainerColor = MaterialTheme.colorScheme.background,
+//                            focusedIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
+//                            unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
+//                            errorLabelColor = MaterialTheme.colorScheme.error,
+//                            errorSupportingTextColor = MaterialTheme.colorScheme.error,
+//                        ),
+//                        modifier = modifier
+//                            .fillMaxWidth(),
+//                        shape = RoundedCornerShape(10.dp),
+//                        keyboardOptions = KeyboardOptions(
+//                            imeAction = ImeAction.Done,
+//                            keyboardType = KeyboardType.Number
+//                        ),
+//                        keyboardActions = KeyboardActions(onDone = {
+//                            focusManager.clearFocus(
+//                                force = true
+//                            )
+//                        }),
+//                        isError = false,
+//                        supportingText = { }
+//                    )
+//                    Button(
+//                        onClick = {
+//                            scope.launch {
+//                                if (agregar) {
+//                                    if (viewModel.agregarProducto()) {
+//                                        sheetState.hide()
+//                                        cerrarBottomSheet()
+//                                        cerrarOptions()
+//                                        showSucces()
+//                                    } else {
+//                                        sheetState.hide()
+//                                        cerrarBottomSheet()
+//                                        cerrarOptions()
+//                                        showError()
+//                                    }
+//                                } else {
+//                                    if (viewModel.agregarABackOrder()) {
+//                                        sheetState.hide()
+//                                        cerrarBottomSheet()
+//                                        cerrarOptions()
+//                                        showSucces()
+//                                    } else {
+//                                        sheetState.hide()
+//                                        cerrarBottomSheet()
+//                                        cerrarOptions()
+//                                        showError()
+//                                    }
+//                                }
+//                            }
+//                        },
+//                        modifier = modifier.fillMaxWidth(),
+//                        colors = ButtonColors(
+//                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+//                            contentColor = MaterialTheme.colorScheme.onSurface,
+//                            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+//                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+//                        ),
+//                        shape = RoundedCornerShape(10.dp),
+//                        enabled = viewModel.nuevaCant.isNotBlank()
+//                    ) {
+//                        Text(text = "Confirmar")
+//                    }
+//                    Spacer(Modifier.padding(200.dp))
+//                }
+//            }
+//            Spacer(modifier = modifier.height(50.dp))
+//        }
+//    }
+//
+//}
 
-    if (showAlert) {
-        AlertDialog(
-            onDismissRequest = { onDismiss() },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        onDismiss()
-                        //onDismissPadre()
-                    },
-                    colors = ButtonDefaults.buttonColors(Color.White)
-                ) {
-                    Text(
-                        text = "Cerrar",
-                        color = Color.Black
-                    )
-                }
-            },
-            title = { Text(text = "Aviso") },
-            text = { Text(text = "El producto no se pudo agregar al carrito") },
-            icon = {
-                Icon(
-                    imageVector = Icons.Filled.Error,
-                    contentDescription = "",
-                    modifier = Modifier.size(70.dp)
-                )
-            },
-            iconContentColor = Rojo_Vazlo,
-            containerColor = Blanco
-        )
-    }
-
-}
-
-@Composable
-fun OptionItem(
-    sucursal: Sucursal,
-    modifier: Modifier = Modifier,
-    precio: String,
-    onClick: () -> Unit,
-    onBackOrder: () -> Unit,
-    onDismiss: () -> Unit,
-    permisoCotizacion: String,
-    permisoExistencias: String,
-    permisoPrecio: String,
-) {
-    var color = Negro
-    var disponibilidad = "Sin Permisos"
-    var precioText = "Precio: Sin Permiso"
-    if (permisoExistencias == "1") {
-        color =
-            if (sucursal.existencia?.toInt()!! > 0) Verde_Success else MaterialTheme.colorScheme.surface
-        disponibilidad = if (sucursal.existencia!!.toInt() > 0) "Disponible" else "No disponible"
-    }
-    if (permisoPrecio == "1") {
-        precioText = "Precio: $ $precio"
-    }
-    ListItem(
-        overlineContent = {
-            Text(
-                text = sucursal.nombre!!,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold
-            )
-        },
-        headlineContent = {
-            Text(
-                text = disponibilidad,
-                color = color,
-                fontSize = 17.sp
-            )
-        },
-        supportingContent = { Text(text = precioText) },
-        trailingContent = {
-            if (permisoCotizacion == "1") {
-                vazlo.refaccionarias.ui.screens.detallesParte.ActionCartButton(
-                    disponible = sucursal.existencia!!,
-                    onCarrito = onClick,
-                    onDismiss = onDismiss,
-                    onBackorder = onBackOrder
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Filled.DoNotDisturbAlt,
-                    contentDescription = "",
-                    modifier.size(30.dp)
-                )
-            }
-        },
-        colors = ListItemDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    )
-    HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant)
-}
-
-@Composable
-fun ActionCartButton(
-    modifier: Modifier = Modifier,
-    disponible: String,
-    onCarrito: () -> Unit,
-    onDismiss: () -> Unit,
-    onBackorder: () -> Unit
-) {
-
-
-    if (disponible.toInt() > 0) {
-        IconButton(onClick = {
-            onCarrito()
-        }) {
-            Icon(
-                painter = painterResource(id = R.drawable.add_cart_icon),
-                contentDescription = "",
-                modifier = modifier.size(30.dp)
-            )
-        }
-    } else {
-        Button(
-            onClick = { onBackorder() },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            modifier = modifier
-        ) {
-            Text(text = "BackOrder", color = MaterialTheme.colorScheme.onSurface, fontSize = 17.sp)
-        }
-    }
-
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BottomCantidad(
-    modifier: Modifier = Modifier,
-    showBottomSheet: Boolean,
-    cerrarBottomSheet: () -> Unit,
-    agregar: Boolean,
-    viewModel: DetallesParteViewModel,
-    cerrarOptions: () -> Unit,
-    showSucces: () -> Unit,
-    showError: () -> Unit,
-    backOption: () -> Unit,
-) {
-    val focusManager = LocalFocusManager.current
-    val scope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState()
-    var showInputCantidad by remember {
-        mutableStateOf(false)
-    }
-    if (showBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = {
-                scope.launch {
-                    sheetState.hide()
-                    cerrarBottomSheet()
-                    backOption()
-                    showInputCantidad = false
-                }
-            },
-            sheetState = sheetState,
-            containerColor = Blanco,
-            contentColor = Negro,
-            windowInsets = WindowInsets(0, 0, 0, 0)
-        ) {
-            // Sheet content
-            if (!showInputCantidad) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "1 unidad",
-                        color = Negro,
-                        modifier = modifier
-                            .clickable {
-                                scope.launch {
-                                    if (agregar) {
-                                        if (viewModel.agregarProducto(1)) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    } else {
-                                        if (viewModel.agregarABackOrder(1)
-                                        ) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    }
-                                }
-                            }
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                    HorizontalDivider(
-                        modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 30.dp, vertical = 10.dp),
-                        thickness = 1.dp,
-                        color = Negro
-                    )
-                    Text(
-                        text = "2 unidades",
-                        color = Negro,
-                        modifier = modifier
-                            .clickable {
-                                scope.launch {
-                                    if (agregar) {
-                                        if (viewModel.agregarProducto(2)) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    } else {
-                                        if (viewModel.agregarABackOrder(2)
-                                        ) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    }
-                                }
-                            }
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                    HorizontalDivider(
-                        modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 30.dp, vertical = 10.dp),
-                        thickness = 1.dp,
-                        color = Negro
-                    )
-                    Text(
-                        text = "3 unidades",
-                        color = Negro,
-                        modifier = modifier
-                            .clickable {
-                                scope.launch {
-                                    if (agregar) {
-                                        if (viewModel.agregarProducto(3)) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    } else {
-                                        if (viewModel.agregarABackOrder(3)
-                                        ) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    }
-                                }
-                            }
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                    HorizontalDivider(
-                        modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 30.dp, vertical = 10.dp),
-                        thickness = 1.dp,
-                        color = Negro
-                    )
-                    Text(
-                        text = "4 unidades",
-                        color = Negro,
-                        modifier = modifier
-                            .clickable {
-                                scope.launch {
-                                    if (agregar) {
-                                        if (viewModel.agregarProducto(4)) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    } else {
-                                        if (viewModel.agregarABackOrder(4)
-                                        ) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    }
-                                }
-                            }
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                    HorizontalDivider(
-                        modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 30.dp, vertical = 10.dp),
-                        thickness = 1.dp,
-                        color = Negro
-                    )
-                    Text(
-                        text = "5 unidades",
-                        color = Negro,
-                        modifier = modifier.clickable {
-                            scope.launch {
-                                if (agregar) {
-                                    if (viewModel.agregarProducto(5)) {
-                                        sheetState.hide()
-                                        cerrarBottomSheet()
-                                        cerrarOptions()
-                                        showSucces()
-                                    } else {
-                                        sheetState.hide()
-                                        cerrarBottomSheet()
-                                        cerrarOptions()
-                                        showError()
-                                    }
-                                } else {
-                                    if (viewModel.agregarABackOrder(5)) {
-                                        sheetState.hide()
-                                        cerrarBottomSheet()
-                                        cerrarOptions()
-                                        showSucces()
-                                    } else {
-                                        sheetState.hide()
-                                        cerrarBottomSheet()
-                                        cerrarOptions()
-                                        showError()
-                                    }
-                                }
-                            }
-                        })
-                    HorizontalDivider(
-                        modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 30.dp, vertical = 10.dp),
-                        thickness = 1.dp,
-                        color = Negro
-                    )
-                    Text(
-                        text = "6 unidades",
-                        color = Negro,
-                        modifier = modifier
-                            .clickable {
-                                scope.launch {
-                                    if (agregar) {
-                                        if (viewModel.agregarProducto(6)) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    } else {
-                                        if (viewModel.agregarABackOrder(6)
-                                        ) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    }
-                                }
-                            }
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                    HorizontalDivider(
-                        modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 30.dp, vertical = 10.dp),
-                        thickness = 1.dp,
-                        color = Negro
-                    )
-                    Text(
-                        text = "Más de 6 unidades",
-                        color = Negro,
-                        modifier = modifier
-                            .clickable { showInputCantidad = true }
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(Modifier.navigationBarsPadding())
-                }
-            } else {
-                Column(
-                    modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 10.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    Text(text = "Ingresa una cantidad")
-                    OutlinedTextField(
-                        value = viewModel.nuevaCant,
-                        onValueChange = { input ->
-                            viewModel.onNuevaCantidadChange(input)
-                        },
-                        label = { Text(text = "Cantidad") },
-                        colors = TextFieldDefaults.colors(
-                            focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            focusedContainerColor = MaterialTheme.colorScheme.background,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.background,
-                            disabledContainerColor = MaterialTheme.colorScheme.background,
-                            focusedIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            errorLabelColor = MaterialTheme.colorScheme.error,
-                            errorSupportingTextColor = MaterialTheme.colorScheme.error,
-                        ),
-                        modifier = modifier
-                            .fillMaxWidth(),
-                        shape = RoundedCornerShape(10.dp),
-                        keyboardOptions = KeyboardOptions(
-                            imeAction = ImeAction.Done,
-                            keyboardType = KeyboardType.Number
-                        ),
-                        keyboardActions = KeyboardActions(onDone = {
-                            focusManager.clearFocus(
-                                force = true
-                            )
-                        }),
-                        isError = false,
-                        supportingText = { }
-                    )
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                if (agregar) {
-                                    if (viewModel.agregarProducto()) {
-                                        sheetState.hide()
-                                        cerrarBottomSheet()
-                                        cerrarOptions()
-                                        showSucces()
-                                    } else {
-                                        sheetState.hide()
-                                        cerrarBottomSheet()
-                                        cerrarOptions()
-                                        showError()
-                                    }
-                                } else {
-                                    if (viewModel.agregarABackOrder()) {
-                                        sheetState.hide()
-                                        cerrarBottomSheet()
-                                        cerrarOptions()
-                                        showSucces()
-                                    } else {
-                                        sheetState.hide()
-                                        cerrarBottomSheet()
-                                        cerrarOptions()
-                                        showError()
-                                    }
-                                }
-                            }
-                        },
-                        modifier = modifier.fillMaxWidth(),
-                        colors = ButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSurface,
-                            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                        ),
-                        shape = RoundedCornerShape(10.dp),
-                        enabled = viewModel.nuevaCant.isNotBlank()
-                    ) {
-                        Text(text = "Confirmar")
-                    }
-                    Spacer(Modifier.padding(200.dp))
-                }
-            }
-            Spacer(modifier = modifier.height(50.dp))
-        }
-    }
-
-}
-
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//private fun BotonCantidad(
+//    cantidad: Int,
+//    modifier: Modifier,
+//    scope: CoroutineScope,
+//    agregar: Boolean,
+//    viewModel: DetallesParteViewModel,
+//    sheetState: SheetState,
+//    cerrarBottomSheet: () -> Unit,
+//    cerrarOptions: () -> Unit,
+//    showSucces: () -> Unit,
+//    showError: () -> Unit
+//) {
+//    Text(
+//        text = cantidad.toString(),
+//        color = Negro,
+//        modifier = modifier
+//            .clickable {
+//                scope.launch {
+//                    if (agregar) {
+//                        if (viewModel.agregarProducto(cantidad)) {
+//                            sheetState.hide()
+//                            cerrarBottomSheet()
+//                            cerrarOptions()
+//                            showSucces()
+//                        } else {
+//                            sheetState.hide()
+//                            cerrarBottomSheet()
+//                            cerrarOptions()
+//                            showError()
+//                        }
+//                    } else {
+//                        if (viewModel.agregarABackOrder(cantidad)
+//                        ) {
+//                            sheetState.hide()
+//                            cerrarBottomSheet()
+//                            cerrarOptions()
+//                            showSucces()
+//                        } else {
+//                            sheetState.hide()
+//                            cerrarBottomSheet()
+//                            cerrarOptions()
+//                            showError()
+//                        }
+//                    }
+//                }
+//            }
+//            .fillMaxWidth(),
+//        textAlign = TextAlign.Center
+//    )
+//}
 
 
 // Recibe el objeto de la parte
@@ -1372,12 +1420,12 @@ private fun ResultadosDialog(
     LaunchedEffect(producto) {
         if (producto != null) {
             viewModel.cargarProductosExtra(
-                producto.nombreMarca!!,
-                producto.nombreModeloCarro!!,
+                producto.nombreMarca,
+                producto.nombreModeloCarro,
                 producto.nombreCilidraje!!,
-                producto.nombreLitro!!,
-                producto.aIni!!,
-                producto.aFin!!
+                producto.nombreLitro,
+                producto.aIni,
+                producto.aFin
             )
         }
     }
@@ -1527,7 +1575,7 @@ private fun Productos(
                 .fillMaxWidth()
                 .clickable {
                     viewModelCompartido.setProducto(producto)
-                    navigateToSelf.invoke(producto.nombreSoporte!!)
+                    navigateToSelf.invoke(producto.nombreSoporte)
                 }
         ) {
 
@@ -1548,7 +1596,7 @@ private fun Productos(
                 modifier = modifier.padding(horizontal = 10.dp)
             ) {
                 Text(
-                    text = producto.nombreSoporte!!,
+                    text = producto.nombreSoporte,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.secondary,
                     fontSize = 17.sp
@@ -1556,12 +1604,12 @@ private fun Productos(
                 Text(
                     text = stringResource(
                         R.string.desc_prod_resultados,
-                        producto.nombrePosicion!!,
+                        producto.nombrePosicion,
                         producto.nombreCilidraje!!,
-                        producto.nombreLitro!!,
-                        producto.aIni!!,
-                        producto.aFin!!,
-                        producto.descripcion!!
+                        producto.nombreLitro,
+                        producto.aIni,
+                        producto.aFin,
+                        producto.descripcion
                     ),
                     fontWeight = FontWeight.Bold,
                     fontSize = 17.sp,
@@ -1572,20 +1620,20 @@ private fun Productos(
     }
 }
 
-@Composable
-private fun AltTable(
-    modifier: Modifier = Modifier,
-    mensaje: String
-) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        if (mensaje == "Cargando") {
-            CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
-        } else {
-            Text(text = mensaje, fontSize = 25.sp, textAlign = TextAlign.Center)
-        }
-    }
-}
+//@Composable
+//private fun AltTable(
+//    modifier: Modifier = Modifier,
+//    mensaje: String
+//) {
+//    Column(
+//        modifier = modifier.fillMaxSize(),
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        if (mensaje == "Cargando") {
+//            CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
+//        } else {
+//            Text(text = mensaje, fontSize = 25.sp, textAlign = TextAlign.Center)
+//        }
+//    }
+//}

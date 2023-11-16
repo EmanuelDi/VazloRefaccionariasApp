@@ -41,8 +41,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import vazlo.refaccionarias.R
-import vazlo.refaccionarias.data.model.Folleto
-import vazlo.refaccionarias.navigation.NavigationDestination
+import vazlo.refaccionarias.data.model.folletosQuinceData.Folleto
+import vazlo.refaccionarias.ui.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
 import vazlo.refaccionarias.ui.theme.Azul_Vazlo
 import vazlo.refaccionarias.ui.theme.Blanco

@@ -1,7 +1,7 @@
 package vazlo.refaccionarias.data
 
-import vazlo.refaccionarias.bd.ServicesApp
-import vazlo.refaccionarias.bd.WebServiceRefa
+import vazlo.refaccionarias.data.bd.ServicesApp
+import vazlo.refaccionarias.data.bd.WebServiceRefa
 import vazlo.refaccionarias.data.repositorios.NetServicesApp
 import vazlo.refaccionarias.data.repositorios.NetworkWebServicesRefacRepository
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository

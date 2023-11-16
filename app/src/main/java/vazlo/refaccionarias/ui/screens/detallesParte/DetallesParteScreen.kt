@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DoNotDisturbAlt
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
@@ -57,6 +58,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -109,14 +111,16 @@ import com.skydoves.balloon.compose.Balloon
 import com.skydoves.balloon.compose.rememberBalloonBuilder
 import com.skydoves.balloon.overlay.BalloonOverlayAnimation
 import com.skydoves.balloon.overlay.BalloonOverlayRoundRect
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import vazlo.refaccionarias.R
-import vazlo.refaccionarias.data.model.ProductosResult
-import vazlo.refaccionarias.data.model.Sucursal
-import vazlo.refaccionarias.navigation.NavigationDestination
+import vazlo.refaccionarias.data.model.busquedasData.ProductosResult
+import vazlo.refaccionarias.data.model.detallesData.Sucursal
+import vazlo.refaccionarias.ui.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
 import vazlo.refaccionarias.ui.screens.resultadoPorPartes.ProductoCompartidoViewModel
+import vazlo.refaccionarias.ui.theme.Amarillo_Vazlo
 import vazlo.refaccionarias.ui.theme.Blanco
 import vazlo.refaccionarias.ui.theme.Negro
 import vazlo.refaccionarias.ui.theme.Rojo_Vazlo
@@ -178,7 +182,16 @@ fun DetallesParteScreen(
     var showBottomSheet by remember {
         mutableStateOf(false)
     }
+
     var agregar by remember {
+        mutableStateOf(false)
+    }
+
+    var showCanitadError by remember {
+        mutableStateOf(false)
+    }
+
+    var showBackOrderDialog by remember {
         mutableStateOf(false)
     }
 
@@ -198,6 +211,12 @@ fun DetallesParteScreen(
     var url360 by remember { mutableStateOf("") }
 
     val scope = rememberCoroutineScope()
+
+    var cantidadAlt by remember {
+        mutableStateOf(0)
+    }
+
+    val setCantidadAlt: (Int) -> Unit = { cantidad -> cantidadAlt = cantidad }
 
     dPViewModel.verificar360(producto.nombreSoporte!!)
 
@@ -263,9 +282,21 @@ fun DetallesParteScreen(
                     cerrarOptions = { openedDialog = false },
                     showSucces = { showAlert = true },
                     showError = { showAlertError = true },
-                    backOption = { openedDialog = true }
+                    backOption = { openedDialog = true },
+                    setCantidadAlt = setCantidadAlt,
+                    showCantidadError = {showCanitadError = true},
+                    showBackOrderDialog = { showBackOrderDialog = true }
                 )
 
+
+                DialogCantidadNoDisp(
+                    onDismiss = { showCanitadError = false },
+                    showAlert = showCanitadError,
+                    navigateToCart = navigateToCart,
+                    cantidad = cantidadAlt,
+                    viewModel = dPViewModel,
+                    scope = scope
+                )
 
                 MensajeAlert(
                     onDismiss = {
@@ -273,6 +304,13 @@ fun DetallesParteScreen(
                     },
                     showAlert,
                     navigateToCart = navigateToCart
+                )
+
+                BackOrderDialog(
+                    onDismiss = {
+                        showBackOrderDialog = false
+                    },
+                    showBackOrderDialog
                 )
 
 
@@ -324,6 +362,111 @@ fun DetallesParteScreen(
 //                idSucursal = sucursal.idSuc
 //            )
         }
+    }
+}
+
+@Composable
+fun BackOrderDialog(onDismiss: () -> Unit, showAlert: Boolean) {
+    if (showAlert) {
+        AlertDialog(
+            onDismissRequest = { onDismiss() },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDismiss()
+                        //onDismissPadre()
+                    },
+                    colors = ButtonDefaults.buttonColors(Color.White)
+                ) {
+                    Text(
+                        text = "Cerrar",
+                        color = Color.Black
+                    )
+                }
+            },
+            title = { Text(text = "Aviso", color = Negro) },
+            text = { Text(text = "La operacion se completo con exito", color = Negro) },
+            icon = {
+                Icon(
+                    imageVector = Icons.Filled.CheckCircle,
+                    contentDescription = "",
+                    modifier = Modifier.size(70.dp)
+                )
+            },
+            iconContentColor = Verde_Success,
+            containerColor = Blanco
+        )
+    }
+}
+
+@Composable
+fun DialogCantidadNoDisp(
+    onDismiss: () -> Unit,
+    showAlert: Boolean,
+    navigateToCart: () -> Unit,
+    cantidad: Int,
+    viewModel: DetallesParteViewModel,
+    scope: CoroutineScope
+) {
+    val cantidadRestante = cantidad - viewModel.cantidadSucSelec.toInt()
+    val cantidadAgregar = cantidad - cantidadRestante
+    if (showAlert) {
+        AlertDialog(
+            onDismissRequest = { onDismiss() },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            viewModel.agregarProducto(cantidadAgregar)
+                            viewModel.agregarABackOrder(cantidadRestante)
+                            viewModel.onNuevaCantidadChange("")
+                            onDismiss()
+                            navigateToCart()
+                        }
+                        //onDismissPadre()
+                    },
+                    colors = ButtonDefaults.buttonColors(Color.White)
+                ) {
+                    Text(
+                        text = "De acuerdo",
+                        color = Color.Black
+                    )
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            onDismiss()
+                        }
+                        //onDismissPadre()
+                    },
+                    colors = ButtonDefaults.buttonColors(Color.White)
+                ) {
+                    Text(
+                        text = "Cancelar",
+                        color = Color.Black
+                    )
+                }
+            },
+            title = { Text(text = "Aviso", color = Negro) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(text = "Se agregarán ${cantidadAgregar} a tu carrito.", color = Negro)
+                    Text(text = "Y ${cantidadRestante} se agregarán a backorder.", color = Amarillo_Vazlo)
+                }
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Filled.Warning,
+                    contentDescription = "",
+                    modifier = Modifier.size(70.dp),
+                    tint = Amarillo_Vazlo
+                )
+            },
+            iconContentColor = Verde_Success,
+            containerColor = Blanco
+        )
     }
 }
 
@@ -458,6 +601,7 @@ fun OptionCompraItem(
                 permisoCotizacion = viewModel.permisoCotizacion,
                 permisoExistencias = viewModel.permisoCotizacion,
                 permisoPrecio = viewModel.permisoPrecio,
+                viewModel = viewModel
             )
         }
     }
@@ -547,6 +691,7 @@ fun OptionItem(
     permisoCotizacion: String,
     permisoExistencias: String,
     permisoPrecio: String,
+    viewModel: DetallesParteViewModel
 ) {
     var color = Negro
     var disponibilidad = "Sin Permisos"
@@ -581,7 +726,8 @@ fun OptionItem(
                     disponible = sucursal.existencia!!,
                     onCarrito = onClick,
                     onDismiss = onDismiss,
-                    onBackorder = onBackOrder
+                    onBackorder = onBackOrder,
+                    viewModel = viewModel
                 )
             } else {
                 Icon(
@@ -604,12 +750,14 @@ fun ActionCartButton(
     disponible: String,
     onCarrito: () -> Unit,
     onDismiss: () -> Unit,
-    onBackorder: () -> Unit
+    onBackorder: () -> Unit,
+    viewModel: DetallesParteViewModel
 ) {
 
     if (disponible.toInt() > 0) {
         IconButton(onClick = {
             onCarrito()
+            viewModel.setCantidadDisp(disponible)
         }) {
             Icon(
                 painter = painterResource(id = R.drawable.add_cart_icon),
@@ -643,6 +791,9 @@ fun BottomCantidad(
     showSucces: () -> Unit,
     showError: () -> Unit,
     backOption: () -> Unit,
+    showCantidadError: () -> Unit,
+    showBackOrderDialog: () -> Unit,
+    setCantidadAlt: (Int) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
@@ -658,6 +809,7 @@ fun BottomCantidad(
                     cerrarBottomSheet()
                     backOption()
                     showInputCantidad = false
+                    viewModel.onNuevaCantidadChange("")
                 }
             },
             sheetState = sheetState,
@@ -672,42 +824,20 @@ fun BottomCantidad(
                     verticalArrangement = Arrangement.Center,
                     modifier = modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = "1 unidad",
-                        color = Negro,
-                        modifier = modifier
-                            .clickable {
-                                scope.launch {
-                                    if (agregar) {
-                                        if (viewModel.agregarProducto(1)) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    } else {
-                                        if (viewModel.agregarABackOrder(1)
-                                        ) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    }
-                                }
-                            }
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                    CantidadButton(
+                        cantidad = 1,
+                        modifier = modifier,
+                        scope = scope,
+                        agregar = agregar,
+                        viewModel = viewModel,
+                        sheetState = sheetState,
+                        cerrarBottomSheet = cerrarBottomSheet,
+                        cerrarOptions = cerrarOptions,
+                        showSucces = showSucces,
+                        showError = showError,
+                        showCantidadError = showCantidadError,
+                        setCantidadAlt = setCantidadAlt,
+                        showSuccesBack = showBackOrderDialog
                     )
                     HorizontalDivider(
                         modifier
@@ -716,42 +846,20 @@ fun BottomCantidad(
                         thickness = 1.dp,
                         color = Negro
                     )
-                    Text(
-                        text = "2 unidades",
-                        color = Negro,
-                        modifier = modifier
-                            .clickable {
-                                scope.launch {
-                                    if (agregar) {
-                                        if (viewModel.agregarProducto(2)) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    } else {
-                                        if (viewModel.agregarABackOrder(2)
-                                        ) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    }
-                                }
-                            }
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                    CantidadButton(
+                        cantidad = 2,
+                        modifier = modifier,
+                        scope = scope,
+                        agregar = agregar,
+                        viewModel = viewModel,
+                        sheetState = sheetState,
+                        cerrarBottomSheet = cerrarBottomSheet,
+                        cerrarOptions = cerrarOptions,
+                        showSucces = showSucces,
+                        showError = showError,
+                        showCantidadError = showCantidadError,
+                        setCantidadAlt = setCantidadAlt,
+                        showSuccesBack = showBackOrderDialog
                     )
                     HorizontalDivider(
                         modifier
@@ -760,42 +868,20 @@ fun BottomCantidad(
                         thickness = 1.dp,
                         color = Negro
                     )
-                    Text(
-                        text = "3 unidades",
-                        color = Negro,
-                        modifier = modifier
-                            .clickable {
-                                scope.launch {
-                                    if (agregar) {
-                                        if (viewModel.agregarProducto(3)) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    } else {
-                                        if (viewModel.agregarABackOrder(3)
-                                        ) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    }
-                                }
-                            }
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                    CantidadButton(
+                        cantidad = 3,
+                        modifier = modifier,
+                        scope = scope,
+                        agregar = agregar,
+                        viewModel = viewModel,
+                        sheetState = sheetState,
+                        cerrarBottomSheet = cerrarBottomSheet,
+                        cerrarOptions = cerrarOptions,
+                        showSucces = showSucces,
+                        showError = showError,
+                        showCantidadError = showCantidadError,
+                        setCantidadAlt = setCantidadAlt,
+                        showSuccesBack = showBackOrderDialog
                     )
                     HorizontalDivider(
                         modifier
@@ -804,42 +890,20 @@ fun BottomCantidad(
                         thickness = 1.dp,
                         color = Negro
                     )
-                    Text(
-                        text = "4 unidades",
-                        color = Negro,
-                        modifier = modifier
-                            .clickable {
-                                scope.launch {
-                                    if (agregar) {
-                                        if (viewModel.agregarProducto(4)) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    } else {
-                                        if (viewModel.agregarABackOrder(4)
-                                        ) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    }
-                                }
-                            }
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                    CantidadButton(
+                        cantidad = 4,
+                        modifier = modifier,
+                        scope = scope,
+                        agregar = agregar,
+                        viewModel = viewModel,
+                        sheetState = sheetState,
+                        cerrarBottomSheet = cerrarBottomSheet,
+                        cerrarOptions = cerrarOptions,
+                        showSucces = showSucces,
+                        showError = showError,
+                        showCantidadError = showCantidadError,
+                        setCantidadAlt = setCantidadAlt,
+                        showSuccesBack = showBackOrderDialog
                     )
                     HorizontalDivider(
                         modifier
@@ -848,38 +912,21 @@ fun BottomCantidad(
                         thickness = 1.dp,
                         color = Negro
                     )
-                    Text(
-                        text = "5 unidades",
-                        color = Negro,
-                        modifier = modifier.clickable {
-                            scope.launch {
-                                if (agregar) {
-                                    if (viewModel.agregarProducto(5)) {
-                                        sheetState.hide()
-                                        cerrarBottomSheet()
-                                        cerrarOptions()
-                                        showSucces()
-                                    } else {
-                                        sheetState.hide()
-                                        cerrarBottomSheet()
-                                        cerrarOptions()
-                                        showError()
-                                    }
-                                } else {
-                                    if (viewModel.agregarABackOrder(5)) {
-                                        sheetState.hide()
-                                        cerrarBottomSheet()
-                                        cerrarOptions()
-                                        showSucces()
-                                    } else {
-                                        sheetState.hide()
-                                        cerrarBottomSheet()
-                                        cerrarOptions()
-                                        showError()
-                                    }
-                                }
-                            }
-                        })
+                    CantidadButton(
+                        cantidad = 5,
+                        modifier = modifier,
+                        scope = scope,
+                        agregar = agregar,
+                        viewModel = viewModel,
+                        sheetState = sheetState,
+                        cerrarBottomSheet = cerrarBottomSheet,
+                        cerrarOptions = cerrarOptions,
+                        showSucces = showSucces,
+                        showError = showError,
+                        showCantidadError = showCantidadError,
+                        setCantidadAlt = setCantidadAlt,
+                        showSuccesBack = showBackOrderDialog
+                    )
                     HorizontalDivider(
                         modifier
                             .fillMaxWidth()
@@ -887,42 +934,20 @@ fun BottomCantidad(
                         thickness = 1.dp,
                         color = Negro
                     )
-                    Text(
-                        text = "6 unidades",
-                        color = Negro,
-                        modifier = modifier
-                            .clickable {
-                                scope.launch {
-                                    if (agregar) {
-                                        if (viewModel.agregarProducto(6)) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    } else {
-                                        if (viewModel.agregarABackOrder(6)
-                                        ) {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showSucces()
-                                        } else {
-                                            sheetState.hide()
-                                            cerrarBottomSheet()
-                                            cerrarOptions()
-                                            showError()
-                                        }
-                                    }
-                                }
-                            }
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                    CantidadButton(
+                        cantidad = 6,
+                        modifier = modifier,
+                        scope = scope,
+                        agregar = agregar,
+                        viewModel = viewModel,
+                        sheetState = sheetState,
+                        cerrarBottomSheet = cerrarBottomSheet,
+                        cerrarOptions = cerrarOptions,
+                        showSucces = showSucces,
+                        showError = showError,
+                        showCantidadError = showCantidadError,
+                        setCantidadAlt = setCantidadAlt,
+                        showSuccesBack = showBackOrderDialog
                     )
                     HorizontalDivider(
                         modifier
@@ -935,7 +960,9 @@ fun BottomCantidad(
                         text = "Más de 6 unidades",
                         color = Negro,
                         modifier = modifier
-                            .clickable { showInputCantidad = true }
+                            .clickable {
+                                showInputCantidad = true
+                            }
                             .fillMaxWidth(),
                         textAlign = TextAlign.Center
                     )
@@ -985,17 +1012,22 @@ fun BottomCantidad(
                     Button(
                         onClick = {
                             scope.launch {
+                                setCantidadAlt(viewModel.nuevaCant.toInt())
                                 if (agregar) {
-                                    if (viewModel.agregarProducto()) {
-                                        sheetState.hide()
-                                        cerrarBottomSheet()
-                                        cerrarOptions()
-                                        showSucces()
+                                    if (viewModel.nuevaCant.toInt() <= viewModel.cantidadSucSelec.toInt()) {
+                                        if (viewModel.agregarProducto()) {
+                                            sheetState.hide()
+                                            cerrarBottomSheet()
+                                            cerrarOptions()
+                                            showSucces()
+                                        } else {
+                                            sheetState.hide()
+                                            cerrarBottomSheet()
+                                            cerrarOptions()
+                                            showError()
+                                        }
                                     } else {
-                                        sheetState.hide()
-                                        cerrarBottomSheet()
-                                        cerrarOptions()
-                                        showError()
+                                        showCantidadError()
                                     }
                                 } else {
                                     if (viewModel.agregarABackOrder()) {
@@ -1031,6 +1063,67 @@ fun BottomCantidad(
         }
     }
 
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CantidadButton(
+    cantidad: Int,
+    modifier: Modifier,
+    scope: CoroutineScope,
+    agregar: Boolean,
+    viewModel: DetallesParteViewModel,
+    sheetState: SheetState,
+    cerrarBottomSheet: () -> Unit,
+    cerrarOptions: () -> Unit,
+    showSucces: () -> Unit,
+    showError: () -> Unit,
+    showCantidadError: () -> Unit,
+    setCantidadAlt: (Int) -> Unit,
+    showSuccesBack: () -> Unit
+) {
+    Text(
+        text = "$cantidad",
+        color = Negro,
+        modifier = modifier
+            .clickable {
+                scope.launch {
+                    if (agregar) {
+                        if (cantidad <= viewModel.cantidadSucSelec.toInt()) {
+                            if (viewModel.agregarProducto(cantidad)) {
+                                sheetState.hide()
+                                cerrarBottomSheet()
+                                cerrarOptions()
+                                showSucces()
+                            } else {
+                                sheetState.hide()
+                                cerrarBottomSheet()
+                                cerrarOptions()
+                                showError()
+                            }
+                        } else {
+                            setCantidadAlt(cantidad)
+                            showCantidadError()
+                        }
+                    } else {
+                        if (viewModel.agregarABackOrder(cantidad)
+                        ) {
+                            sheetState.hide()
+                            cerrarBottomSheet()
+                            cerrarOptions()
+                            showSuccesBack()
+                        } else {
+                            sheetState.hide()
+                            cerrarBottomSheet()
+                            cerrarOptions()
+                            showError()
+                        }
+                    }
+                }
+            }
+            .fillMaxWidth(),
+        textAlign = TextAlign.Center
+    )
 }
 
 
@@ -1708,7 +1801,7 @@ private fun Productos(
 }
 
 @Composable
-private fun AltTable(
+fun AltTable(
     modifier: Modifier = Modifier,
     mensaje: String
 ) {

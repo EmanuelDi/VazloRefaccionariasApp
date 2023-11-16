@@ -4,9 +4,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import vazlo.refaccionarias.data.model.Mensaje
+import vazlo.refaccionarias.data.model.notifData.Mensaje
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
-import vazlo.refaccionarias.local.Sesion
+import vazlo.refaccionarias.data.local.Sesion
 import kotlinx.coroutines.flow.first
 import android.util.Log
 import androidx.lifecycle.viewModelScope
@@ -33,11 +33,9 @@ class NotificacionesViewModel(
 
         try {
             val response = servicesAppRepository.cargarNotificaciones(url, idCte, token)
-            Log.i("pop", response.mensaje)
             notificacionesUiState =
                 if (response.estado == 1) NotificacionesUiState.Success(response.mensajes) else NotificacionesUiState.Error
         } catch (e: Exception) {
-            Log.e("Notis", e.toString())
             notificacionesUiState = NotificacionesUiState.Error
 
         }

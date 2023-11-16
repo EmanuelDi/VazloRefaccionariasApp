@@ -8,15 +8,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import vazlo.refaccionarias.data.model.ProductoCart
+import vazlo.refaccionarias.data.model.busquedasData.ProductoCart
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
-import vazlo.refaccionarias.local.Sesion
+import vazlo.refaccionarias.data.local.Sesion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
+import vazlo.refaccionarias.data.model.detallesData.Sucursal
+import vazlo.refaccionarias.ui.screens.resultadoPorPartes.ResultadoParteUiState
 import java.net.URLEncoder
 
 sealed interface CarritoUiState {
@@ -57,6 +59,8 @@ class CartViewModel(
 
     val productosCargando = mutableStateListOf<String>()
 
+    var sucursales: MutableList<Sucursal>? = null
+
     init {
         getToolTipCarrito()
     }
@@ -89,9 +93,28 @@ class CartViewModel(
         comentarios = inputComentario
     }
 
+
+    var falloCantidad by mutableStateOf(false)
+    private suspend fun cargarSucus() {
+        val url = sesion.catalogoBusquedaPorParte.first()
+        val user = sesion.id.first()
+        val tipo = sesion.tipo.first()
+
+        val response = servicesAppRepository.cargarProductoss(
+            url = url,
+            idUser = user,
+            tipo = tipo,
+            soporte = productoSeleccionado.substringBefore("(")
+        )
+        sucursales = response.lineas[0].sucursales as MutableList<Sucursal>?
+
+    }
+
     suspend fun cargarCarrito(): Boolean {
         val url = sesion.verCarritoJunio2023.first()
         val idCte = sesion.id.first()
+
+
         val response = servicesAppRepository.cargarProductosCarrito(url, idCte)
         return if (response.estado == 1 || response.estado == 10) {
             carritoUiState = CarritoUiState.Success(response.productos)
@@ -112,25 +135,36 @@ class CartViewModel(
 
 
     suspend fun actualizarCantidadProducto(nuevaCantidad: Int = nuevaCant.toInt()): Boolean {
+        cargarSucus()
         productosCargando.add(productoSeleccionado)
         val url = sesion.agregarProduCarrito.first()
         val idCte = sesion.id.first()
-        val response = servicesAppRepository.actualizarCantidadProucto(
-            url = url,
-            idCte = idCte,
-            cantidad = nuevaCantidad,
-            nomsop = productoSeleccionado
-        )
-        val datosOb = response.body()!!
-        return if (datosOb["estado"]?.jsonPrimitive?.int == 10 || datosOb["estado"]?.jsonPrimitive?.int == 1) {
-            if (cargarCarrito()) {
-                productosCargando.remove(productoSeleccionado)
+        val producto = productoSeleccionado
+        val sucursal = sucursales!!.filter {
+            it.nombre.equals(
+                producto.substringAfter("(").substringBefore(")")
+            )
+        }
+        if (sucursal[0].existencia!!.toInt() >= nuevaCantidad) {
+            val response = servicesAppRepository.actualizarCantidadProucto(
+                url = url,
+                idCte = idCte,
+                cantidad = nuevaCantidad,
+                nomsop = productoSeleccionado
+            )
+            val datosOb = response.body()!!
+            return if (datosOb["estado"]?.jsonPrimitive?.int == 10 || datosOb["estado"]?.jsonPrimitive?.int == 1) {
+                if (cargarCarrito()) {
+                    productosCargando.remove(productoSeleccionado)
+                }
+                true
+            } else {
+                false
             }
-            Log.i("MaistroPipe", "Se actualizó")
-            true
-        } else {
-            Log.i("MaistroPipe", datosOb["mensaje"]?.jsonPrimitive?.content!!)
-            false
+        } else{
+            productosCargando.remove(productoSeleccionado)
+            falloCantidad = true
+           return false
         }
     }
 
@@ -148,11 +182,8 @@ class CartViewModel(
             if (cargarCarrito()) {
                 productosCargando.remove(productoSeleccionado)
             }
-            Log.i("MaistroPipe", "Se actualizó")
             true
         } else {
-            Log.i("MaistroPipe", datosOb["mensaje"]?.jsonPrimitive?.content!!)
-            Log.i("MaistroPipe", productoSeleccionado)
             false
         }
     }
@@ -164,11 +195,8 @@ class CartViewModel(
         val datosOb = response.body()!!
         return if (datosOb["estado"]?.jsonPrimitive?.int == 1) {
             cargarCarrito()
-            Log.i("MaistroPipe", "Se actualizó")
             true
         } else {
-            Log.i("MaistroPipe", datosOb["mensaje"]?.jsonPrimitive?.content!!)
-            Log.i("MaistroPipe", productoSeleccionado)
             false
         }
     }
@@ -199,10 +227,8 @@ class CartViewModel(
         val datosOb = response.body()!!
         return if (datosOb["estado"]?.jsonPrimitive?.int == 1) {
             cargarCarrito()
-            Log.i("MaistroPipe", datosOb["mensaje"]?.jsonPrimitive?.content!!)
             true
         } else {
-            Log.i("MaistroPipe", datosOb["mensaje"]?.jsonPrimitive?.content!!)
             false
         }
 

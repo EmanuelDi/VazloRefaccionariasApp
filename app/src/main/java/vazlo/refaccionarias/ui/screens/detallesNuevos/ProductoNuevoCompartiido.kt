@@ -4,8 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import vazlo.refaccionarias.data.model.Producto
-import vazlo.refaccionarias.data.model.ProductosResult
+import vazlo.refaccionarias.data.model.homeData.Producto
 
 class ProductoNuevoCompartiido: ViewModel() {
     private var productoCompartido: Producto by mutableStateOf(

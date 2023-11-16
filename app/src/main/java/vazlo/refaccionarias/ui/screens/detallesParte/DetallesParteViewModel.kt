@@ -7,14 +7,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import vazlo.refaccionarias.data.model.ProductosResult
+import vazlo.refaccionarias.data.model.busquedasData.ProductosResult
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
-import vazlo.refaccionarias.local.Sesion
+import vazlo.refaccionarias.data.local.Sesion
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
-import vazlo.refaccionarias.data.model.Sucursal
+import vazlo.refaccionarias.data.model.detallesData.Sucursal
 
 
 sealed interface ProductosUiState{
@@ -48,11 +48,14 @@ class DetallesParteViewModel(
 
     var tooltipEstado by mutableStateOf(false)
 
-
+    var cantidadSucSelec by mutableStateOf("0")
     init {
         getTooltipDetalleParte()
     }
 
+    fun setCantidadDisp(disponible: String) {
+        cantidadSucSelec = disponible
+    }
     fun setTooltipDetalleParte(){
         sesion.setDetalleProd()
     }
@@ -116,19 +119,7 @@ class DetallesParteViewModel(
             nomsop = "$criterio($sucursal)"
         )
         val datosOb = response.body()!!
-        return if (datosOb["estado"]?.jsonPrimitive?.int == 10 || datosOb["estado"]?.jsonPrimitive?.int == 1) {
-
-            Log.e("MaistroPipe", criterio)
-            Log.e("MaistroPipe", sucursal)
-            Log.e("MaistroPipe", idSucursal)
-            true
-        } else {
-            Log.i("MaistroPipe", datosOb["mensaje"]?.jsonPrimitive?.content!!)
-            Log.e("MaistroPipe", criterio)
-            Log.e("MaistroPipe", sucursal)
-            Log.e("MaistroPipe", idSucursal)
-            false
-        }
+        return datosOb["estado"]?.jsonPrimitive?.int == 10 || datosOb["estado"]?.jsonPrimitive?.int == 1
     }
 
     suspend fun agregarABackOrder(nuevaCantidad: Int = nuevaCant.toInt()): Boolean

@@ -83,7 +83,7 @@ import com.skydoves.balloon.overlay.BalloonOverlayAnimation
 import com.skydoves.balloon.overlay.BalloonOverlayRect
 import com.skydoves.balloon.overlay.BalloonOverlayRoundRect
 import vazlo.refaccionarias.R
-import vazlo.refaccionarias.navigation.NavigationDestination
+import vazlo.refaccionarias.ui.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
 
 

@@ -3,17 +3,17 @@ package vazlo.refaccionarias.ui.screens.home
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import vazlo.refaccionarias.data.model.Producto
-import vazlo.refaccionarias.data.model.ProductosNuevosResponse
+import vazlo.refaccionarias.data.model.homeData.Producto
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
-import vazlo.refaccionarias.local.Sesion
+import vazlo.refaccionarias.data.local.Sesion
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import vazlo.refaccionarias.data.model.Promocion
+import vazlo.refaccionarias.data.model.homeData.Promocion
 
 sealed interface HomeUiState {
     data class Success(val productos: List<Producto>) : HomeUiState
@@ -44,11 +44,14 @@ class HomeViewModel(
     var bannerState: BannersState by mutableStateOf(BannersState.Loading)
         private set
 
+    var usuario by mutableStateOf("")
+
     private var latitud by mutableDoubleStateOf(0.0)
     private var longitud by mutableDoubleStateOf(0.0)
 
     var hayEventos by mutableStateOf(false);
 
+    var versionApk by mutableIntStateOf(0)
     fun setCoordenadas(lat: Double, long: Double) {
         latitud = lat
         longitud = long
@@ -59,7 +62,14 @@ class HomeViewModel(
     }
 
 
+    fun getVersion(){
+        viewModelScope.launch {
+            versionApk = sesion.versionDeApkRefaccionarias.first()
+        }
+    }
+
     init {
+        getVersion()
         cargarPromos()
         cargarNuevosProductos()
         cargarMarcadores()
@@ -84,8 +94,8 @@ class HomeViewModel(
             homeUiState = HomeUiState.Loading
             val url = sesion.articulosNuevos.first()
             val idUser = sesion.id.first()
+            usuario = idUser
             val response = servicesAppRepository.cargarProductosNuevos(url = url, idUser = idUser)
-            Log.i("Omyy", response.estado.toString())
             homeUiState = if (response.estado == 1) {
                 HomeUiState.Success(response.clientes!!)
             } else {
@@ -113,7 +123,6 @@ class HomeViewModel(
     fun logout() {
         viewModelScope.launch {
             sesion.setLogout(0)
-            Log.i("Abraham", sesion.logueado.first().toString())
         }
     }
 

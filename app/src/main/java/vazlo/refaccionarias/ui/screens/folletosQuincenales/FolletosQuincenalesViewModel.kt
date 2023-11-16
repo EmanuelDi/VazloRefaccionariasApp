@@ -6,9 +6,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import vazlo.refaccionarias.data.model.Folleto
+import vazlo.refaccionarias.data.model.folletosQuinceData.Folleto
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
-import vazlo.refaccionarias.local.Sesion
+import vazlo.refaccionarias.data.local.Sesion
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -38,13 +38,10 @@ class FolletosQuincenalesViewModel(
 
              try {
                  val response = servicesAppRepository.getFolletos(url, user)
-                 Log.i("pop", response.mensaje)
                  folletosUiState =
                      if (response.estado == 1) FolletosUiState.Success(response.folletos) else FolletosUiState.Error
              } catch (e: Exception) {
                  folletosUiState = FolletosUiState.Error
-                 Log.i("pop", e.toString())
-
              }
          }
 

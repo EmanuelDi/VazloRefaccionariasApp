@@ -1,7 +1,5 @@
 package vazlo.refaccionarias.ui.screens.login
 
-import android.content.Context
-import android.net.ConnectivityManager
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresExtension
@@ -13,16 +11,13 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
 import vazlo.refaccionarias.data.repositorios.WebServicesRefacRepository
-import vazlo.refaccionarias.local.Sesion
+import vazlo.refaccionarias.data.local.Sesion
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
 import retrofit2.HttpException
-import vazlo.refaccionarias.data.model.Producto
-import vazlo.refaccionarias.data.model.ProductoCart
-import vazlo.refaccionarias.ui.screens.home.HomeUiState
 import java.io.IOException
 import java.net.ConnectException
 import java.net.UnknownHostException
@@ -57,6 +52,7 @@ class LoginViewModel(
     var contraseniaActual by mutableStateOf("")
 
     var errorEnWebServices by mutableStateOf(false)
+
 
     suspend fun getSesionActual() {
         userActual = sesion.id.first()

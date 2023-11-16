@@ -11,9 +11,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
-import vazlo.refaccionarias.data.model.ProductosResult
+import vazlo.refaccionarias.data.model.busquedasData.ProductosResult
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
-import vazlo.refaccionarias.local.Sesion
+import vazlo.refaccionarias.data.local.Sesion
 import vazlo.refaccionarias.ui.screens.detallesParte.DetallesParteDestination
 
 
@@ -65,14 +65,7 @@ class DetallesNuevosViewModel(
             nomsop = producto
         )
         val datosOb = response.body()!!
-        return if (datosOb["estado"]?.jsonPrimitive?.int == 10 || datosOb["estado"]?.jsonPrimitive?.int == 1) {
-
-            Log.i("MaistroPipe", "Se actualizó")
-            true
-        } else {
-            Log.i("MaistroPipe", datosOb["mensaje"]?.jsonPrimitive?.content!!)
-            false
-        }
+        return datosOb["estado"]?.jsonPrimitive?.int == 10 || datosOb["estado"]?.jsonPrimitive?.int == 1
     }
 
     fun cargarProductosExtra(

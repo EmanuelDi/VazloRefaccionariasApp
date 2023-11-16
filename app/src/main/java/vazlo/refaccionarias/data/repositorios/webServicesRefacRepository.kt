@@ -1,6 +1,6 @@
 package vazlo.refaccionarias.data.repositorios
 
-import vazlo.refaccionarias.bd.WebServiceRefa
+import vazlo.refaccionarias.data.bd.WebServiceRefa
 import kotlinx.serialization.json.JsonObject
 import retrofit2.Response
 

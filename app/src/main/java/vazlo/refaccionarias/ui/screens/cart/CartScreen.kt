@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,6 +55,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -108,9 +110,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import vazlo.refaccionarias.R
-import vazlo.refaccionarias.data.model.ProductoCart
-import vazlo.refaccionarias.navigation.NavigationDestination
+import vazlo.refaccionarias.data.model.busquedasData.ProductoCart
 import vazlo.refaccionarias.ui.AppViewModelProvider
+import vazlo.refaccionarias.ui.navigation.NavigationDestination
+import vazlo.refaccionarias.ui.screens.detallesParte.ErrorAlert
 import vazlo.refaccionarias.ui.screens.home.LoadingScreen
 import vazlo.refaccionarias.ui.screens.resultadoPorPartes.AltScreen
 import vazlo.refaccionarias.ui.theme.Blanco
@@ -141,6 +144,10 @@ fun CartScreen(
 
     if (tooltipChaser == 7) {
         carritoViewModel.setCarrito()
+    }
+
+    var errorCantidad by remember {
+        mutableStateOf(false)
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -184,6 +191,13 @@ fun CartScreen(
     var showVaciarDialog by remember { mutableStateOf(false) }
     var showEnviarDialog by remember { mutableStateOf(false) }
     val view = LocalView.current
+
+    ErrorAlertCantidad(
+        onDismiss = {
+            carritoViewModel.falloCantidad = false
+        },
+        showAlert = carritoViewModel.falloCantidad,
+    )
 
     val window = (view.context as Activity).window
     WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = showBottomSheet
@@ -237,7 +251,7 @@ fun CartScreen(
                     builder = builder,
                     balloonContent = {
                         Text(
-                            text = "Presiono para navegar hacia Busqueda Por Partes",
+                            text = "Presiona para navegar hacia Búsqueda Por Partes",
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }) {
@@ -341,23 +355,16 @@ fun CartScreen(
                         verticalArrangement = Arrangement.Center,
                         modifier = modifier.fillMaxWidth()
                     ) {
-                        Text(
-                            text = "1 unidad",
-                            color = Negro,
-                            modifier = modifier
-                                .clickable {
-                                    scope.launch {
-                                        if (carritoViewModel.actualizarCantidadProducto(1)) {
-                                            carritoViewModel.cargarCarrito()
-                                        }
-                                    }
-                                    scope.launch {
-                                        sheetState.hide()
-                                        showBottomSheet = false
-                                    }
-                                }
-                                .fillMaxWidth(),
-                            textAlign = TextAlign.Center
+                        val cantidad = 0
+
+                        BotonCant(
+                            cantidad = 1,
+                            modifier = modifier,
+                            scope = scope,
+                            carritoViewModel = carritoViewModel,
+                            sheetState = sheetState,
+                            showBottomSheet = { showBottomSheet = false },
+                            showErrorCantidadDialog = { errorCantidad = true }
                         )
                         HorizontalDivider(
                             modifier
@@ -366,23 +373,14 @@ fun CartScreen(
                             thickness = 1.dp,
                             color = Negro
                         )
-                        Text(
-                            text = "2 unidades",
-                            color = Negro,
-                            modifier = modifier
-                                .clickable {
-                                    scope.launch {
-                                        if (carritoViewModel.actualizarCantidadProducto(2)) {
-                                            carritoViewModel.cargarCarrito()
-                                        }
-                                    }
-                                    scope.launch {
-                                        sheetState.hide()
-                                        showBottomSheet = false
-                                    }
-                                }
-                                .fillMaxWidth(),
-                            textAlign = TextAlign.Center
+                        BotonCant(
+                            cantidad = 2,
+                            modifier = modifier,
+                            scope = scope,
+                            carritoViewModel = carritoViewModel,
+                            sheetState = sheetState,
+                            showBottomSheet = { showBottomSheet = false },
+                            showErrorCantidadDialog = { errorCantidad = true }
                         )
                         HorizontalDivider(
                             modifier
@@ -391,23 +389,14 @@ fun CartScreen(
                             thickness = 1.dp,
                             color = Negro
                         )
-                        Text(
-                            text = "3 unidades",
-                            color = Negro,
-                            modifier = modifier
-                                .clickable {
-                                    scope.launch {
-                                        if (carritoViewModel.actualizarCantidadProducto(3)) {
-                                            carritoViewModel.cargarCarrito()
-                                        }
-                                    }
-                                    scope.launch {
-                                        sheetState.hide()
-                                        showBottomSheet = false
-                                    }
-                                }
-                                .fillMaxWidth(),
-                            textAlign = TextAlign.Center
+                        BotonCant(
+                            cantidad = 3,
+                            modifier = modifier,
+                            scope = scope,
+                            carritoViewModel = carritoViewModel,
+                            sheetState = sheetState,
+                            showBottomSheet = { showBottomSheet = false },
+                            showErrorCantidadDialog = { errorCantidad = true }
                         )
                         HorizontalDivider(
                             modifier
@@ -416,23 +405,14 @@ fun CartScreen(
                             thickness = 1.dp,
                             color = Negro
                         )
-                        Text(
-                            text = "4 unidades",
-                            color = Negro,
-                            modifier = modifier
-                                .clickable {
-                                    scope.launch {
-                                        if (carritoViewModel.actualizarCantidadProducto(4)) {
-                                            carritoViewModel.cargarCarrito()
-                                        }
-                                    }
-                                    scope.launch {
-                                        sheetState.hide()
-                                        showBottomSheet = false
-                                    }
-                                }
-                                .fillMaxWidth(),
-                            textAlign = TextAlign.Center
+                        BotonCant(
+                            cantidad = 4,
+                            modifier = modifier,
+                            scope = scope,
+                            carritoViewModel = carritoViewModel,
+                            sheetState = sheetState,
+                            showBottomSheet = { showBottomSheet = false },
+                            showErrorCantidadDialog = { errorCantidad = true }
                         )
                         HorizontalDivider(
                             modifier
@@ -441,18 +421,15 @@ fun CartScreen(
                             thickness = 1.dp,
                             color = Negro
                         )
-                        Text(
-                            text = "5 unidades",
-                            color = Negro,
-                            modifier = modifier.clickable {
-                                scope.launch {
-                                    carritoViewModel.actualizarCantidadProducto(5)
-                                }
-                                scope.launch {
-                                    sheetState.hide()
-                                    showBottomSheet = false
-                                }
-                            })
+                        BotonCant(
+                            cantidad = 5,
+                            modifier = modifier,
+                            scope = scope,
+                            carritoViewModel = carritoViewModel,
+                            sheetState = sheetState,
+                            showBottomSheet = { showBottomSheet = false },
+                            showErrorCantidadDialog = { errorCantidad = true }
+                        )
                         HorizontalDivider(
                             modifier
                                 .fillMaxWidth()
@@ -460,23 +437,14 @@ fun CartScreen(
                             thickness = 1.dp,
                             color = Negro
                         )
-                        Text(
-                            text = "6 unidades",
-                            color = Negro,
-                            modifier = modifier
-                                .clickable {
-                                    scope.launch {
-                                        if (carritoViewModel.actualizarCantidadProducto(6)) {
-                                            carritoViewModel.cargarCarrito()
-                                        }
-                                    }
-                                    scope.launch {
-                                        sheetState.hide()
-                                        showBottomSheet = false
-                                    }
-                                }
-                                .fillMaxWidth(),
-                            textAlign = TextAlign.Center
+                        BotonCant(
+                            cantidad = 6,
+                            modifier = modifier,
+                            scope = scope,
+                            carritoViewModel = carritoViewModel,
+                            sheetState = sheetState,
+                            showBottomSheet = { showBottomSheet = false },
+                            showErrorCantidadDialog = { errorCantidad = true }
                         )
                         HorizontalDivider(
                             modifier
@@ -496,6 +464,12 @@ fun CartScreen(
                         Spacer(Modifier.navigationBarsPadding())
                     }
                 } else {
+//                    var producto = carritoViewModel.productoSeleccionado
+//                    var sucursal = carritoViewModel.sucursales!!.filter {
+//                        it.nombre.equals(
+//                            producto.substringAfter("(").substringBefore(")")
+//                        )
+//                    }
                     Column(
                         modifier
                             .fillMaxWidth()
@@ -538,15 +512,20 @@ fun CartScreen(
                         )
                         Button(
                             onClick = {
-                                scope.launch {
-                                    if (carritoViewModel.actualizarCantidadProducto()) {
-                                        carritoViewModel.cargarCarrito()
+                               // if (sucursal[0].existencia!!.toInt() <= carritoViewModel.nuevaCant.toInt()) {
+                                    scope.launch {
+
+                                        if (carritoViewModel.actualizarCantidadProducto()) {
+                                            carritoViewModel.cargarCarrito()
+                                        }
                                     }
-                                }
-                                scope.launch {
-                                    sheetState.hide()
-                                    showBottomSheet = false
-                                }
+                                    scope.launch {
+                                        sheetState.hide()
+                                        showBottomSheet = false
+                                    }
+//                                } else{
+//                                    errorCantidad = true
+//                                }
                             },
                             modifier = modifier.fillMaxWidth(),
                             colors = ButtonColors(
@@ -597,7 +576,6 @@ fun CartScreen(
                     val hayNoDisponibles = productos.filter {prod ->
                         prod.cantidad == "NO DISPONIBLE"
                     }
-                    /*Log.i("sos1", "Encontrados: ${productos.size}")*/
                     Column {
                         ProductList(
                             productList = productsGroup,
@@ -633,6 +611,7 @@ fun CartScreen(
                         }
                     }
                 }
+
                 is CarritoUiState.Error -> {
                     AltScreen(modifier = modifier, texto = "Error al cargar")
                 }
@@ -641,6 +620,81 @@ fun CartScreen(
             }
         }
     }
+}
+
+@Composable
+fun ErrorAlertCantidad(onDismiss: () -> Unit, showAlert: Boolean) {
+    if (showAlert) {
+        AlertDialog(
+            onDismissRequest = { onDismiss() },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDismiss()
+                        //onDismissPadre()
+                    },
+                    colors = ButtonDefaults.buttonColors(Color.White)
+                ) {
+                    Text(
+                        text = "Cerrar",
+                        color = Color.Black
+                    )
+                }
+            },
+            title = { Text(text = "Aviso") },
+            text = { Text(text = "Llegaste a la cantidad de piezas disponibles de este producto") },
+            icon = {
+                Icon(
+                    imageVector = Icons.Filled.Error,
+                    contentDescription = "",
+                    modifier = Modifier.size(70.dp)
+                )
+            },
+            iconContentColor = Rojo_Vazlo,
+            containerColor = Blanco
+        )
+    }
+
+}
+
+@Composable
+private fun BotonCant(
+    cantidad: Int,
+    modifier: Modifier,
+    scope: CoroutineScope,
+    carritoViewModel: CartViewModel,
+    sheetState: SheetState,
+    showBottomSheet: () -> Unit,
+    showErrorCantidadDialog: () -> Unit
+) {
+//    var producto = carritoViewModel.productoSeleccionado
+//    var sucursal = carritoViewModel.sucursales!!.filter {
+//        it.nombre.equals(
+//            producto.substringAfter("(").substringBefore(")")
+//        )
+//    }
+    Text(
+        text = "${cantidad} unidad",
+        color = Negro,
+        modifier = modifier
+            .clickable {
+//                if (sucursal[0].existencia!!.toInt() >= cantidad) {
+                    scope.launch {
+                        if (carritoViewModel.actualizarCantidadProducto(cantidad)) {
+                            carritoViewModel.cargarCarrito()
+                        }
+                    }
+                    scope.launch {
+                        sheetState.hide()
+                        showBottomSheet()
+                    }
+//                } else {
+//                    showErrorCantidadDialog()
+//                }
+            }
+            .fillMaxWidth(),
+        textAlign = TextAlign.Center
+    )
 }
 
 @Composable
@@ -824,12 +878,12 @@ fun ProductList(
     if (showAlertNoDisp) {
         AlertNoDisp { showAlertNoDisp = false }
     }
-
     var contador = 0
     LazyColumn(
         modifier.height(480.dp),
         contentPadding = PaddingValues(horizontal = 20.dp)
     ) {
+
         productList.forEach { (nombreSoporte, items) ->
             item {
                 Row(
@@ -852,8 +906,8 @@ fun ProductList(
                         fontSize = 25.sp
                     )
                 }
+                contador++
             }
-            contador++
             itemsIndexed(items) { index, producto ->
                 ItemProduct(
                     producto = producto,

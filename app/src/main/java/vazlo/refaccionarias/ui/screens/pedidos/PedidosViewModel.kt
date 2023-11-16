@@ -5,10 +5,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import vazlo.refaccionarias.data.model.InfoPedido
-import vazlo.refaccionarias.data.model.ProductoPedido
+import vazlo.refaccionarias.data.model.pedidoData.InfoPedido
+import vazlo.refaccionarias.data.model.pedidoData.ProductoPedido
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
-import vazlo.refaccionarias.local.Sesion
+import vazlo.refaccionarias.data.local.Sesion
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch

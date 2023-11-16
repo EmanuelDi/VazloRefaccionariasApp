@@ -9,9 +9,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
@@ -28,6 +26,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerState
@@ -52,6 +53,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,11 +63,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -82,16 +83,15 @@ import com.skydoves.balloon.Balloon
 import com.skydoves.balloon.BalloonAnimation
 import com.skydoves.balloon.BalloonHighlightAnimation
 import com.skydoves.balloon.BalloonSizeSpec
-import com.skydoves.balloon.compose.Balloon
 import com.skydoves.balloon.compose.rememberBalloonBuilder
 import com.skydoves.balloon.overlay.BalloonOverlayAnimation
 import com.skydoves.balloon.overlay.BalloonOverlayRoundRect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import vazlo.refaccionarias.R
-import vazlo.refaccionarias.data.model.Producto
-import vazlo.refaccionarias.data.model.Promocion
-import vazlo.refaccionarias.navigation.NavigationDestination
+import vazlo.refaccionarias.data.model.homeData.Producto
+import vazlo.refaccionarias.data.model.homeData.Promocion
+import vazlo.refaccionarias.ui.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
 import vazlo.refaccionarias.ui.screens.detallesNuevos.ProductoNuevoCompartiido
 import vazlo.refaccionarias.ui.screens.login.LoginDestination
@@ -238,6 +238,45 @@ fun HomeContent(
     productoNuevoCompartiido: ProductoNuevoCompartiido
 ) {
     val context = LocalContext.current
+    var showUpdateDialog = remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    var appVersion: Long = 0
+    try {
+        val pInfo = context.packageManager.getPackageInfo("vazlo.mecanicos", 0)
+        val version: Long = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            pInfo.longVersionCode
+        } else {
+            pInfo.versionCode.toLong()
+        }
+        appVersion = version
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+
+    LaunchedEffect(Unit) {
+        if(appVersion.toInt() < homeViewModel.versionApk) {
+            showUpdateDialog.value = true
+        }
+    }
+    //Inicializa las preferencias locales
+    val prefs = context.getSharedPreferences("preferencias", Context.MODE_PRIVATE)
+    //Inicializa la preferencia en especifico
+    val mostrar = prefs.getBoolean("mostrar", true)
+    val editor = prefs.edit()
+
+    if(showUpdateDialog.value && mostrar) {
+        ActualizacionDialog(
+            onLater = {
+                showUpdateDialog.value = false
+            },
+            onNever = {
+                editor.putBoolean("mostrar", false)
+                editor.apply()
+                showUpdateDialog.value = false
+            }
+        )
+    }
+
     var logoutConfrimation by remember{ mutableStateOf(false) }
     BackHandler(enabled = true) {
         logoutConfrimation = true
@@ -253,7 +292,6 @@ fun HomeContent(
         )
     }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
 // icons to mimic drawer destinations
     /*val items = listOf(Icons.Default.Favorite, Icons.Default.Face, Icons.Default.Email)*/
     /*val selectedItem = remember { mutableStateOf("") }*/
@@ -319,6 +357,16 @@ fun HomeContent(
                         modifier = modifier
                             .background(MaterialTheme.colorScheme.background),
                     ) {
+                        item {
+                            Text(
+                                text = stringResource(R.string.usuarioHome, homeViewModel.usuario),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Normal,
+                                modifier = modifier.padding(16.dp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                        }
                         menuSections.forEach { section ->
                             item {
                                 Text(
@@ -331,14 +379,28 @@ fun HomeContent(
                             }
                             items(section.items) { item ->
                                 if (item.label != R.string.usuarios_y_permisos) {
-                                    ElementoMenu(
-                                        item,
-                                        scope,
-                                        drawerState,
-                                        homeViewModel,
-                                        navController,
-                                        context
-                                    )
+                                    if (item.label == R.string.salir){
+                                        ElementoMenu(
+                                            item,
+                                            scope,
+                                            drawerState,
+                                            homeViewModel,
+                                            navController,
+                                            context,
+                                            onClick = {logoutConfrimation = true}
+                                        )
+                                    } else{
+                                        ElementoMenu(
+                                            item,
+                                            scope,
+                                            drawerState,
+                                            homeViewModel,
+                                            navController,
+                                            context,
+                                            onClick = {}
+                                        )
+                                    }
+
                                 } else {
                                     if (homeViewModel.esAdmin) {
                                         ElementoMenu(
@@ -347,7 +409,8 @@ fun HomeContent(
                                             drawerState,
                                             homeViewModel,
                                             navController,
-                                            context
+                                            context,
+                                            onClick = {}
                                         )
                                     }
                                 }
@@ -379,6 +442,89 @@ fun HomeContent(
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ActualizacionDialog(modifier: Modifier = Modifier, onLater: () -> Unit, onNever: () -> Unit) {
+    val uriHandler = LocalUriHandler.current
+    AlertDialog(
+        onDismissRequest = { }
+    ) {
+        Surface(
+            modifier = Modifier
+                .wrapContentWidth()
+                .wrapContentHeight(),
+            shape = MaterialTheme.shapes.large,
+            tonalElevation = AlertDialogDefaults.TonalElevation,
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = modifier
+                    .padding(16.dp)
+                    .width(350.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Actualización disponible",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    modifier = modifier
+                        .padding(top = 16.dp),
+                    text = "¿Desea actualizar la aplicación?",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Button(
+                    onClick = {
+                        uriHandler.openUri("https://play.google.com/store/apps/details?id=vazlo.refaccionarias")
+                    },
+                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        MaterialTheme.colorScheme.primary,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    modifier = modifier
+                        .wrapContentWidth()
+                        .padding(top = 5.dp, bottom = 5.dp),
+                ) {
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                    Text(
+                        text = "Actualizar",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Spacer(modifier = Modifier.height(5.dp))
+                Row(
+                    modifier = modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    TextButton(
+                        onClick = onLater
+                    ) {
+                        Text(
+                            text = "Más tarde",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                    TextButton(
+                        onClick = onNever
+                    ) {
+                        Text(
+                            text = "No volver a mostrar",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun ElementoMenu(
     item: MenuItem,
@@ -386,7 +532,8 @@ private fun ElementoMenu(
     drawerState: DrawerState,
     homeViewModel: HomeViewModel,
     navController: NavController,
-    context: Context
+    context: Context,
+    onClick: () -> Unit
 ) {
     NavigationDrawerItem(
         icon = {
@@ -409,8 +556,8 @@ private fun ElementoMenu(
         onClick = {
             scope.launch { drawerState.close() }
             if (item.label == R.string.salir) {
-                navController.popBackStack(item.destination, false)
-                homeViewModel.logout()
+                onClick()
+                //navController.popBackStack(item.destination, false)
             } else if (item.label == R.string.eventos) {
                 if (!homeViewModel.hayEventos) {
                     Toast.makeText(context, "No hay eventos", Toast.LENGTH_SHORT).show()
@@ -619,7 +766,7 @@ fun CardProductoHome(
                 model = ImageRequest.Builder(context = LocalContext.current).data(producto.foto)
                     .diskCachePolicy(CachePolicy.DISABLED)
                     .crossfade(true).build(),
-                error = painterResource(R.drawable.image_break),
+                error = painterResource(R.drawable.image_break__blanco),
                 placeholder = painterResource(R.drawable.download_file__1_),
                 contentDescription = producto.descripcion,
                 contentScale = ContentScale.Crop,

@@ -1,6 +1,5 @@
 package vazlo.refaccionarias.ui.screens.resultadoPorPartes
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -8,10 +7,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import vazlo.refaccionarias.data.model.ProductosResult
+import vazlo.refaccionarias.data.model.busquedasData.ProductosResult
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
-import vazlo.refaccionarias.local.Sesion
-import vazlo.refaccionarias.ui.screens.resultadoPorPartes.ResultadoPorPartesDestination
+import vazlo.refaccionarias.data.local.Sesion
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -44,7 +42,7 @@ class ResultadoPorPartesViewModel(
         }
     }
 
-    fun cargarProductosMamoan() {
+    private fun cargarProductosMamoan() {
         viewModelScope.launch {
             val url = sesion.mamoanBusquedas.first()
             val user = sesion.id.first()
@@ -64,7 +62,7 @@ class ResultadoPorPartesViewModel(
         }
     }
 
-    fun cargarProductos() {
+    private fun cargarProductos() {
         viewModelScope.launch {
             val url = sesion.catalogoBusquedaPorParte.first()
             val user = sesion.id.first()
@@ -86,7 +84,7 @@ class ResultadoPorPartesViewModel(
         }
     }
 
-    fun cargarProductosConversiones() {
+    private fun cargarProductosConversiones() {
         viewModelScope.launch {
             val url = sesion.catalgoConversionesBusquedas.first()
             val user = sesion.id.first()
@@ -103,7 +101,6 @@ class ResultadoPorPartesViewModel(
                     response.lineas
                 ) else ResultadoParteUiState.Error
             } catch (e: Exception) {
-                Log.i("pop", e.toString())
                 resultadoPartesUiState = ResultadoParteUiState.Error
             }
         }

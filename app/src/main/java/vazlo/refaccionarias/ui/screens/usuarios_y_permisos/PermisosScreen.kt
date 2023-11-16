@@ -63,8 +63,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import vazlo.refaccionarias.R
-import vazlo.refaccionarias.data.model.Permisos
-import vazlo.refaccionarias.navigation.NavigationDestination
+import vazlo.refaccionarias.data.model.users_y_permisosData.Permisos
+import vazlo.refaccionarias.ui.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
 import vazlo.refaccionarias.ui.theme.Gris_Vazlo
 import vazlo.refaccionarias.ui.theme.Negro

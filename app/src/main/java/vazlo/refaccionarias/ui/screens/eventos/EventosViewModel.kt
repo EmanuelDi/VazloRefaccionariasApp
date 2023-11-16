@@ -10,8 +10,8 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
-import vazlo.refaccionarias.data.model.Marcador
-import vazlo.refaccionarias.local.Sesion
+import vazlo.refaccionarias.data.model.eventosData.Marcador
+import vazlo.refaccionarias.data.local.Sesion
 
 sealed interface MarcadoresUiState {
     data class Success(val marcadores: List<Marcador>): MarcadoresUiState

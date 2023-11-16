@@ -1,6 +1,5 @@
 package vazlo.refaccionarias.ui.screens.pedidos
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -40,13 +38,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.text.isDigitsOnly
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import vazlo.refaccionarias.R
-import vazlo.refaccionarias.data.model.InfoPedido
-import vazlo.refaccionarias.data.model.ProductoPedido
-import vazlo.refaccionarias.navigation.NavigationDestination
+import vazlo.refaccionarias.data.model.pedidoData.InfoPedido
+import vazlo.refaccionarias.data.model.pedidoData.ProductoPedido
+import vazlo.refaccionarias.ui.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.theme.Rojo_Vazlo
 
 object DetailsPedidos : NavigationDestination {

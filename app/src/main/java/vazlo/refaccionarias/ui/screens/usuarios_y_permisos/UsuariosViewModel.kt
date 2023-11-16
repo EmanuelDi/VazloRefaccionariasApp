@@ -1,5 +1,6 @@
 package vazlo.refaccionarias.ui.screens.usuarios_y_permisos
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,10 +10,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
-import vazlo.refaccionarias.data.model.usuarios.NuevoUsuario
-import vazlo.refaccionarias.data.model.usuarios.Usuario
+import vazlo.refaccionarias.data.model.usuariosData.NuevoUsuario
+import vazlo.refaccionarias.data.model.usuariosData.Usuario
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
-import vazlo.refaccionarias.local.Sesion
+import vazlo.refaccionarias.data.local.Sesion
 
 
 
@@ -32,6 +33,8 @@ class UsuariosViewModel(
     var busquedaEntry by mutableStateOf("")
     var userSeleccionado by mutableStateOf("")
         private set
+
+
     var usuariosUiState: UsuariosUiState by mutableStateOf(UsuariosUiState.Loading)
         private set
     var entryUsuario by mutableStateOf("")
@@ -90,7 +93,7 @@ class UsuariosViewModel(
         cargarUsuarios()
     }
 
-    private fun cargarUsuarios() {
+    fun cargarUsuarios() {
         viewModelScope.launch {
             val url = sesion.getUrlCargarUsuario.first()
 /*
@@ -182,14 +185,13 @@ class UsuariosViewModel(
     }
 
     suspend fun eliminarUsuario(): Boolean {
-
         val response = servicesAppRepository.eliminarUsuario(
             url = sesion.getUrlEliminarUsuario.first(),
             cte = userSeleccionado
         )
         val datosOb = response.body()!!
         return if (datosOb["estado"]?.jsonPrimitive?.int == 1) {
-            cargarUsuarios()
+            //cargarUsuarios()
             true
         } else {
             false

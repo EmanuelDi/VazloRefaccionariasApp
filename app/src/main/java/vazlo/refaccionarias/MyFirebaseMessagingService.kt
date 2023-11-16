@@ -15,7 +15,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
-        Log.d("mesage", "algo llego")
         showNotification(remoteMessage.notification!!.title!!, remoteMessage.notification!!.body!!)
     }
 

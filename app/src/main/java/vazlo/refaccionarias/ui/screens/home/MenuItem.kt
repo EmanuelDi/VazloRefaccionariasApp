@@ -7,7 +7,7 @@ import vazlo.refaccionarias.ui.screens.eventos.Eventos
 import vazlo.refaccionarias.ui.screens.busquedaPorPartes.BusquedaPorPartesDestination
 import vazlo.refaccionarias.ui.screens.cart.CartDestination
 import vazlo.refaccionarias.ui.screens.catalagoElectronico.CatalogoElectronicoDestination
-import vazlo.refaccionarias.ui.screens.catalagos.EstadisticasDestination
+import vazlo.refaccionarias.ui.screens.estadisticas.EstadisticasDestination
 import vazlo.refaccionarias.ui.screens.conversiones.ConversionesDestination
 import vazlo.refaccionarias.ui.screens.folletosQuincenales.FolletosQuincenalesDestination
 import vazlo.refaccionarias.ui.screens.guia.GuiaDestination

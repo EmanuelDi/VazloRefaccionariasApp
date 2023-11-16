@@ -16,8 +16,8 @@ import vazlo.refaccionarias.ui.screens.catalagoElectronico.ResultadosCatElViewMo
 import vazlo.refaccionarias.ui.screens.conversiones.ConversionesViewModel
 import vazlo.refaccionarias.ui.screens.detallesNuevos.DetallesNuevosViewModel
 import vazlo.refaccionarias.ui.screens.detallesParte.DetallesParteViewModel
-import vazlo.refaccionarias.ui.screens.catalagos.ApartadosWebViewModel
-import vazlo.refaccionarias.ui.screens.catalagos.CatalagoViewModel
+import vazlo.refaccionarias.ui.screens.estadisticas.ApartadosWebViewModel
+import vazlo.refaccionarias.ui.screens.estadisticas.CatalagoViewModel
 import vazlo.refaccionarias.ui.screens.folletosQuincenales.FolletosQuincenalesViewModel
 import vazlo.refaccionarias.ui.screens.folletosQuincenales.PdfViewViewModel
 import vazlo.refaccionarias.ui.screens.guia.GuiasViewModel

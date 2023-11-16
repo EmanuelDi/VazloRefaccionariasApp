@@ -54,8 +54,8 @@ import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import vazlo.refaccionarias.R
-import vazlo.refaccionarias.data.model.ProductosResult
-import vazlo.refaccionarias.navigation.NavigationDestination
+import vazlo.refaccionarias.data.model.busquedasData.ProductosResult
+import vazlo.refaccionarias.ui.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
 import vazlo.refaccionarias.ui.theme.Gris_Vazlo
 import vazlo.refaccionarias.ui.theme.VazloRefaccionariasTheme

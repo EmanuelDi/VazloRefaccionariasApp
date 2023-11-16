@@ -129,4 +129,5 @@
     <string name="permiso_para_entrar">Permiso Para Entrar</string>
     <string name="el_usuario_tendra_permiso_para_acceder_a_la_web_y_a_la_app">El usuario tendra permiso para acceder a la web y a la app</string>
     <string name="estadisticas">Estadísticas</string>
+    <string name="usuarioHome">Usuario: %1$s</string>
 </resources>

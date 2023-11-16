@@ -7,10 +7,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import vazlo.refaccionarias.data.model.Empresas
-import vazlo.refaccionarias.data.model.ProductosResult
+import vazlo.refaccionarias.data.model.catalagoElectronicoData.Empresas
+import vazlo.refaccionarias.data.model.busquedasData.ProductosResult
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
-import vazlo.refaccionarias.local.Sesion
+import vazlo.refaccionarias.data.local.Sesion
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -163,7 +163,6 @@ class ResultadosCatElViewModel(
                     ProductosUiState.Error
                 }
             } catch (e: Exception) {
-                Log.i("ELPROSTA", e.toString())
                 this@ResultadosCatElViewModel.productosUiStateRodaTech = ProductosUiState.Error
             }
         }

@@ -42,7 +42,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter
 import coil.request.ImageRequest
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -58,9 +57,9 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.data.LocationService
-import vazlo.refaccionarias.data.model.Marcador
-import vazlo.refaccionarias.data.model.listaMarcadoresPrueba
-import vazlo.refaccionarias.navigation.NavigationDestination
+import vazlo.refaccionarias.data.model.eventosData.Marcador
+import vazlo.refaccionarias.data.model.eventosData.listaMarcadoresPrueba
+import vazlo.refaccionarias.ui.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
 import vazlo.refaccionarias.ui.theme.VazloRefaccionariasTheme
 

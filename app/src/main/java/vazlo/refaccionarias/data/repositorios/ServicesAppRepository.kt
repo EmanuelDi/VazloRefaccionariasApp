@@ -1,27 +1,26 @@
 package vazlo.refaccionarias.data.repositorios
 
-import vazlo.refaccionarias.bd.ServicesApp
-import vazlo.refaccionarias.data.model.CargarAniosResponse
-import vazlo.refaccionarias.data.model.CargarMarcasResponse
-import vazlo.refaccionarias.data.model.CargarModelosResponse
-import vazlo.refaccionarias.data.model.CargarMotorResponse
-import vazlo.refaccionarias.data.model.CargarUsuariosResponse
-import vazlo.refaccionarias.data.model.FolletorResponse
-import vazlo.refaccionarias.data.model.Login
-import vazlo.refaccionarias.data.model.NotificacionesResponse
-import vazlo.refaccionarias.data.model.PermisosResponse
-import vazlo.refaccionarias.data.model.ProductosNuevosResponse
-import vazlo.refaccionarias.data.model.ResponseProductsCart
-import vazlo.refaccionarias.data.model.ResultadoEmpresasResponse
-import vazlo.refaccionarias.data.model.ResultadoPartes
-import vazlo.refaccionarias.data.model.Verificar360Response
+import vazlo.refaccionarias.data.bd.ServicesApp
+import vazlo.refaccionarias.data.model.catalagoElectronicoData.CargarAniosResponse
+import vazlo.refaccionarias.data.model.catalagoElectronicoData.CargarMarcasResponse
+import vazlo.refaccionarias.data.model.catalagoElectronicoData.CargarModelosResponse
+import vazlo.refaccionarias.data.model.catalagoElectronicoData.CargarMotorResponse
+import vazlo.refaccionarias.data.model.usuariosData.CargarUsuariosResponse
+import vazlo.refaccionarias.data.model.folletosQuinceData.FolletorResponse
+import vazlo.refaccionarias.data.model.loginData.Login
+import vazlo.refaccionarias.data.model.notifData.NotificacionesResponse
+import vazlo.refaccionarias.data.model.users_y_permisosData.PermisosResponse
+import vazlo.refaccionarias.data.model.homeData.ProductosNuevosResponse
+import vazlo.refaccionarias.data.model.busquedasData.ResponseProductsCart
+import vazlo.refaccionarias.data.model.catalagoElectronicoData.ResultadoEmpresasResponse
+import vazlo.refaccionarias.data.model.busquedasData.ResultadoPartes
+import vazlo.refaccionarias.data.model.detallesData.Verificar360Response
 import kotlinx.serialization.json.JsonObject
 import retrofit2.Call
 import retrofit2.Response
-import vazlo.refaccionarias.data.model.CargarMarcadoresClientesResponse
-import vazlo.refaccionarias.data.model.Mensaje
-import vazlo.refaccionarias.data.model.PromosResponse
-import vazlo.refaccionarias.data.model.Sucursal
+import vazlo.refaccionarias.data.model.eventosData.CargarMarcadoresClientesResponse
+import vazlo.refaccionarias.data.model.notifData.Mensaje
+import vazlo.refaccionarias.data.model.homeData.PromosResponse
 
 interface ServicesAppRepository {
     suspend fun login(url: String?, usuario: String, clave: String): Login

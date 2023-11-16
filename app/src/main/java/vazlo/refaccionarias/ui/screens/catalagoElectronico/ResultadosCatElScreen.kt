@@ -1,7 +1,6 @@
 package vazlo.refaccionarias.ui.screens.catalagoElectronico
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresExtension
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.Spring
@@ -15,7 +14,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,8 +35,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -66,7 +62,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -76,13 +71,9 @@ import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import vazlo.refaccionarias.R
-import vazlo.refaccionarias.data.model.ProductosResult
-import vazlo.refaccionarias.navigation.NavigationDestination
+import vazlo.refaccionarias.data.model.busquedasData.ProductosResult
+import vazlo.refaccionarias.ui.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
-import vazlo.refaccionarias.ui.screens.catalagoElectronico.EmpresasUiState
-import vazlo.refaccionarias.ui.screens.catalagoElectronico.ProductosUiState
-import vazlo.refaccionarias.ui.screens.catalagoElectronico.ResultadosCatElViewModel
-import vazlo.refaccionarias.ui.screens.catalagoElectronico.TabItem
 import vazlo.refaccionarias.ui.screens.resultadoPorPartes.ProductoCompartidoViewModel
 import vazlo.refaccionarias.ui.theme.Amarillo_Vazlo
 import vazlo.refaccionarias.ui.theme.Blanco

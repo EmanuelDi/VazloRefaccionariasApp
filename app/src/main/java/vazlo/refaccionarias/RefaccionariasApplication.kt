@@ -7,7 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import vazlo.refaccionarias.data.AppContainer
 import vazlo.refaccionarias.data.DefaultAppContainer
-import vazlo.refaccionarias.local.Sesion
+import vazlo.refaccionarias.data.local.Sesion
 
 private const val NAME = "preferences"
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(

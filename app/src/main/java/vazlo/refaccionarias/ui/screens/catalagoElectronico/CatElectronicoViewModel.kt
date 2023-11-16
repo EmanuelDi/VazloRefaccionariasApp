@@ -5,12 +5,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import vazlo.refaccionarias.data.model.Anio
-import vazlo.refaccionarias.data.model.Marcas
-import vazlo.refaccionarias.data.model.Modelos
-import vazlo.refaccionarias.data.model.Motor
+import vazlo.refaccionarias.data.model.catalagoElectronicoData.Anio
+import vazlo.refaccionarias.data.model.catalagoElectronicoData.Marcas
+import vazlo.refaccionarias.data.model.catalagoElectronicoData.Modelos
+import vazlo.refaccionarias.data.model.catalagoElectronicoData.Motor
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
-import vazlo.refaccionarias.local.Sesion
+import vazlo.refaccionarias.data.local.Sesion
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 

@@ -15,7 +15,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.tasks.Task
 import com.google.firebase.messaging.FirebaseMessaging
-import vazlo.refaccionarias.navigation.RefaccionariNavHost
+import vazlo.refaccionarias.ui.navigation.RefaccionariNavHost
 import com.google.android.gms.tasks.OnCompleteListener
 
 @RequiresApi(Build.VERSION_CODES.O)
