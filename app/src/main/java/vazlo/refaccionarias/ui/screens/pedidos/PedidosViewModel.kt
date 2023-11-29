@@ -36,7 +36,7 @@ class PedidosViewModel(
         cargarPedidos()
     }
 
-    fun cargarPedidos() {
+    private fun cargarPedidos() {
         viewModelScope.launch {
             val gson = Gson()
             val id = sesion.id.first()

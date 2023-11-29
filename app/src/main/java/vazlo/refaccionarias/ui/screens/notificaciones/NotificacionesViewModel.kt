@@ -4,13 +4,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import vazlo.refaccionarias.data.local.Sesion
 import vazlo.refaccionarias.data.model.notifData.Mensaje
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
-import vazlo.refaccionarias.data.local.Sesion
-import kotlinx.coroutines.flow.first
-import android.util.Log
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
 
 
 sealed interface NotificacionesUiState {
@@ -31,12 +30,11 @@ class NotificacionesViewModel(
         val url = sesion.verMensajesNotificaciones.first()
         val idCte = sesion.id.first()
 
-        try {
+        notificacionesUiState = try {
             val response = servicesAppRepository.cargarNotificaciones(url, idCte, token)
-            notificacionesUiState =
-                if (response.estado == 1) NotificacionesUiState.Success(response.mensajes) else NotificacionesUiState.Error
+            if (response.estado == 1) NotificacionesUiState.Success(response.mensajes) else NotificacionesUiState.Error
         } catch (e: Exception) {
-            notificacionesUiState = NotificacionesUiState.Error
+            NotificacionesUiState.Error
 
         }
     }
@@ -47,7 +45,7 @@ class NotificacionesViewModel(
 
             val response = servicesAppRepository.bajarNotificacion(url, id)
 
-            val obData = response.body()
+            //val obData = response.body()
         }
     }
 

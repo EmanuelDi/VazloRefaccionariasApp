@@ -1,6 +1,6 @@
 package vazlo.refaccionarias.ui.screens.usuarios_y_permisos
 
-import android.util.Log
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -46,7 +46,7 @@ class UsuariosViewModel(
     var entryCorreo by mutableStateOf("")
     var entryCorreo1 by mutableStateOf("")
 
-    var nuevoUsuario: NuevoUsuario? = null
+    private var nuevoUsuario: NuevoUsuario? = null
 
 
 
@@ -190,12 +190,7 @@ class UsuariosViewModel(
             cte = userSeleccionado
         )
         val datosOb = response.body()!!
-        return if (datosOb["estado"]?.jsonPrimitive?.int == 1) {
-            //cargarUsuarios()
-            true
-        } else {
-            false
-        }
+        return datosOb["estado"]?.jsonPrimitive?.int == 1
 
     }
 

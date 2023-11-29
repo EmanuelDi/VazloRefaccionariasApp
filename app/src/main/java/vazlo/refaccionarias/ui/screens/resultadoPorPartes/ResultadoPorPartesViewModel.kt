@@ -31,14 +31,16 @@ class ResultadoPorPartesViewModel(
     var totalProductos by mutableIntStateOf(0)
 
     init {
-        if (funcArg == "M"){
-            cargarProductosMamoan()
-        }
-        else if (funcArg == "B") {
-            cargarProductos()
-        }
-        else if (funcArg == "C") {
-            cargarProductosConversiones()
+        when (funcArg) {
+            "M" -> {
+                cargarProductosMamoan()
+            }
+            "B" -> {
+                cargarProductos()
+            }
+            "C" -> {
+                cargarProductosConversiones()
+            }
         }
     }
 

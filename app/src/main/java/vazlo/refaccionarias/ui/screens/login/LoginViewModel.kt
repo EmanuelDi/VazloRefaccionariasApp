@@ -1,7 +1,6 @@
 package vazlo.refaccionarias.ui.screens.login
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresExtension
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,7 +40,7 @@ class LoginViewModel(
 
     var logeado: LogeandoState by mutableStateOf(LogeandoState.NoTry)
 
-    var datosOb: JsonObject? = null
+    private var datosOb: JsonObject? = null
     var usuario by mutableStateOf("")
         private set
 
@@ -190,7 +189,8 @@ class LoginViewModel(
                             u60 = datosOb?.get("activarWebMundial")?.jsonPrimitive?.content ?: "",
                             u61 = datosOb?.get("tituloWebMundial")?.jsonPrimitive?.content ?: "",
                             u62 = datosOb?.get("sguias")?.jsonPrimitive?.content ?: "",
-                            u63 = datosOb?.get("backOrder")?.jsonPrimitive?.content ?: ""
+                            u63 = datosOb?.get("backOrder")?.jsonPrimitive?.content ?: "",
+                            u64 = datosOb?.get("listaConversiones")?.jsonPrimitive?.content ?: "",
                         )
 
                     } else {
@@ -247,11 +247,4 @@ class LoginViewModel(
             return 0
         }
     }
-
-
-
-    fun logout() {
-        sesion.setLogout(0)
-    }
-
 }

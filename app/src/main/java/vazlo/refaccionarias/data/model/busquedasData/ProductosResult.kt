@@ -40,34 +40,33 @@ data class ProductosResult(
     val nombre_empresa: String? = "",
     @SerialName("disponible")
     val disponible: String? = "",
-    @SerialName("sucursales")
-    val sucursales: List<Sucursal>? = emptyList(),
     @SerialName("precio")
     val precio: String? = "",
     @SerialName("url_soporte")
     val urlSoporte: String? = "",
+    @SerialName("sucursales")
+    val sucursales: List<Sucursal>? = emptyList(),
 ){
     companion object {
         val Saver = listSaver<ProductosResult, Any>(
             save = {
                 listOf(
-                    it.nombreMarca!!,
+                    it.nombreMarca,
                     it.linea!!,
                     it.linea_id!!,
-                    it.nombreModeloCarro!!,
+                    it.nombreModeloCarro,
                     it.nombreCilidraje!!,
-                    it.nombreLitro!!,
-                    it.aIni!!,
-                    it.aFin!!,
-                    it.nombrePosicion!!,
-                    it.nombreSoporte!!,
+                    it.nombreLitro,
+                    it.aIni,
+                    it.aFin,
+                    it.nombrePosicion,
+                    it.nombreSoporte,
                     it.status_existencia!!,
-                    it.descripcion!!,
+                    it.descripcion,
                     it.cillitModSopId!!,
                     it.soporte_id!!,
                     it.nombre_empresa!!,
                     it.disponible!!,
-                    it.sucursales!!,
                     it.precio!!,
                     it.urlSoporte!!
                 )
@@ -90,9 +89,8 @@ data class ProductosResult(
                     it[13] as String?,
                     it[14] as String?,
                     it[15] as String?,
-                    it[16] as List<Sucursal>?,
-                    it[17] as String?,
-                    it[18] as String?
+                    it[16] as String?,
+                    it[17] as String?
                 )
             }
         )

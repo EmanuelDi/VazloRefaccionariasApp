@@ -16,16 +16,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,32 +24,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.sharp.MicNone
 import androidx.compose.material.icons.twotone.Clear
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -71,7 +40,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -302,7 +270,6 @@ fun ListaUsuarios(
 
 @Composable
 fun VoiceRecognitionButtonUsuarios(usuariosViewModel: UsuariosViewModel) {
-    val context = LocalContext.current
     val voiceRecognitionResult = remember { mutableStateOf("") }
 
     val launcher =
@@ -496,36 +463,6 @@ fun DatosUsuario(usuario: String, correo: String, nombre: String, modifier: Modi
                 fontSize = 17.sp
             )
         }
-    }
-}
-
-@Composable
-fun ImageVazlo(modifier: Modifier = Modifier) {
-    Image(
-        painter = painterResource(id = R.drawable.logovazloblanco_sin_texto),
-        contentDescription = "",
-        modifier = modifier
-            .size(50.dp)
-            .padding(horizontal = 10.dp)
-            .clickable { },
-        contentScale = ContentScale.Fit
-    )
-}
-
-@Composable
-fun ImageFlecha(modifier: Modifier = Modifier, navigateBack: () -> Unit) {
-    IconButton(onClick = {
-        navigateBack()
-    }) {
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = " ",
-            tint = MaterialTheme.colorScheme.outlineVariant,
-            modifier = modifier
-                .size(50.dp)
-                .padding(horizontal = 10.dp)
-                .clickable { }
-        )
     }
 }
 
@@ -1245,8 +1182,7 @@ private fun EditarDialogBody(usuariosViewModel: UsuariosViewModel) {
 fun EliminarUsuario(
     onDismiss: () -> Unit,
     deleteUser: Boolean,
-    usuariosViewModel: UsuariosViewModel,
-    onDelete: () -> Unit
+    usuariosViewModel: UsuariosViewModel
 ) {
     var showSuccess by remember {
         mutableStateOf(false)
@@ -1356,7 +1292,6 @@ fun SimpleDialog(
     var nuevaContrasenia by remember { mutableStateOf(false) }
     var editUser by remember { mutableStateOf(false) }
     var deleteUser by remember { mutableStateOf(false) }
-    Log.e("Perra", deleteUser.toString())
 
     if (showDialog) {
         AlertDialog(
@@ -1508,7 +1443,6 @@ fun SimpleDialog(
                             }
                             EliminarUsuario(
                                 onDismiss = { deleteUser = false },
-                                onDelete = {  } ,
                                 deleteUser = deleteUser,
                                 usuariosViewModel = usuariosViewModel
                             )

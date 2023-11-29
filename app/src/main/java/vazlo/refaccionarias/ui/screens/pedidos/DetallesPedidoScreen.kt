@@ -51,7 +51,6 @@ object DetailsPedidos : NavigationDestination {
     /*override val titleRes = R.string.item_entry_title*/
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetallesPedidoScreen(
     modifier: Modifier = Modifier,

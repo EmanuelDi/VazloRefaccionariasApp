@@ -1,19 +1,15 @@
 package vazlo.refaccionarias.ui.screens.home
 
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableDoubleStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import vazlo.refaccionarias.data.model.homeData.Producto
-import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
-import vazlo.refaccionarias.data.local.Sesion
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import vazlo.refaccionarias.data.local.Sesion
+import vazlo.refaccionarias.data.model.homeData.Producto
 import vazlo.refaccionarias.data.model.homeData.Promocion
+import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
 
 sealed interface HomeUiState {
     data class Success(val productos: List<Producto>) : HomeUiState
@@ -34,8 +30,6 @@ class HomeViewModel(
     private val servicesAppRepository: ServicesAppRepository
 ) : ViewModel() {
 
-    var promos = mutableListOf<Promocion>()
-
     var homeUiState: HomeUiState by mutableStateOf(HomeUiState.Loading)
         private set
 
@@ -49,13 +43,9 @@ class HomeViewModel(
     private var latitud by mutableDoubleStateOf(0.0)
     private var longitud by mutableDoubleStateOf(0.0)
 
-    var hayEventos by mutableStateOf(false);
+    var hayEventos by mutableStateOf(false)
 
     var versionApk by mutableIntStateOf(0)
-    fun setCoordenadas(lat: Double, long: Double) {
-        latitud = lat
-        longitud = long
-    }
 
     fun restablecerToolTips() {
         sesion.restablecerToolTips()
@@ -97,7 +87,7 @@ class HomeViewModel(
             usuario = idUser
             val response = servicesAppRepository.cargarProductosNuevos(url = url, idUser = idUser)
             homeUiState = if (response.estado == 1) {
-                HomeUiState.Success(response.clientes!!)
+                HomeUiState.Success(response.clientes)
             } else {
                 HomeUiState.Error
             }

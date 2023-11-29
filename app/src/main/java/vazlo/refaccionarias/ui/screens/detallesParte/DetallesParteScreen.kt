@@ -134,6 +134,7 @@ object DetallesParteDestination : NavigationDestination {
     val routeWithArgs = "$route/{$criterioArg}"
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
 @Composable
 fun DetallesParteScreen(
@@ -195,6 +196,10 @@ fun DetallesParteScreen(
         mutableStateOf(false)
     }
 
+    var showConversiones by remember { mutableStateOf( false) }
+
+
+
     val view = LocalView.current
 
     val window = (view.context as Activity).window
@@ -208,22 +213,28 @@ fun DetallesParteScreen(
         mutableStateOf(prod).value
     }
 
+    val suc = viewModelCompartido.getSuc()
+    val sucursales = rememberSaveable(saver = Sucursal.Saver) {
+        mutableStateOf(suc).value
+    }
+
     var url360 by remember { mutableStateOf("") }
 
     val scope = rememberCoroutineScope()
 
     var cantidadAlt by remember {
-        mutableStateOf(0)
+        mutableIntStateOf(0)
     }
 
     val setCantidadAlt: (Int) -> Unit = { cantidad -> cantidadAlt = cantidad }
 
-    dPViewModel.verificar360(producto.nombreSoporte!!)
+    val sheetState = rememberModalBottomSheetState()
+
+    dPViewModel.verificar360(producto.nombreSoporte)
 
     LaunchedEffect(viewModelCompartido.getProducto().nombreSoporte) {
         dPViewModel.get360()
         url360 = dPViewModel.url360 + "?soporte=" + viewModelCompartido.getProducto().nombreSoporte
-        Log.i("360", url360)
     }
 
     var openedDialog by remember { mutableStateOf(false) }
@@ -262,18 +273,20 @@ fun DetallesParteScreen(
                     onClick = { openedDialog = !openedDialog },
                     url360 = url360,
                     builder = builder,
-                    tooltipChaser = tooltipChaser
+                    tooltipChaser = tooltipChaser,
+                    onClickConver = {showConversiones = true}
                 )
                 if (openedDialog)
                     DialogOpcionesCompra(
                         onDismiss = { openedDialog = !openedDialog },
-                        sucursales = producto.sucursales!!,
+                        sucursales = sucursales,
                         precio = producto.precio!!,
                         viewModel = dPViewModel,
                         abrirSheetCantidad = { showBottomSheet = true },
                         aCarrito = { agregar = true },
                         aBackOrder = { agregar = false }
                     )
+
                 BottomCantidad(
                     showBottomSheet = showBottomSheet,
                     cerrarBottomSheet = { showBottomSheet = false },
@@ -283,9 +296,10 @@ fun DetallesParteScreen(
                     showSucces = { showAlert = true },
                     showError = { showAlertError = true },
                     backOption = { openedDialog = true },
-                    setCantidadAlt = setCantidadAlt,
                     showCantidadError = {showCanitadError = true},
-                    showBackOrderDialog = { showBackOrderDialog = true }
+                    showBackOrderDialog = { showBackOrderDialog = true },
+                    setCantidadAlt = setCantidadAlt,
+                    sheetState = sheetState
                 )
 
 
@@ -295,12 +309,16 @@ fun DetallesParteScreen(
                     navigateToCart = navigateToCart,
                     cantidad = cantidadAlt,
                     viewModel = dPViewModel,
-                    scope = scope
+                    scope = scope,
+                    showSucces = {showAlert = true},
+                    showError = {showAlertError = false}
                 )
 
                 MensajeAlert(
                     onDismiss = {
+                        scope.launch { sheetState.hide() }
                         showAlert = false
+
                     },
                     showAlert,
                     navigateToCart = navigateToCart
@@ -321,6 +339,12 @@ fun DetallesParteScreen(
                     showAlert = showAlertError,
                 )
 
+                if (showConversiones) {
+                    DialogConversiones(
+                        onDismiss = {showConversiones = false},
+                        conversiones = dPViewModel.listConversiones
+                    )
+                }
 
                 when (dPViewModel.productosUiState) {
                     is ProductosUiState.Loading -> {
@@ -336,12 +360,9 @@ fun DetallesParteScreen(
                             viewModel = dPViewModel,
                             navigateToSelf = navigateToSelf,
                             viewModelCompartido = viewModelCompartido,
-                            showBottomSheet = showBottomSheet,
-                            cerrarBottomSheet = { showBottomSheet = false },
-                            agregar = agregar,
                             builder = builder,
                             tooltipChaser = tooltipChaser
-                        ) { openedDialog = false }
+                        )
                     }
 
                     is ProductosUiState.Error -> {
@@ -385,7 +406,7 @@ fun BackOrderDialog(onDismiss: () -> Unit, showAlert: Boolean) {
                 }
             },
             title = { Text(text = "Aviso", color = Negro) },
-            text = { Text(text = "La operacion se completo con exito", color = Negro) },
+            text = { Text(text = "Los productos se han agregado a backorder correctamente", color = Negro) },
             icon = {
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
@@ -406,7 +427,9 @@ fun DialogCantidadNoDisp(
     navigateToCart: () -> Unit,
     cantidad: Int,
     viewModel: DetallesParteViewModel,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    showSucces: () -> Unit,
+    showError: () -> Unit
 ) {
     val cantidadRestante = cantidad - viewModel.cantidadSucSelec.toInt()
     val cantidadAgregar = cantidad - cantidadRestante
@@ -417,11 +440,14 @@ fun DialogCantidadNoDisp(
                 Button(
                     onClick = {
                         scope.launch {
-                            viewModel.agregarProducto(cantidadAgregar)
-                            viewModel.agregarABackOrder(cantidadRestante)
-                            viewModel.onNuevaCantidadChange("")
-                            onDismiss()
-                            navigateToCart()
+                            if (viewModel.agregarProducto(cantidadAgregar) && viewModel.agregarABackOrder(cantidadRestante)) {
+                                showSucces()
+                                viewModel.onNuevaCantidadChange("")
+                                onDismiss()
+                            } else {
+                                showError()
+                            }
+                            //navigateToCart()
                         }
                         //onDismissPadre()
                     },
@@ -452,8 +478,8 @@ fun DialogCantidadNoDisp(
             title = { Text(text = "Aviso", color = Negro) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(text = "Se agregarán ${cantidadAgregar} a tu carrito.", color = Negro)
-                    Text(text = "Y ${cantidadRestante} se agregarán a backorder.", color = Amarillo_Vazlo)
+                    Text(text = "Se agregarán $cantidadAgregar a tu carrito.", color = Negro)
+                    Text(text = "Y $cantidadRestante se agregarán a backorder.", color = Amarillo_Vazlo)
                 }
             },
             icon = {
@@ -523,6 +549,47 @@ private fun DetallesPTopAppBar(
 
 
 @Composable
+fun DialogConversiones(
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    conversiones: String
+) {
+    AlertDialog(
+        modifier = modifier.padding(horizontal = 10.dp).height(350.dp),
+        confirmButton = { },
+        onDismissRequest = { onDismiss() },
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        text = {
+            LazyColumn (horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.fillMaxSize()) {
+
+                item { Text(text = if (conversiones != "") conversiones else "Aún no tenemos conversiones para esta pieza.", modifier = modifier, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Normal) }
+
+            }
+        },
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { onDismiss() }) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = modifier.size(30.dp)
+                    )
+                }
+                Text(
+                    text = "Lista de Conversiones",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontSize = 25.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+    )
+}
+
+@Composable
 fun DialogOpcionesCompra(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
@@ -585,7 +652,6 @@ fun OptionCompraItem(
             OptionItem(
                 sucursal,
                 precio = precio,
-                onDismiss = onDismiss,
                 onClick = {
                     abrirSheetCantidad()
                     aCarrito()
@@ -629,7 +695,7 @@ fun MensajeAlert(onDismiss: () -> Unit, showAlert: Boolean, navigateToCart: () -
                 }
             },
             title = { Text(text = "Aviso", color = Negro) },
-            text = { Text(text = "La operacion se completo con exito", color = Negro) },
+            text = { Text(text = "Los productos se han agregado a su carrito correctamente", color = Negro) },
             icon = {
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
@@ -665,7 +731,7 @@ fun ErrorAlert(onDismiss: () -> Unit, showAlert: Boolean) {
                 }
             },
             title = { Text(text = "Aviso") },
-            text = { Text(text = "El producto no se pudo agregar al carrito") },
+            text = { Text(text = "Ocurrio un error al realizar la operacíon") },
             icon = {
                 Icon(
                     imageVector = Icons.Filled.Error,
@@ -687,7 +753,6 @@ fun OptionItem(
     precio: String,
     onClick: () -> Unit,
     onBackOrder: () -> Unit,
-    onDismiss: () -> Unit,
     permisoCotizacion: String,
     permisoExistencias: String,
     permisoPrecio: String,
@@ -699,7 +764,7 @@ fun OptionItem(
     if (permisoExistencias == "1") {
         color =
             if (sucursal.existencia?.toInt()!! > 0) Verde_Success else MaterialTheme.colorScheme.surface
-        disponibilidad = if (sucursal.existencia!!.toInt() > 0) "Disponible" else "No disponible"
+        disponibilidad = if (sucursal.existencia.toInt() > 0) "Disponible" else "No disponible"
     }
     if (permisoPrecio == "1") {
         precioText = "Precio: $ $precio"
@@ -725,7 +790,6 @@ fun OptionItem(
                 ActionCartButton(
                     disponible = sucursal.existencia!!,
                     onCarrito = onClick,
-                    onDismiss = onDismiss,
                     onBackorder = onBackOrder,
                     viewModel = viewModel
                 )
@@ -749,7 +813,6 @@ fun ActionCartButton(
     modifier: Modifier = Modifier,
     disponible: String,
     onCarrito: () -> Unit,
-    onDismiss: () -> Unit,
     onBackorder: () -> Unit,
     viewModel: DetallesParteViewModel
 ) {
@@ -793,11 +856,11 @@ fun BottomCantidad(
     backOption: () -> Unit,
     showCantidadError: () -> Unit,
     showBackOrderDialog: () -> Unit,
-    setCantidadAlt: (Int) -> Unit
+    setCantidadAlt: (Int) -> Unit,
+    sheetState: SheetState
 ) {
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState()
     var showInputCantidad by remember {
         mutableStateOf(false)
     }
@@ -1027,6 +1090,7 @@ fun BottomCantidad(
                                             showError()
                                         }
                                     } else {
+
                                         showCantidadError()
                                     }
                                 } else {
@@ -1034,7 +1098,7 @@ fun BottomCantidad(
                                         sheetState.hide()
                                         cerrarBottomSheet()
                                         cerrarOptions()
-                                        showSucces()
+                                        showBackOrderDialog()
                                     } else {
                                         sheetState.hide()
                                         cerrarBottomSheet()
@@ -1134,6 +1198,7 @@ private fun DetalleParte(
     producto: ProductosResult,
     detallesParteViewModel: DetallesParteViewModel,
     onClick: () -> Unit,
+    onClickConver: () -> Unit,
     url360: String,
     builder: Balloon.Builder,
     tooltipChaser: Int
@@ -1167,7 +1232,7 @@ private fun DetalleParte(
                     modifier = modifier.padding(horizontal = 10.dp)
                 ) {
                     Text(
-                        text = producto.nombreSoporte!!,
+                        text = producto.nombreSoporte,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.secondary,
                         fontSize = 17.sp
@@ -1175,12 +1240,12 @@ private fun DetalleParte(
                     Text(
                         text = stringResource(
                             R.string.desc_prod_resultados,
-                            producto.nombrePosicion!!,
+                            producto.nombrePosicion,
                             producto.nombreCilidraje!!,
-                            producto.nombreLitro!!,
-                            producto.aIni!!,
-                            producto.aFin!!,
-                            producto.descripcion!!
+                            producto.nombreLitro,
+                            producto.aIni,
+                            producto.aFin,
+                            producto.descripcion
                         ),
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp
@@ -1197,13 +1262,12 @@ private fun DetalleParte(
     }
 
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.padding(10.dp)) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.padding(10.dp).fillMaxWidth()) {
         Row(
             modifier = modifier
-                .padding(vertical = 30.dp)
-                .fillMaxWidth(),
+                .padding(vertical = 30.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             val show360 = remember { mutableStateOf(false) }
             if (detallesParteViewModel.hay360) {
@@ -1245,7 +1309,17 @@ private fun DetalleParte(
                     url360 = url360
                 )
             }
-            Spacer(modifier = modifier.width(20.dp))
+
+            Button(onClick = { onClickConver() }, modifier) {
+                Text(
+                    text = "Ver Conversiones",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+
+                )
+            }
         }
         Balloon(
             builder = builder,
@@ -1269,6 +1343,7 @@ private fun DetalleParte(
                 }
             }
         }
+
     }
     HorizontalDivider(
         modifier = modifier
@@ -1413,10 +1488,11 @@ private fun Show360Dialog(
                     .background(MaterialTheme.colorScheme.surface) ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically, modifier = modifier.align(
                         Alignment.CenterStart)) {
-                        Icon(painter = painterResource(id = R.drawable.vazlo_blanco), contentDescription = "",
-                            modifier
-                                .size(50.dp)
-                                .padding(start = 10.dp))
+                        Image(
+                            painter = painterResource(id = R.drawable.logovazloblanco_sin_texto),
+                            contentDescription = "",
+                            modifier = modifier.size(30.dp)
+                        )
                         Text(text = "Vista 360", color = MaterialTheme.colorScheme.onSurface, modifier = modifier, fontSize = 25.sp, fontWeight = FontWeight.Normal)
                     }
                     IconButton(onClick = close, modifier.align(Alignment.CenterEnd)) {
@@ -1474,11 +1550,7 @@ private fun DetallesParteContent(
     viewModelCompartido: ProductoCompartidoViewModel,
     navigateToSelf: (String) -> Unit,
     builder: Balloon.Builder,
-    tooltipChaser: Int,
-    showBottomSheet: Boolean,
-    agregar: Boolean,
-    cerrarBottomSheet: () -> Unit,
-    cerrarOptions: () -> Unit
+    tooltipChaser: Int
 ) {
     val showDialog = remember { mutableStateOf(false) }
     val productoCurrent = remember { mutableStateOf<ProductosResult?>(null) }
@@ -1598,12 +1670,12 @@ private fun ResultadosDialog(
     LaunchedEffect(producto) {
         if (producto != null) {
             viewModel.cargarProductosExtra(
-                producto.nombreMarca!!,
-                producto.nombreModeloCarro!!,
+                producto.nombreMarca,
+                producto.nombreModeloCarro,
                 producto.nombreCilidraje!!,
-                producto.nombreLitro!!,
-                producto.aIni!!,
-                producto.aFin!!
+                producto.nombreLitro,
+                producto.aIni,
+                producto.aFin
             )
         }
     }
@@ -1757,7 +1829,7 @@ private fun Productos(
                 .fillMaxWidth()
                 .clickable {
                     viewModelCompartido.setProducto(producto)
-                    navigateToSelf.invoke(producto.nombreSoporte!!)
+                    navigateToSelf.invoke(producto.nombreSoporte)
                 }
         ) {
 
@@ -1778,19 +1850,19 @@ private fun Productos(
                 modifier = modifier.padding(horizontal = 10.dp)
             ) {
                 Text(
-                    text = producto.nombreSoporte!!,
+                    text = producto.nombreSoporte,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
                     text = stringResource(
                         R.string.desc_prod_resultados,
-                        producto.nombrePosicion!!,
+                        producto.nombrePosicion,
                         producto.nombreCilidraje!!,
-                        producto.nombreLitro!!,
-                        producto.aIni!!,
-                        producto.aFin!!,
-                        producto.descripcion!!
+                        producto.nombreLitro,
+                        producto.aIni,
+                        producto.aFin,
+                        producto.descripcion
                     ),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

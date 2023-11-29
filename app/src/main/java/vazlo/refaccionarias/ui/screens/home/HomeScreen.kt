@@ -2,6 +2,7 @@ package vazlo.refaccionarias.ui.screens.home
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresExtension
@@ -104,7 +105,7 @@ object HomeDestination : NavigationDestination {
 }
 
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
 @Composable
 fun HomeScreen(
@@ -228,7 +229,6 @@ private fun LogoutDialog(
 }
 
 @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
     modifier: Modifier = Modifier,
@@ -242,7 +242,7 @@ fun HomeContent(
     val scope = rememberCoroutineScope()
     var appVersion: Long = 0
     try {
-        val pInfo = context.packageManager.getPackageInfo("vazlo.mecanicos", 0)
+        val pInfo = context.packageManager.getPackageInfo("vazlo.refaccionarias", 0)
         val version: Long = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             pInfo.longVersionCode
         } else {
@@ -756,6 +756,8 @@ fun CardProductoHome(
             .padding(10.dp)
             .clickable {
                 productoNuevoCompartiido.setProducto(producto)
+                productoNuevoCompartiido.setSucursales(producto.sucursales!!)
+                productoNuevoCompartiido.setTabla(producto.tabla!!)
                 navigateToDetallesNuevo(producto.nombreArticulo!!)
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),

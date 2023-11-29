@@ -2,23 +2,13 @@ package vazlo.refaccionarias.ui.screens.usuarios_y_permisos
 
 import android.os.Build
 import androidx.annotation.RequiresExtension
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,30 +18,11 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DoNotDisturbOn
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -61,11 +32,17 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.skydoves.balloon.compose.Balloon
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import vazlo.refaccionarias.R
 import vazlo.refaccionarias.data.model.users_y_permisosData.Permisos
-import vazlo.refaccionarias.ui.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
+import vazlo.refaccionarias.ui.navigation.NavigationDestination
+import vazlo.refaccionarias.ui.screens.cart.CarritoUiState
+import vazlo.refaccionarias.ui.screens.cart.FooterCart
+import vazlo.refaccionarias.ui.screens.cart.ProductList
+import vazlo.refaccionarias.ui.screens.resultadoPorPartes.AltScreen
 import vazlo.refaccionarias.ui.theme.Gris_Vazlo
 import vazlo.refaccionarias.ui.theme.Negro
 import vazlo.refaccionarias.ui.theme.Rojo_Vazlo
@@ -99,7 +76,8 @@ fun PermisosScreen(
             FloatingActionButton(
                 modifier = Modifier.onGloballyPositioned {
                     fabHeight = it.size.height
-                }, onClick = {
+                },
+                onClick = {
                     scope.launch {
                         if (permisosViewModel.actualizarPermisos()) {
                             showSuccess = true
@@ -108,7 +86,11 @@ fun PermisosScreen(
                         }
                     }
                 }) {
-                Icon(imageVector = Icons.Filled.Check, contentDescription = "", tint = MaterialTheme.colorScheme.outline)
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = "",
+                    tint = MaterialTheme.colorScheme.outline
+                )
             }
         },
         floatingActionButtonPosition = FabPosition.End
@@ -134,12 +116,46 @@ fun PermisosScreen(
                 }
             }
             ListaPermisos(permisosViewModel = permisosViewModel, fabHeight = fabHeight)
+            when (permisosViewModel.permisosUiState) {
+                is PermisosUiState.Loading -> {
+                    LoadingEstados()
+                }
+
+                is PermisosUiState.Success -> {
+
+                }
+
+                is PermisosUiState.Error -> {
+
+                }
+
+                else -> {}
+            }
+
         }
     }
-    SuccessMessage(onDismiss = { showSuccess = false }, showDialog = showSuccess , mensaje = "Permisos Actualizados")
+    SuccessMessage(onDismiss = { showSuccess = false }, showDialog = showSuccess, mensaje = "Permisos Actualizados")
     ErrorMessage(onDismiss = { showError = false }, showDialog = showError, mensaje = "Ocurrio un erro al actualizar")
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LoadingEstados(modifier: Modifier = Modifier) {
+    AlertDialog(
+        onDismissRequest = {},
+        modifier = modifier.background(Color.Transparent),
+        content = {
+            Column(
+                modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+    )
+}
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -197,9 +213,10 @@ fun ListaPermisos(
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(20.dp),
         contentPadding = PaddingValues(bottom = heightInDp + 16.dp, start = 10.dp, end = 10.dp, top = 20.dp),
+        modifier = modifier,
     ) {
         items(permisosViewModel.permisosList) { permiso ->
-            PermisoCard(permiso = permiso, permisosViewModel = permisosViewModel)
+            PermisoCard(permiso = permiso)
         }
     }
 }
@@ -208,14 +225,9 @@ fun ListaPermisos(
 @Composable
 fun PermisoCard(
     permiso: Permisos,
-    modifier: Modifier = Modifier,
-    permisosViewModel: PermisosViewModel
+    modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val color by animateColorAsState(
-        targetValue = if (expanded) MaterialTheme.colorScheme.inverseSurface else MaterialTheme.colorScheme.surfaceVariant,
-        label = "",
-    )
     OutlinedCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.onSurface
@@ -275,7 +287,7 @@ private fun TituloPermiso(permiso: Permisos, modifier: Modifier = Modifier) {
             softWrap = true,
             color = Negro,
 
-        )
+            )
     }
 }
 
@@ -283,7 +295,7 @@ private fun TituloPermiso(permiso: Permisos, modifier: Modifier = Modifier) {
 private fun PedidoSwitch(checked: MutableState<Boolean>) {
 
     // Icon isn't focusable, no need for content description
-    val icon: (@Composable () -> Unit)? = if (checked.value) {
+    val icon: (@Composable () -> Unit) = if (checked.value) {
         {
             Icon(
                 imageVector = Icons.Filled.Check,

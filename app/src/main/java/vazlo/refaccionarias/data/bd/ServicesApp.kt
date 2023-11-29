@@ -1,4 +1,6 @@
 package vazlo.refaccionarias.data.bd
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import vazlo.refaccionarias.data.model.catalagoElectronicoData.CargarAniosResponse
 import vazlo.refaccionarias.data.model.catalagoElectronicoData.CargarMarcasResponse
 import vazlo.refaccionarias.data.model.catalagoElectronicoData.CargarModelosResponse
@@ -21,6 +23,7 @@ import retrofit2.http.GET
 import retrofit2.http.PUT
 import retrofit2.http.Query
 import retrofit2.http.Url
+import vazlo.refaccionarias.data.model.detallesData.ListaConversionesData
 import vazlo.refaccionarias.data.model.eventosData.CargarMarcadoresClientesResponse
 import vazlo.refaccionarias.data.model.notifData.Mensaje
 import vazlo.refaccionarias.data.model.homeData.PromosResponse
@@ -295,9 +298,16 @@ interface ServicesApp {
     suspend fun subirABackorder(
         @Url url: String,
         @Query("id_cte") idCte: String,
-        @Query("nomsop") nomsop: String,
+        @Query("prod") nomsop: String,
         @Query("cant") cant: Int,
         @Query("id_sucursal") sucursal: String
     ): Response<JsonObject>
+
+    @GET
+    suspend fun getListaConversiones(
+        @Url url: String,
+        @Query("s") soporte: String,
+        @Query("c") cliente: String
+    ): ListaConversionesData
 
 }

@@ -1,6 +1,8 @@
 package vazlo.refaccionarias.ui.screens.usuarios_y_permisos
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,12 +14,24 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
+import vazlo.refaccionarias.data.model.pedidoData.InfoPedido
+import vazlo.refaccionarias.data.model.pedidoData.ProductoPedido
+import vazlo.refaccionarias.ui.screens.pedidos.PedidosUiState
+
+sealed interface PermisosUiState {
+    object Success: PermisosUiState
+    object Error : PermisosUiState
+    object Loading : PermisosUiState
+}
 
 class PermisosViewModel(
     savedStateHandle: SavedStateHandle,
     private val sesion: Sesion,
     private val servicesAppRepository: ServicesAppRepository
 ) : ViewModel() {
+
+    var permisosUiState: PermisosUiState by mutableStateOf(PermisosUiState.Loading)
+        private set
 
     val itemId: String = checkNotNull(savedStateHandle[PermisosDestination.itemIdArg])
 
@@ -35,7 +49,7 @@ class PermisosViewModel(
     private var checkedEstadoCuenta = mutableStateOf(false)
 
 
-    val permisosList = listOf<Permisos>(
+    val permisosList = listOf(
         Permisos(
             R.string.consultar_precios,
             R.string.precios_precios_al_usuario_creado,
@@ -125,7 +139,8 @@ class PermisosViewModel(
 
     }
 
-    fun verificarPermisos() {
+    private fun verificarPermisos() {
+        permisosUiState = PermisosUiState.Loading
         viewModelScope.launch {
             val url = sesion.getUrlVerificarPermisos.first()
             val response = servicesAppRepository.verificarPermisos(
@@ -140,14 +155,16 @@ class PermisosViewModel(
                 checkedCargarArchivo.value = response.csv == 1
                 checkedCotizacion.value = response.cotizacion == 1
                 checkedCotizarCarrito.value = response.carrito == 1
-                checkedEntrar.value = response.recompensas == 1
+                checkedEntrar.value = response.entrar == 1
                 checkedEstadoCuenta.value = response.estadoCuenta == 1
                 checkedFacturas.value = response.permisoFactura == 1
                 checkedComplementos.value = response.permisoComplemento == 1
                 checkedNotas.value = response.permisoNota == 1
+                permisosUiState = PermisosUiState.Success
+            } else {
+                permisosUiState = PermisosUiState.Error
             }
         }
+
     }
-
-
 }

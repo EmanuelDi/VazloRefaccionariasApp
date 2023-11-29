@@ -7,12 +7,12 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
-import android.util.Log
 import android.view.ViewGroup
 import android.webkit.URLUtil
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresExtension
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +47,9 @@ import vazlo.refaccionarias.R
 import vazlo.refaccionarias.ui.navigation.NavigationDestination
 import vazlo.refaccionarias.ui.AppViewModelProvider
 
+
+
+
 object ApartadosDestination : NavigationDestination {
     override val route = "apartados"
     const val url = "url"
@@ -59,10 +62,11 @@ object ApartadosDestination : NavigationDestination {
 fun ApartadosScreen(
     modifier: Modifier = Modifier,
     navigateBack: () -> Unit,
-    viewModel: ApartadosWebViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: EstadisticaWebViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+
     Scaffold(
-        topBar = { PiezaPedidoTopAppBar(navigateBack = navigateBack) },
+        topBar = { EstadisticaTopBar(navigateBack = navigateBack) },
     ) {
 
         Box(modifier = modifier.padding(it).fillMaxSize()) {
@@ -76,6 +80,7 @@ fun MyContentApartados( idCliente: String, url: String){
     // Declare a string that contains a url
     val mUrl = "${url}${idCliente}"
     val isLoading = remember { mutableStateOf(true) }
+
     if (mUrl.isNotEmpty()) {
         AndroidView(factory = {
             WebView(it).apply {
@@ -113,7 +118,12 @@ fun MyContentApartados( idCliente: String, url: String){
                     }
                 }
 
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    WebView.setWebContentsDebuggingEnabled(true);
+                }
+
                 loadUrl(mUrl)
+
                 setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
                     val request = DownloadManager.Request(Uri.parse(url))
 
@@ -168,13 +178,18 @@ fun MyContentApartados( idCliente: String, url: String){
                     return false
                 }
             }
+
+
             loadUrl(mUrl)
+
             setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
                 val request = DownloadManager.Request(Uri.parse(url))
 
                 request.allowScanningByMediaScanner()
+                request.setMimeType("application/zip") // Establecer el tipo MIME manualmente
+                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "documentos.zip") // Establecer el nombre del archivo manualmente
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED) // Notificar cuando la descarga esté completa
-                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimetype)) // Configurar la ubicación de descarga
+                //request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimetype)) // Configurar la ubicación de descarga
                 val dm = it.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
                 dm.enqueue(request)
                 Toast.makeText(it.applicationContext, "Descargando archivo...", Toast.LENGTH_LONG).show()
@@ -189,7 +204,7 @@ fun MyContentApartados( idCliente: String, url: String){
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PiezaPedidoTopAppBar(
+fun EstadisticaTopBar(
     modifier: Modifier = Modifier,
     navigateBack: () -> Unit
 ) {
@@ -222,3 +237,5 @@ fun PiezaPedidoTopAppBar(
         modifier = modifier.height(50.dp)
     )
 }
+
+

@@ -1,6 +1,5 @@
 package vazlo.refaccionarias.ui.screens.detallesParte
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -14,7 +13,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
-import vazlo.refaccionarias.data.model.detallesData.Sucursal
 
 
 sealed interface ProductosUiState{
@@ -30,7 +28,7 @@ class DetallesParteViewModel(
     private val criterio: String =
         checkNotNull(savedStateHandle[DetallesParteDestination.criterioArg])
 
-    var idResponsable by mutableStateOf("")
+    private var idResponsable by mutableStateOf("")
 
     var productosUiState: ProductosUiState by mutableStateOf(ProductosUiState.Loading)
 
@@ -53,6 +51,8 @@ class DetallesParteViewModel(
         getTooltipDetalleParte()
     }
 
+    var listConversiones by mutableStateOf("")
+
     fun setCantidadDisp(disponible: String) {
         cantidadSucSelec = disponible
     }
@@ -60,7 +60,7 @@ class DetallesParteViewModel(
         sesion.setDetalleProd()
     }
 
-    fun getTooltipDetalleParte(): Unit {
+    private fun getTooltipDetalleParte() {
         viewModelScope.launch {
             tooltipEstado = sesion.detalleProd.first()
         }
@@ -83,16 +83,17 @@ class DetallesParteViewModel(
     init {
         cargarProductos()
         setIdResponsable()
+        getListasConversiones()
     }
 
 
-    fun setIdResponsable(){
+    private fun setIdResponsable(){
         viewModelScope.launch {
             idResponsable = sesion.idUserResponsable.first()
         }
     }
 
-    fun cargarProductos() {
+    private fun cargarProductos() {
         viewModelScope.launch {
             productosUiState = ProductosUiState.Loading
             val url = sesion.catalogoBusquedaDetalle.first()
@@ -170,6 +171,17 @@ class DetallesParteViewModel(
             if (response.estado == 1) {
                 hay360 = response.resultado[0].hay360 == "1"
             }
+        }
+    }
+
+    fun getListasConversiones() {
+        viewModelScope.launch {
+            val url = sesion.listaConversiones.first()
+
+            val idCte = sesion.id.first()
+            val response = servicesAppRepository.getListaConversiones(url, criterio, idCte)
+
+            listConversiones = response.resultado
         }
     }
 

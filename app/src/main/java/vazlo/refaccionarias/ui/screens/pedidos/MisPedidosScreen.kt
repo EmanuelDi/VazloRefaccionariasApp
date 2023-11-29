@@ -66,7 +66,6 @@ object PedidosDestination : NavigationDestination {
 }
 
 @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PedidosScreen(
     modifier: Modifier = Modifier,
@@ -97,7 +96,7 @@ fun PedidosScreen(
             }
             when (pedidosViewModel.pedidosUiState) {
                 is PedidosUiState.Loading -> {
-                    AltScreen(modifier = modifier, texto = "Cargando")
+                    AltScreen(modifier = modifier)
                 }
 
                 is PedidosUiState.Success -> {
@@ -112,7 +111,7 @@ fun PedidosScreen(
                 }
 
                 is PedidosUiState.Error -> {
-                    AltScreen(modifier = modifier, texto = "Error al cargar")
+                    AltScreen(modifier = modifier)
                 }
             }
         }
@@ -293,7 +292,7 @@ fun InfoPedido(
             color = color,
         )
         HorizontalDivider(
-            modifier = modifier.width(300.dp),
+            modifier = modifier.width(400.dp),
             color = color
         )
         Text(

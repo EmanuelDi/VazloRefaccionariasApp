@@ -1,7 +1,7 @@
 package vazlo.refaccionarias.ui.screens.catalagoElectronico
 
-import android.util.Log
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
@@ -49,7 +49,7 @@ class ResultadosCatElViewModel(
 
 
     var empresasUiState: EmpresasUiState by mutableStateOf(EmpresasUiState.Loading)
-    var totalProductos: Int by mutableStateOf(0)
+
     init {
         cargarEmpresas()
         cargarProductosEagle() // Para Eagle
@@ -59,7 +59,7 @@ class ResultadosCatElViewModel(
         cargarProductosTrackone()
     }
 
-    fun cargarProductosEagle() {
+    private fun cargarProductosEagle() {
         viewModelScope.launch {
             this@ResultadosCatElViewModel.productosUiStateEagle = ProductosUiState.Loading
             val url = sesion.fragmentsLineas.first()
@@ -86,7 +86,7 @@ class ResultadosCatElViewModel(
             }
         }
     }
-    fun cargarProductosShark() {
+    private fun cargarProductosShark() {
         viewModelScope.launch {
             this@ResultadosCatElViewModel.productosUiStateShark = ProductosUiState.Loading
             val url = sesion.fragmentsLineas.first()
@@ -113,7 +113,7 @@ class ResultadosCatElViewModel(
             }
         }
     }
-    fun cargarProductosPartech() {
+    private fun cargarProductosPartech() {
         viewModelScope.launch {
             this@ResultadosCatElViewModel.productosUiStatePartech = ProductosUiState.Loading
             val url = sesion.fragmentsLineas.first()
@@ -140,7 +140,7 @@ class ResultadosCatElViewModel(
             }
         }
     }
-    fun cargarProductosRodatech() {
+    private fun cargarProductosRodatech() {
         viewModelScope.launch {
             this@ResultadosCatElViewModel.productosUiStateRodaTech = ProductosUiState.Loading
             val url = sesion.fragmentsLineas.first()
@@ -167,7 +167,7 @@ class ResultadosCatElViewModel(
             }
         }
     }
-    fun cargarProductosTrackone() {
+    private fun cargarProductosTrackone() {
         viewModelScope.launch {
             this@ResultadosCatElViewModel.productosUiStateTrackone = ProductosUiState.Loading
             val url = sesion.fragmentsLineas.first()

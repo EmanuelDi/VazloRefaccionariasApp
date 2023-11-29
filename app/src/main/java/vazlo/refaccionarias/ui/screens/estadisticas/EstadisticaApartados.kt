@@ -3,7 +3,6 @@ package vazlo.refaccionarias.ui.screens.estadisticas
 import android.os.Build
 import androidx.annotation.RequiresExtension
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -106,10 +105,10 @@ private fun EstadisticasTopBar(
 fun EstadisticasScreen(
     navigateBack: () -> Unit,
     navigateToApartado: (String) -> Unit,
-    viewModel: CatalagoViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: EstadisticaApartadosViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
-    val catalagoItems = listOf(
-        CatalagoItem(
+    val estadisticaItems = listOf(
+        EstadisticaItem(
             title = "Piezas - Pedidos",
             destination = {
                 navigateToApartado(
@@ -125,23 +124,7 @@ fun EstadisticasScreen(
             colorTexto = MaterialTheme.colorScheme.onSurfaceVariant,
             colorIcono = MaterialTheme.colorScheme.onSurfaceVariant
         ),
-        CatalagoItem(
-            title = "Catalogos Generales",
-            destination = {
-                navigateToApartado(
-                    URLEncoder.encode(
-                        "https://www.vazloonline.com/contenido/corporativo/apps_catalogosgeneral.php?c=",
-                        StandardCharsets.UTF_8.name()
-                    )
-                )
-            },
-            icon = R.drawable.catalogue,
-            color = MaterialTheme.colorScheme.inversePrimary,
-            permiso = true,
-            colorTexto = MaterialTheme.colorScheme.onSurface,
-            colorIcono = MaterialTheme.colorScheme.onSurface
-        ),
-        CatalagoItem(
+        EstadisticaItem(
             title = "Facturas ERP",
             destination = {
                 navigateToApartado(
@@ -157,7 +140,7 @@ fun EstadisticasScreen(
             colorTexto = MaterialTheme.colorScheme.onSurfaceVariant,
             colorIcono = MaterialTheme.colorScheme.onSurfaceVariant
         ),
-        CatalagoItem(
+        EstadisticaItem(
             title = "Complemento ERP",
             destination = {
                 navigateToApartado(
@@ -173,7 +156,23 @@ fun EstadisticasScreen(
             colorTexto = MaterialTheme.colorScheme.onSurfaceVariant,
             colorIcono = MaterialTheme.colorScheme.onSurfaceVariant
         ),
-        CatalagoItem(
+        EstadisticaItem(
+            title = "Notas ERP",
+            destination = {
+                navigateToApartado(
+                    URLEncoder.encode(
+                        "https://www.vazloonline.com/contenido/estadisticas/app_notas_erp.php?c=",
+                        StandardCharsets.UTF_8.name()
+                    )
+                )
+            },
+            icon = R.drawable.preview,
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            permiso = viewModel.permisoNotas,
+            colorTexto = MaterialTheme.colorScheme.onSurfaceVariant,
+            colorIcono = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        EstadisticaItem(
             title = "Conversión de Precios",
             destination = {
                 navigateToApartado(
@@ -189,21 +188,21 @@ fun EstadisticasScreen(
             colorTexto = MaterialTheme.colorScheme.onSurface,
             colorIcono = MaterialTheme.colorScheme.onSurface
         ),
-        CatalagoItem(
-            title = "Notas ERP",
+        EstadisticaItem(
+            title = "Catalogos Generales",
             destination = {
                 navigateToApartado(
                     URLEncoder.encode(
-                        "https://www.vazloonline.com/contenido/estadisticas/app_notas_erp.php?c=",
+                        "https://www.vazloonline.com/contenido/corporativo/apps_catalogosgeneral.php?c=",
                         StandardCharsets.UTF_8.name()
                     )
                 )
             },
-            icon = R.drawable.preview,
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            permiso = viewModel.permisoNotas,
-            colorTexto = MaterialTheme.colorScheme.onSurfaceVariant,
-            colorIcono = MaterialTheme.colorScheme.onSurfaceVariant
+            icon = R.drawable.catalogue,
+            color = MaterialTheme.colorScheme.inversePrimary,
+            permiso = true,
+            colorTexto = MaterialTheme.colorScheme.onSurface,
+            colorIcono = MaterialTheme.colorScheme.onSurface
         ),
     )
 
@@ -226,7 +225,7 @@ fun EstadisticasScreen(
             contentPadding = PaddingValues(10.dp),
             horizontalArrangement = Arrangement.Center,
         ) {
-            items(catalagoItems) {
+            items(estadisticaItems) {
                 CatCard(
                     navegar = { it.destination() },
                     title = it.title,

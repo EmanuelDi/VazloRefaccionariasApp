@@ -1,5 +1,7 @@
 package vazlo.refaccionarias.data.repositorios
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import vazlo.refaccionarias.data.bd.ServicesApp
 import vazlo.refaccionarias.data.model.catalagoElectronicoData.CargarAniosResponse
 import vazlo.refaccionarias.data.model.catalagoElectronicoData.CargarMarcasResponse
@@ -18,6 +20,7 @@ import vazlo.refaccionarias.data.model.detallesData.Verificar360Response
 import kotlinx.serialization.json.JsonObject
 import retrofit2.Call
 import retrofit2.Response
+import vazlo.refaccionarias.data.model.detallesData.ListaConversionesData
 import vazlo.refaccionarias.data.model.eventosData.CargarMarcadoresClientesResponse
 import vazlo.refaccionarias.data.model.notifData.Mensaje
 import vazlo.refaccionarias.data.model.homeData.PromosResponse
@@ -217,7 +220,10 @@ interface ServicesAppRepository {
 
     suspend fun bajarNotificacion(url: String, id: String): Response<JsonObject>
 
+    suspend fun getListaConversiones(url: String, soporte: String, cliente: String): ListaConversionesData
+
 }
+//Fin Interface
 
 class NetServicesApp(
     private val servicesApp: ServicesApp
@@ -479,6 +485,10 @@ class NetServicesApp(
 
     override suspend fun bajarNotificacion(url: String, id: String): Response<JsonObject> {
         return servicesApp.darBajaNotificaciones(url, id)
+    }
+
+    override suspend fun getListaConversiones(url: String, soporte: String, cliente: String):ListaConversionesData {
+        return servicesApp.getListaConversiones(url, soporte, cliente)
     }
 }
 

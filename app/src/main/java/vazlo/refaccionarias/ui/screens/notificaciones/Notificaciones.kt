@@ -189,10 +189,10 @@ fun ContentNot(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun Message(modifier: Modifier = Modifier, mensaje: Mensaje, eliminar: () -> Unit) {
-    Card(shape = RoundedCornerShape(5.dp)) {
+    Card(shape = RoundedCornerShape(5.dp), modifier = modifier) {
         ListItem(
             overlineContent = {
                 Text(
@@ -207,7 +207,7 @@ fun Message(modifier: Modifier = Modifier, mensaje: Mensaje, eliminar: () -> Uni
                 )
             },
             trailingContent = {
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = { eliminar() }) {
                     Icon(imageVector = Icons.Default.Clear, contentDescription = "")
                 }
             },

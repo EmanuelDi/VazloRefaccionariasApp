@@ -27,10 +27,9 @@ class CatElectronicoViewModel(
     private val servicesAppRepository: ServicesAppRepository
 ): ViewModel() {
     var busqCatElecUiState: BusqCatElecUiState by mutableStateOf(BusqCatElecUiState.Loading)
-    var anios: List<Anio> = listOf(Anio("", ""))
-    var anioSeleccionado by mutableStateOf("")
+    private var anioSeleccionado by mutableStateOf("")
     var marcas: List<Marcas> = listOf(Marcas("", ""))
-    var marcaSeleccionada by mutableStateOf("")
+    private var marcaSeleccionada by mutableStateOf("")
     var idMarcaPrimera by mutableStateOf("")
     var marcaPrimera by mutableStateOf("")
     var modelos: List<Modelos> = listOf(Modelos("", ""))

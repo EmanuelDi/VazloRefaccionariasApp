@@ -19,8 +19,8 @@ data class PermisosResponse(
     val cotizacion: Int? = 0,
     @SerialName("carrito")
     val carrito: Int? = 0,
-    @SerialName("recompensas")
-    val recompensas: Int? = 0,
+    @SerialName("permiso_entrar")
+    val entrar: Int? = 0,
     @SerialName("estado_cuenta")
     val estadoCuenta: Int? = 0,
     @SerialName("permiso_factura")

@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
 import vazlo.refaccionarias.data.local.Sesion
 
-class CatalagoViewModel(private val sesion: Sesion, private val servicesAppRepository: ServicesAppRepository): ViewModel() {
+class EstadisticaApartadosViewModel(private val sesion: Sesion, private val servicesAppRepository: ServicesAppRepository): ViewModel() {
 
     var permisoEstadoDeCuenta by mutableStateOf(false)
     var permisoFacturas by mutableStateOf(false)

@@ -263,7 +263,7 @@ private fun SoporteCard(
                     )
                     Text(
                         text = name,
-                        color = MaterialTheme.colorScheme.onTertiary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp
                     )
@@ -276,7 +276,7 @@ private fun SoporteCard(
 
             if (expanded) {
                 Divider(
-                    color = MaterialTheme.colorScheme.onTertiary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     thickness = 1.dp,
                     modifier = Modifier.padding(horizontal = 15.dp)
                 )
@@ -294,15 +294,16 @@ private fun SoporteCard(
                             intent.data = Uri.parse("mailto:?subject=$mail")
                             mailLauncher.launch(intent)
                         }) {
-                            Image(painter = painterResource(id = R.drawable.mail_icon),
+                            Image(
+                                painter = painterResource(id = R.drawable.mail_icon),
                                 contentDescription = "",
                                 modifier = modifier
                                     .padding(end = 10.dp)
                                     .size(38.dp)
-                                    )
+                            )
                             Text(
                                 text = mail,
-                                color = MaterialTheme.colorScheme.onTertiary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Justify,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = 17.sp
@@ -317,7 +318,8 @@ private fun SoporteCard(
                                 Uri.parse("tel:$phone") // Reemplaza esto con el número de teléfono deseado
                             dialPhoneLauncher.launch(intent)
                         }) {
-                            Image(painter = painterResource(id = R.drawable.llamada_icon),
+                            Image(
+                                painter = painterResource(id = R.drawable.llamada_icon),
                                 contentDescription = "",
                                 modifier = modifier
                                     .padding(end = 10.dp)
@@ -326,7 +328,7 @@ private fun SoporteCard(
                             )
                             Text(
                                 text = phone,
-                                color = MaterialTheme.colorScheme.onTertiary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Justify,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = 17.sp
@@ -360,7 +362,7 @@ private fun SoporteCard(
                             )
                             Text(
                                 text = whatsapp,
-                                color = MaterialTheme.colorScheme.onTertiary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Justify,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = 17.sp
@@ -381,7 +383,7 @@ private fun ExpandedButton(
     IconButton(onClick = onClick) {
         Icon(
             imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-            tint = MaterialTheme.colorScheme.onTertiary,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             contentDescription = "Expandir"
         )
     }

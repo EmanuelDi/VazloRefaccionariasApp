@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,7 +54,7 @@ fun GuiaScreen(
     ) {
 
         Box(modifier = modifier.padding(it).fillMaxSize()) {
-            MyContent(guiasViewModel.idCliente, guiasViewModel.urlGuias)
+            MyContent(guiasViewModel.idCliente)
         }
     }
 
@@ -69,8 +68,7 @@ fun GuiaScreen(
 // content in the above function
 
 @Composable
-fun MyContent( idCliente: String, url: String){
-    // Declare a string that contains a url
+fun MyContent( idCliente: String){
     val mUrl = "https://www.vazloonline.com/contenido/estadisticas/APPS_guiasGeneral.php?c=${idCliente}"
 
     if (mUrl.isNotEmpty()) {
@@ -104,6 +102,11 @@ fun MyContent( idCliente: String, url: String){
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
             webViewClient = WebViewClient()
+            settings.apply {
+                javaScriptEnabled=true
+                builtInZoomControls=true
+                displayZoomControls=false
+            }
             loadUrl(mUrl)
         }
     }, update = {

@@ -110,6 +110,8 @@ class Sesion(
         val PERMISO_COTIZACION = stringPreferencesKey("permiso_cotizacion")
         val PERMISO_OTRO_CARRITO = stringPreferencesKey("permiso_orto_carrito")
 
+        val LISTA_CONVERSIONES = stringPreferencesKey("lista_preferencias")
+
     }
 
     init {
@@ -120,10 +122,12 @@ class Sesion(
         }
     }
 
+/*
     val servidorPrincipalFlow: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[SERVIDOR_PRINCIPAL] ?: ""
         }
+*/
 
 
     val getPermisoPrecio: Flow<String> = dataStore.data
@@ -146,21 +150,28 @@ class Sesion(
             preferences[PERMISO_PEDIDOS] ?: ""
         }
 
+/*
     val getPermisocCaptura: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[PERMISO_CAPTURA] ?: ""
         }
+*/
 
+/*
     val getPermisoCsv: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[PERMISO_CSV] ?: ""
         }
+*/
 
+/*
     val getPermisoOtroCarrito: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[PERMISO_OTRO_CARRITO] ?: ""
         }
+*/
 
+/*
     fun setCatelec() {
         CoroutineScope(Dispatchers.IO).launch {
             dataStore.edit { preferences ->
@@ -168,26 +179,29 @@ class Sesion(
             }
         }
     }
+*/
 
+/*
     val catElec: Flow<Boolean> = dataStore.data
         .map { preferences ->
             preferences[CATELEC] ?: false
         }
+*/
 
-    fun setPorParte() {
+   /* fun setPorParte() {
         CoroutineScope(Dispatchers.IO).launch {
             dataStore.edit { preferences ->
                 preferences[POR_PARTE] = true
             }
         }
-    }
+    }*/
 
-    val porParte: Flow<Boolean> = dataStore.data
+    /*val porParte: Flow<Boolean> = dataStore.data
         .map { preferences ->
             preferences[POR_PARTE] ?: false
-        }
+        }*/
 
-    fun setConver(): Unit {
+    /*fun setConver(): Unit {
         CoroutineScope(Dispatchers.IO).launch {
             dataStore.edit { preferences ->
                 preferences[CONVER] = true
@@ -198,10 +212,10 @@ class Sesion(
     val conver: Flow<Boolean> = dataStore.data
         .map { preferences ->
             preferences[CONVER] ?: false
-        }
+        }*/
 
 
-    fun setMaMoAn(): Unit {
+    /*fun setMaMoAn(): Unit {
         CoroutineScope(Dispatchers.IO).launch {
             dataStore.edit { preferences ->
                 preferences[MAMOAN] = true
@@ -212,9 +226,9 @@ class Sesion(
     val mamoan: Flow<Boolean> = dataStore.data
         .map { preferences ->
             preferences[MAMOAN] ?: false
-        }
+        }*/
 
-    fun setDetalleProd(): Unit {
+    fun setDetalleProd() {
         CoroutineScope(Dispatchers.IO).launch {
             dataStore.edit { preferences ->
                 preferences[DETALLE_PROD] = true
@@ -228,7 +242,7 @@ class Sesion(
         }
 
 
-    fun setCarrito(): Unit {
+    fun setCarrito() {
         CoroutineScope(Dispatchers.IO).launch {
             dataStore.edit { preferences ->
                 preferences[CARRITO] = true
@@ -322,6 +336,7 @@ class Sesion(
         u61: String,
         u62: String,
         u63: String,
+        u64: String
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             dataStore.edit { preferences ->
@@ -397,16 +412,17 @@ class Sesion(
                 preferences[SGUIAS] = u62
 
                 preferences[BACKORDER] = u63
+                 preferences[LISTA_CONVERSIONES] = u64
             }
 
         }
     }
 
 
-    val imagenCarrito: Flow<String> = dataStore.data
+    /*val imagenCarrito: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[IMAGEN_CARRITO] ?: ""
-        }
+        }*/
 
     val fragmentsLineas: Flow<String> = dataStore.data
         .map { preferences ->
@@ -443,10 +459,12 @@ class Sesion(
             preferences[VER_CARRITO_JUNIO23] ?: ""
         }
 
+/*
     val rastreoPedCarrito: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[RASTREO_PED_CARRITO] ?: ""
         }
+*/
 
 
     val menuListaPromociones: Flow<String> = dataStore.data
@@ -490,20 +508,26 @@ class Sesion(
         }
 
 
+/*
     val verMensajeUno: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[VER_MENSAJE_UNO] ?: ""
         }
+*/
 
+/*
     val cambiarEstadoMensaje: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[CAMBIAR_ESTADO_MENSAJE] ?: ""
         }
+*/
 
+/*
     val registrarTokenCliente: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[REGISTRAR_TOKEN_CLIENTE] ?: ""
         }
+*/
 
     val loginCliente: Flow<String> = dataStore.data
         .map { preferences ->
@@ -548,20 +572,20 @@ class Sesion(
         }
 
 
-    val imagenNoMapa: Flow<String> = dataStore.data
+    /*val imagenNoMapa: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[IMAGEN_NO_MAPA] ?: ""
-        }
+        }*/
 
     val menuMarcadoresEventos: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[MENU_MARCADORES_EVENTOS] ?: ""
         }
 
-    val dirMapaCoordenadas: Flow<String> = dataStore.data
+   /* val dirMapaCoordenadas: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[DIR_MAPA_COORDENADAS] ?: ""
-        }
+        }*/
 
     val versionDeApkRefaccionarias: Flow<Int> = dataStore.data
         .map { preferences ->
@@ -650,13 +674,18 @@ class Sesion(
             preferences[GET_URL_SOPORTE_WHATS] ?: ""
         }
 
-
-    val getUrlVerificarPuntosRecompensa: Flow<String> = dataStore.data
+    val listaConversiones: Flow<String> = dataStore.data
         .map { preferences ->
-            preferences[GET_URL_VERIFICAR_PUNTOS_RECOMPENSA] ?: ""
+            preferences[LISTA_CONVERSIONES] ?: ""
         }
 
-    val getUrlVerificarProductosRecompensa: Flow<String> = dataStore.data
+
+    /*val getUrlVerificarPuntosRecompensa: Flow<String> = dataStore.data
+        .map { preferences ->
+            preferences[GET_URL_VERIFICAR_PUNTOS_RECOMPENSA] ?: ""
+        }*/
+
+    /*val getUrlVerificarProductosRecompensa: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[GET_URL_VERIFICAR_PRODUCTOS_RECOMPENSA] ?: ""
         }
@@ -674,7 +703,7 @@ class Sesion(
     val registrarTokenClienteFireBase: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[REGISTRAR_TOKEN_CLIENTE_FIREBASE] ?: ""
-        }
+        }*/
 
 
     val getUVerificar360: Flow<String> = dataStore.data
@@ -682,10 +711,10 @@ class Sesion(
             preferences[GET_U_VERIFICAR_360] ?: ""
         }
 
-    val activarRecompensas: Flow<String> = dataStore.data
+    /*val activarRecompensas: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[ACTIVAR_RECOMPENSAS] ?: ""
-        }
+        }*/
 
     val getUrlFolletosQuincenales: Flow<String> = dataStore.data
         .map { preferences ->
@@ -697,7 +726,7 @@ class Sesion(
             preferences[GET_URL_OBTENER_360] ?: ""
         }
 
-    val getUrlSeguimientoGuias: Flow<String> = dataStore.data
+   /* val getUrlSeguimientoGuias: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[GET_URL_SEGUIMIENTO_GUIAS] ?: ""
         }
@@ -720,7 +749,7 @@ class Sesion(
     val tituloWebMundial: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[TITULO_WEB_MUNDIAL] ?: ""
-        }
+        }*/
 
     val sGuias: Flow<String> = dataStore.data
         .map { preferences ->
@@ -807,7 +836,7 @@ class Sesion(
             preferences[ID_RESPONSABLE] ?: ""
         }
 
-    val servidorPrincipal: Flow<String> = dataStore.data
+    /*val servidorPrincipal: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[SERVIDOR_PRINCIPAL] ?: ""
         }
@@ -815,7 +844,7 @@ class Sesion(
     val idCedis: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[ID_CEDIS] ?: ""
-        }
+        }*/
 
 }
 

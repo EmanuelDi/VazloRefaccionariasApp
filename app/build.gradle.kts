@@ -9,12 +9,13 @@ android {
     namespace = "vazlo.refaccionarias"
     compileSdk = 34
 
+
     defaultConfig {
         applicationId = "vazlo.refaccionarias"
         minSdk = 21
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 19
+        versionName = "19.291123"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -51,6 +52,7 @@ android {
         }
     }
 }
+
 
 dependencies {
 

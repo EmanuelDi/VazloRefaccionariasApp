@@ -30,7 +30,7 @@ class DefaultAppContainer : AppContainer {
         .baseUrl(baseUrl)
         .build()
 
-    val okHttpClient = OkHttpClient.Builder()
+    private val okHttpClient = OkHttpClient.Builder()
         .readTimeout(120, TimeUnit.SECONDS)
         .connectTimeout(120, TimeUnit.SECONDS)
         .build()

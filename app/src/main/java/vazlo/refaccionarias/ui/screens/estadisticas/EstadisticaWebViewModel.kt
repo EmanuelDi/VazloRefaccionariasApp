@@ -10,13 +10,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import vazlo.refaccionarias.data.local.Sesion
 
-class ApartadosWebViewModel(private val sesion: Sesion, savedStateHandle: SavedStateHandle): ViewModel() {
+class EstadisticaWebViewModel(private val sesion: Sesion, savedStateHandle: SavedStateHandle): ViewModel() {
 
     val apartadoUrl: String = checkNotNull(savedStateHandle[ApartadosDestination.url])
 
     var idCliente by mutableStateOf("")
 
-    fun getUser()  {
+    private fun getUser()  {
         viewModelScope.launch {
             idCliente =  sesion.id.first()
         }

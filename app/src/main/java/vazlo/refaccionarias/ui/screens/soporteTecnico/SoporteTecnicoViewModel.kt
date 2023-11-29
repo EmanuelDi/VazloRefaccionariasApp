@@ -18,7 +18,7 @@ class SoporteTecnicoViewModel (private val sesion: Sesion): ViewModel(){
     var numeroWhatsapp = ""
     var urlSoporteWhatsapp = ""
 
-    var soporteTooltip = false
+    //var soporteTooltip = false
 //    fun getSoporteTooltip(){
 //        viewModelScope.launch {
 //            soporteTooltip = sesion.soporteTooltip.first()
@@ -32,7 +32,7 @@ class SoporteTecnicoViewModel (private val sesion: Sesion): ViewModel(){
         obtenerContactos()
     }
 
-    fun obtenerContactos(){
+    private fun obtenerContactos(){
         viewModelScope.launch {
             atencionNombre = sesion.atencionNombre.first()
             atencionNumero = sesion.atencionNumero.first()

@@ -1,16 +1,15 @@
 package vazlo.refaccionarias.ui.screens.folletosQuincenales
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import vazlo.refaccionarias.data.model.folletosQuinceData.Folleto
-import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
-import vazlo.refaccionarias.data.local.Sesion
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import vazlo.refaccionarias.data.local.Sesion
+import vazlo.refaccionarias.data.model.folletosQuinceData.Folleto
+import vazlo.refaccionarias.data.repositorios.ServicesAppRepository
 
 
 sealed interface FolletosUiState {
@@ -31,17 +30,16 @@ class FolletosQuincenalesViewModel(
     init {
         cargarFolletos()
     }
-     fun cargarFolletos() {
+     private fun cargarFolletos() {
          viewModelScope.launch {
              val url = sesion.getUrlFolletosQuincenales.first()
              val user = sesion.id.first()
 
-             try {
+             folletosUiState = try {
                  val response = servicesAppRepository.getFolletos(url, user)
-                 folletosUiState =
-                     if (response.estado == 1) FolletosUiState.Success(response.folletos) else FolletosUiState.Error
+                 if (response.estado == 1) FolletosUiState.Success(response.folletos) else FolletosUiState.Error
              } catch (e: Exception) {
-                 folletosUiState = FolletosUiState.Error
+                 FolletosUiState.Error
              }
          }
 

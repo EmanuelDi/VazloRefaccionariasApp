@@ -90,7 +90,7 @@ fun ResultadoPorPartesScreen(
 
                 when (resultadoPorPartesViewModel.resultadoPartesUiState) {
                     is ResultadoParteUiState.Loading -> {
-                        AltScreen(modifier = modifier, texto = "Cargando")
+                        AltScreen(modifier = modifier)
                     }
 
                     is ResultadoParteUiState.Success -> {
@@ -179,8 +179,7 @@ fun ErrorScreenCart(modifier: Modifier = Modifier, texto: String) {
 
 @Composable
 fun AltScreen(
-    modifier: Modifier = Modifier,
-    texto: String
+    modifier: Modifier = Modifier
 ) {
     Column(
         modifier.fillMaxSize(),
@@ -314,6 +313,7 @@ fun Productos(
                 .fillMaxWidth()
                 .clickable {
                     viewModelCompartido.setProducto(producto)
+                    viewModelCompartido.setSucursales(producto.sucursales!!)
                     navigateToDetallesParte.invoke(producto.nombreSoporte)
                 }
         ) {

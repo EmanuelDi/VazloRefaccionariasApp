@@ -4,7 +4,6 @@ package vazlo.refaccionarias.ui.screens.cart
 
 import android.app.Activity
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresExtension
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -30,14 +29,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.DoNotDisturbAlt
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
@@ -73,7 +66,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -113,7 +105,6 @@ import vazlo.refaccionarias.R
 import vazlo.refaccionarias.data.model.busquedasData.ProductoCart
 import vazlo.refaccionarias.ui.AppViewModelProvider
 import vazlo.refaccionarias.ui.navigation.NavigationDestination
-import vazlo.refaccionarias.ui.screens.detallesParte.ErrorAlert
 import vazlo.refaccionarias.ui.screens.home.LoadingScreen
 import vazlo.refaccionarias.ui.screens.resultadoPorPartes.AltScreen
 import vazlo.refaccionarias.ui.theme.Blanco
@@ -146,10 +137,6 @@ fun CartScreen(
         carritoViewModel.setCarrito()
     }
 
-    var errorCantidad by remember {
-        mutableStateOf(false)
-    }
-
     val lifecycleOwner = LocalLifecycleOwner.current
     val builder = rememberBalloonBuilder {
         setArrowSize(10)
@@ -176,7 +163,6 @@ fun CartScreen(
     }
 
     val focusManager = LocalFocusManager.current
-    val focusRequester = remember { FocusRequester() }
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -191,6 +177,9 @@ fun CartScreen(
     var showVaciarDialog by remember { mutableStateOf(false) }
     var showEnviarDialog by remember { mutableStateOf(false) }
     val view = LocalView.current
+
+    var showSuccess by remember { mutableStateOf(false) }
+    var showError by remember { mutableStateOf(false) }
 
     ErrorAlertCantidad(
         onDismiss = {
@@ -326,7 +315,12 @@ fun CartScreen(
                 onDismiss = { showEnviarDialog = false },
                 onClick = {
                     scope.launch {
-                        carritoViewModel.enviarCarrito()
+                        if (carritoViewModel.enviarCarrito()) {
+                            showSuccess = true
+                        } else {
+                            showError = true
+                        }
+
                     }
                 },
                 cantidad = cantidad.toString(),
@@ -334,6 +328,8 @@ fun CartScreen(
                 focusManager = focusManager
             )
         }
+        MensajePedido(onDismiss = {showSuccess = false}, showAlert = showSuccess, mensaje = carritoViewModel.mensaje)
+        ErrorPedido(onDismiss = {showError = false}, showAlert = showError, mensaje = carritoViewModel.mensaje)
         if (showBottomSheet) {
             ModalBottomSheet(
                 onDismissRequest = {
@@ -355,7 +351,6 @@ fun CartScreen(
                         verticalArrangement = Arrangement.Center,
                         modifier = modifier.fillMaxWidth()
                     ) {
-                        val cantidad = 0
 
                         BotonCant(
                             cantidad = 1,
@@ -363,8 +358,7 @@ fun CartScreen(
                             scope = scope,
                             carritoViewModel = carritoViewModel,
                             sheetState = sheetState,
-                            showBottomSheet = { showBottomSheet = false },
-                            showErrorCantidadDialog = { errorCantidad = true }
+                            showBottomSheet = { showBottomSheet = false }
                         )
                         HorizontalDivider(
                             modifier
@@ -379,8 +373,7 @@ fun CartScreen(
                             scope = scope,
                             carritoViewModel = carritoViewModel,
                             sheetState = sheetState,
-                            showBottomSheet = { showBottomSheet = false },
-                            showErrorCantidadDialog = { errorCantidad = true }
+                            showBottomSheet = { showBottomSheet = false }
                         )
                         HorizontalDivider(
                             modifier
@@ -395,8 +388,7 @@ fun CartScreen(
                             scope = scope,
                             carritoViewModel = carritoViewModel,
                             sheetState = sheetState,
-                            showBottomSheet = { showBottomSheet = false },
-                            showErrorCantidadDialog = { errorCantidad = true }
+                            showBottomSheet = { showBottomSheet = false }
                         )
                         HorizontalDivider(
                             modifier
@@ -411,8 +403,7 @@ fun CartScreen(
                             scope = scope,
                             carritoViewModel = carritoViewModel,
                             sheetState = sheetState,
-                            showBottomSheet = { showBottomSheet = false },
-                            showErrorCantidadDialog = { errorCantidad = true }
+                            showBottomSheet = { showBottomSheet = false }
                         )
                         HorizontalDivider(
                             modifier
@@ -427,8 +418,7 @@ fun CartScreen(
                             scope = scope,
                             carritoViewModel = carritoViewModel,
                             sheetState = sheetState,
-                            showBottomSheet = { showBottomSheet = false },
-                            showErrorCantidadDialog = { errorCantidad = true }
+                            showBottomSheet = { showBottomSheet = false }
                         )
                         HorizontalDivider(
                             modifier
@@ -443,8 +433,7 @@ fun CartScreen(
                             scope = scope,
                             carritoViewModel = carritoViewModel,
                             sheetState = sheetState,
-                            showBottomSheet = { showBottomSheet = false },
-                            showErrorCantidadDialog = { errorCantidad = true }
+                            showBottomSheet = { showBottomSheet = false }
                         )
                         HorizontalDivider(
                             modifier
@@ -461,7 +450,7 @@ fun CartScreen(
                                 .fillMaxWidth(),
                             textAlign = TextAlign.Center
                         )
-                        Spacer(Modifier.navigationBarsPadding())
+                        Spacer(Modifier.padding(bottom = 50.dp))
                     }
                 } else {
 //                    var producto = carritoViewModel.productoSeleccionado
@@ -579,7 +568,6 @@ fun CartScreen(
                     Column {
                         ProductList(
                             productList = productsGroup,
-                            showBottomSheet = showBottomSheet,
                             onClick = { showBottomSheet = true },
                             viewModel = carritoViewModel,
                             scope = scope,
@@ -602,6 +590,7 @@ fun CartScreen(
                                 iva = iva,
                                 cantidad = cantidad
                             )
+                            Spacer(modifier = modifier.height(100.dp))
                             if (tooltipChaser == 2) {
                                 LaunchedEffect(Unit) {
                                     delay(500)
@@ -610,16 +599,90 @@ fun CartScreen(
                             }
                         }
                     }
+
                 }
 
                 is CarritoUiState.Error -> {
-                    AltScreen(modifier = modifier, texto = "Error al cargar")
+                    AltScreen(modifier = modifier)
                 }
 
                 else -> {}
             }
         }
     }
+}
+
+
+@Composable
+fun MensajePedido(onDismiss: () -> Unit, showAlert: Boolean, mensaje: String) {
+
+    if (showAlert) {
+        AlertDialog(
+            onDismissRequest = { onDismiss() },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDismiss()
+                        //onDismissPadre()
+                    },
+                    colors = ButtonDefaults.buttonColors(Color.White)
+                ) {
+                    Text(
+                        text = "Cerrar",
+                        color = Color.Black
+                    )
+                }
+            },
+            title = { Text(text = "Aviso", color = Negro) },
+            text = { Text(text = mensaje, color = Negro) },
+            icon = {
+                Icon(
+                    imageVector = Icons.Filled.CheckCircle,
+                    contentDescription = "",
+                    modifier = Modifier.size(70.dp)
+                )
+            },
+            iconContentColor = Verde_Success,
+            containerColor = Blanco
+        )
+    }
+
+}
+
+@Composable
+fun ErrorPedido(onDismiss: () -> Unit, showAlert: Boolean, mensaje: String) {
+
+    if (showAlert) {
+        AlertDialog(
+            onDismissRequest = { onDismiss() },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDismiss()
+                        //onDismissPadre()
+                    },
+                    colors = ButtonDefaults.buttonColors(Color.White)
+                ) {
+                    Text(
+                        text = "Cerrar",
+                        color = Color.Black
+                    )
+                }
+            },
+            title = { Text(text = "Aviso") },
+            text = { Text(text = mensaje) },
+            icon = {
+                Icon(
+                    imageVector = Icons.Filled.Error,
+                    contentDescription = "",
+                    modifier = Modifier.size(70.dp)
+                )
+            },
+            iconContentColor = Rojo_Vazlo,
+            containerColor = Blanco
+        )
+    }
+
 }
 
 @Composable
@@ -657,6 +720,7 @@ fun ErrorAlertCantidad(onDismiss: () -> Unit, showAlert: Boolean) {
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BotonCant(
     cantidad: Int,
@@ -664,8 +728,7 @@ private fun BotonCant(
     scope: CoroutineScope,
     carritoViewModel: CartViewModel,
     sheetState: SheetState,
-    showBottomSheet: () -> Unit,
-    showErrorCantidadDialog: () -> Unit
+    showBottomSheet: () -> Unit
 ) {
 //    var producto = carritoViewModel.productoSeleccionado
 //    var sucursal = carritoViewModel.sucursales!!.filter {
@@ -833,7 +896,7 @@ fun CartTopBar(modifier: Modifier = Modifier, navigateBack: () -> Boolean) {
         actions = {
             IconButton(onClick = { navigateBack() }) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "",
                     modifier = modifier.size(30.dp),
                     tint = MaterialTheme.colorScheme.onSurface
@@ -854,7 +917,6 @@ fun ProductList(
     modifier: Modifier = Modifier,
     productList: Map<String, List<ProductoCart>>,
     hayNoDisponibles: List<ProductoCart>,
-    showBottomSheet: Boolean,
     onClick: () -> Unit,
     viewModel: CartViewModel,
     scope: CoroutineScope,
@@ -866,10 +928,6 @@ fun ProductList(
         mutableStateOf(false)
     }
 
-
-
-
-
     if (hayNoDisponibles.isNotEmpty()) {
         LaunchedEffect(key1 = "", block = { scope.launch { viewModel.cargarCarrito() } })
         showAlertNoDisp = true
@@ -880,7 +938,7 @@ fun ProductList(
     }
     var contador = 0
     LazyColumn(
-        modifier.height(480.dp),
+        modifier.height(450.dp),
         contentPadding = PaddingValues(horizontal = 20.dp)
     ) {
 
@@ -911,7 +969,6 @@ fun ProductList(
             itemsIndexed(items) { index, producto ->
                 ItemProduct(
                     producto = producto,
-                    showBottomSheet = showBottomSheet,
                     onClick = onClick,
                     viewModel = viewModel,
                     scope = scope,
@@ -960,7 +1017,6 @@ fun ItemProduct(
     producto: ProductoCart,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
-    showBottomSheet: Boolean,
     viewModel: CartViewModel,
     scope: CoroutineScope,
     builder: Balloon.Builder,

@@ -1,6 +1,5 @@
 package vazlo.refaccionarias.ui.screens.cart
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -44,6 +43,8 @@ class CartViewModel(
     var iva by mutableStateOf("")
         private set
 
+    var mensaje by mutableStateOf("");
+
     var total by mutableStateOf("")
         private set
 
@@ -55,18 +56,18 @@ class CartViewModel(
     var nuevaCant by mutableStateOf("")
         private set
 
-    var productoSeleccionado by mutableStateOf("")
+    private var productoSeleccionado by mutableStateOf("")
 
     val productosCargando = mutableStateListOf<String>()
 
-    var sucursales: MutableList<Sucursal>? = null
+    private var sucursales: MutableList<Sucursal>? = null
 
     init {
         getToolTipCarrito()
     }
 
 
-    fun getToolTipCarrito() {
+    private fun getToolTipCarrito() {
         viewModelScope.launch {
             tooltipEstado = sesion.carrito.first()
         }
@@ -224,11 +225,16 @@ class CartViewModel(
             total = totalCod,
             comentarios = comentarios
         )
+
+
         val datosOb = response.body()!!
+
         return if (datosOb["estado"]?.jsonPrimitive?.int == 1) {
             cargarCarrito()
+            mensaje = datosOb["mensaje"]?.jsonPrimitive?.content!!
             true
         } else {
+            mensaje = datosOb["mensaje"]?.jsonPrimitive?.content!!
             false
         }
 
