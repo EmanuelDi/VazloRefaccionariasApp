@@ -35,9 +35,9 @@ object AppViewModelProvider {
     val Factory = viewModelFactory {
         // Initializer for ItemEditViewModel
         initializer {
-            val webServicesRefacRepository = RefaccionariasApplication().container.webServicesRefacRepository
-            val sesion = RefaccionariasApplication().sesion
-            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+            val webServicesRefacRepository = refaccionariasApplication().container.webServicesRefacRepository
+            val sesion = refaccionariasApplication().sesion
+            val servicesAppRepository = refaccionariasApplication().container.servicesAppRepository
             LoginViewModel(
                 webServicesRefacRepository = webServicesRefacRepository,
                 sesion = sesion,
@@ -45,24 +45,24 @@ object AppViewModelProvider {
             )
         }
         initializer {
-            val sesion = RefaccionariasApplication().sesion
-            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+            val sesion = refaccionariasApplication().sesion
+            val servicesAppRepository = refaccionariasApplication().container.servicesAppRepository
             UsuariosViewModel(
                 sesion = sesion,
                 servicesAppRepository = servicesAppRepository
             )
         }
         initializer {
-            val sesion = RefaccionariasApplication().sesion
-            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+            val sesion = refaccionariasApplication().sesion
+            val servicesAppRepository = refaccionariasApplication().container.servicesAppRepository
             HomeViewModel(
                 sesion = sesion,
                 servicesAppRepository = servicesAppRepository
             )
         }
         initializer {
-            val sesion = RefaccionariasApplication().sesion
-            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+            val sesion = refaccionariasApplication().sesion
+            val servicesAppRepository = refaccionariasApplication().container.servicesAppRepository
             PermisosViewModel(
                 this.createSavedStateHandle(),
                 sesion = sesion,
@@ -70,8 +70,8 @@ object AppViewModelProvider {
             )
         }
         initializer {
-            val sesion = RefaccionariasApplication().sesion
-            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+            val sesion = refaccionariasApplication().sesion
+            val servicesAppRepository = refaccionariasApplication().container.servicesAppRepository
             ResultadoPorPartesViewModel(
                 this.createSavedStateHandle(),
                 sesion = sesion,
@@ -79,16 +79,16 @@ object AppViewModelProvider {
             )
         }
         initializer {
-            val sesion = RefaccionariasApplication().sesion
-            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+            val sesion = refaccionariasApplication().sesion
+            val servicesAppRepository = refaccionariasApplication().container.servicesAppRepository
             PedidosViewModel(
                 sesion = sesion,
                 servicesAppRepository = servicesAppRepository
             )
         }
         initializer {
-            val sesion = RefaccionariasApplication().sesion
-            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+            val sesion = refaccionariasApplication().sesion
+            val servicesAppRepository = refaccionariasApplication().container.servicesAppRepository
             CartViewModel(
                 sesion = sesion,
                 servicesAppRepository = servicesAppRepository
@@ -96,13 +96,13 @@ object AppViewModelProvider {
         }
         initializer{
             CatElectronicoViewModel(
-                RefaccionariasApplication().sesion,
-                RefaccionariasApplication().container.servicesAppRepository
+                refaccionariasApplication().sesion,
+                refaccionariasApplication().container.servicesAppRepository
             )
         }
         initializer{
-            val sesion = RefaccionariasApplication().sesion
-            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+            val sesion = refaccionariasApplication().sesion
+            val servicesAppRepository = refaccionariasApplication().container.servicesAppRepository
             ResultadosCatElViewModel(
                 this.createSavedStateHandle(),
                 sesion = sesion,
@@ -110,8 +110,8 @@ object AppViewModelProvider {
             )
         }
         initializer {
-            val sesion = RefaccionariasApplication().sesion
-            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+            val sesion = refaccionariasApplication().sesion
+            val servicesAppRepository = refaccionariasApplication().container.servicesAppRepository
             DetallesParteViewModel(
                 this.createSavedStateHandle(),
                 sesion = sesion,
@@ -119,16 +119,16 @@ object AppViewModelProvider {
             )
         }
         initializer {
-            val sesion = RefaccionariasApplication().sesion
-            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+            val sesion = refaccionariasApplication().sesion
+            val servicesAppRepository = refaccionariasApplication().container.servicesAppRepository
             NotificacionesViewModel(
                 sesion = sesion,
                 servicesAppRepository = servicesAppRepository
             )
         }
         initializer {
-            val sesion = RefaccionariasApplication().sesion
-            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+            val sesion = refaccionariasApplication().sesion
+            val servicesAppRepository = refaccionariasApplication().container.servicesAppRepository
             FolletosQuincenalesViewModel(
                 sesion = sesion,
                 servicesAppRepository = servicesAppRepository
@@ -138,38 +138,38 @@ object AppViewModelProvider {
             PdfViewViewModel(this.createSavedStateHandle())
         }
         initializer {
-            val sesion = RefaccionariasApplication().sesion
-            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+            val sesion = refaccionariasApplication().sesion
+            val servicesAppRepository = refaccionariasApplication().container.servicesAppRepository
             RefacCercanasViewModel(
                 sesion, servicesAppRepository
             )
         }
         initializer {
-            val sesion = RefaccionariasApplication().sesion
+            val sesion = refaccionariasApplication().sesion
 
             GuiasViewModel(
                 sesion=sesion
             )
         }
         initializer {
-            val sesion = RefaccionariasApplication().sesion
-            RefaccionariasApplication().container.servicesAppRepository
+            val sesion = refaccionariasApplication().sesion
+            refaccionariasApplication().container.servicesAppRepository
 
             SoporteTecnicoViewModel(
                 sesion=sesion,
             )
         }
         initializer {
-            val sesion = RefaccionariasApplication().sesion
-            RefaccionariasApplication().container.servicesAppRepository
+            val sesion = refaccionariasApplication().sesion
+            refaccionariasApplication().container.servicesAppRepository
             EstadisticaWebViewModel(
                 sesion=sesion,
                 savedStateHandle = this.createSavedStateHandle()
             )
         }
         initializer {
-            val sesion = RefaccionariasApplication().sesion
-            val servicesAppRepository = RefaccionariasApplication().container.servicesAppRepository
+            val sesion = refaccionariasApplication().sesion
+            val servicesAppRepository = refaccionariasApplication().container.servicesAppRepository
             EstadisticaApartadosViewModel(
                 sesion=sesion,
                 servicesAppRepository = servicesAppRepository
@@ -188,6 +188,6 @@ object AppViewModelProvider {
 }
 
 
-fun CreationExtras.RefaccionariasApplication(): RefaccionariasApplication =
+fun CreationExtras.refaccionariasApplication(): RefaccionariasApplication =
     (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as RefaccionariasApplication)
 

@@ -2,6 +2,7 @@ package vazlo.refaccionarias
 
 import android.annotation.SuppressLint
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
@@ -13,6 +14,7 @@ import vazlo.refaccionarias.ui.navigation.RefaccionariNavHost
 @Composable
 fun RefaccionariasApp(navController: NavHostController = rememberNavController()) {
     RefaccionariNavHost(navController = navController)
+    Log.e("Tu perra", "aja")
 }
 
 

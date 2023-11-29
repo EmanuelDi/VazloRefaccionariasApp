@@ -20,6 +20,6 @@ class RefaccionariasApplication: Application() {
     override fun onCreate() {
         super.onCreate()
         sesion = Sesion(dataStore)
-        container = DefaultAppContainer()
+        container = DefaultAppContainer(this)
     }
 }

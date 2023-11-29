@@ -1,5 +1,6 @@
 package vazlo.refaccionarias.data
 
+import android.content.Context
 import vazlo.refaccionarias.data.bd.ServicesApp
 import vazlo.refaccionarias.data.bd.WebServiceRefa
 import vazlo.refaccionarias.data.repositorios.NetServicesApp
@@ -18,7 +19,7 @@ interface AppContainer {
     val servicesAppRepository: ServicesAppRepository
 }
 
-class DefaultAppContainer : AppContainer {
+class DefaultAppContainer(private val context: Context) : AppContainer {
 
     private val json = Json { ignoreUnknownKeys = true }
 

@@ -782,6 +782,7 @@ private fun CardProducto(
                 .fillMaxWidth()
                 .clickable {
                     viewModelCompartido.setProducto(producto)
+                    viewModelCompartido.setSucursales(producto.sucursales!!)
                     navigateToDetallesParte.invoke(criterio)
 
                 }

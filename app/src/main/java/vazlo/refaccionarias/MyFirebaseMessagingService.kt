@@ -25,9 +25,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     fun showNotification(title: String, message: String){
         // Create an explicit intent for an Activity in your app
-        val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
+        val intent = Intent(this, RefaccionariasApplication::class.java)
         val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         val builder = NotificationCompat.Builder(this, "101")

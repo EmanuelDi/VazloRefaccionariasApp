@@ -9,6 +9,7 @@ import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -68,12 +69,16 @@ class MainActivity : ComponentActivity() {
         val intentFilter = IntentFilter()
         intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE")
         registerReceiver(networkReceiver, intentFilter)
+        Log.e("Tu perra", "resume")
     }
 
     override fun onPause() {
         super.onPause()
         unregisterReceiver(networkReceiver)
+        Log.e("Tu perra", "pause")
     }
+
+
 
     private fun getToken() {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->

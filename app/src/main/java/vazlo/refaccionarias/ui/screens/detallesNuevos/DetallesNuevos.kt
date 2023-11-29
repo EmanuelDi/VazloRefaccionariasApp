@@ -876,6 +876,7 @@ private fun Productos(
                 .fillMaxWidth()
                 .clickable {
                     viewModelCompartido.setProducto(producto)
+                    viewModelCompartido.setSucursales(producto.sucursales!!)
                     navigateToSelf.invoke(producto.nombreSoporte)
                 }
         ) {
