@@ -563,19 +563,31 @@ private fun Show360Dialog(
         Surface(
             modifier = modifier
                 .fillMaxSize(),
-            color = MaterialTheme.colorScheme.onTertiary
+            color = MaterialTheme.colorScheme.background
         ) {
             Column(
                 modifier = modifier
                     .fillMaxSize()
             ) {
-                Row(horizontalArrangement = Arrangement.End, modifier = modifier.fillMaxWidth()) {
-                    IconButton(onClick = close) {
-                        /*Icon(
-                            painter = painterResource(id = R.drawable.close_icon),
+                Box(modifier = modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface) ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically, modifier = modifier.align(
+                        Alignment.CenterStart)) {
+                        Image(
+                            painter = painterResource(id = R.drawable.logovazloblanco_sin_texto),
+                            contentDescription = "",
+                            modifier = modifier.size(30.dp)
+                        )
+                        Text(text = "Vista 360", color = MaterialTheme.colorScheme.onSurface, modifier = modifier, fontSize = 25.sp, fontWeight = FontWeight.Normal)
+                    }
+                    IconButton(onClick = close, modifier.align(Alignment.CenterEnd)) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )*/
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = modifier.size(40.dp)
+                        )
                     }
                 }
 

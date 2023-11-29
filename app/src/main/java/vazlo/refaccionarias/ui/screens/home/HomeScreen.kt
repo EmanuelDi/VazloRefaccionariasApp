@@ -1,5 +1,6 @@
 package vazlo.refaccionarias.ui.screens.home
 
+import android.app.Activity
 import android.content.Context
 import android.os.Build
 import android.util.Log
@@ -278,8 +279,9 @@ fun HomeContent(
     }
 
     var logoutConfrimation by remember{ mutableStateOf(false) }
-    BackHandler(enabled = true) {
-        logoutConfrimation = true
+    val activity = LocalContext.current as Activity
+    BackHandler {
+        activity.moveTaskToBack(true)
     }
     if(logoutConfrimation) {
         LogoutDialog(
