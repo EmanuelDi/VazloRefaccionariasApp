@@ -69,13 +69,11 @@ class MainActivity : ComponentActivity() {
         val intentFilter = IntentFilter()
         intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE")
         registerReceiver(networkReceiver, intentFilter)
-        Log.e("Tu perra", "resume")
     }
 
     override fun onPause() {
         super.onPause()
         unregisterReceiver(networkReceiver)
-        Log.e("Tu perra", "pause")
     }
 
 

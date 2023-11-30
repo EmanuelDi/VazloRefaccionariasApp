@@ -14,7 +14,6 @@ import vazlo.refaccionarias.ui.navigation.RefaccionariNavHost
 @Composable
 fun RefaccionariasApp(navController: NavHostController = rememberNavController()) {
     RefaccionariNavHost(navController = navController)
-    Log.e("Tu perra", "aja")
 }
 
 
