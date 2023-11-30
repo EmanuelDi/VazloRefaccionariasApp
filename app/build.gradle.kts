@@ -14,8 +14,8 @@ android {
         applicationId = "vazlo.refaccionarias"
         minSdk = 21
         targetSdk = 34
-        versionCode = 19
-        versionName = "19.291123"
+        versionCode = 21
+        versionName = "21.291123"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

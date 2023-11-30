@@ -739,7 +739,7 @@ private fun SuccessScreen(
                             busquedaCatElecViewModel.cilindraje,
                             busquedaCatElecViewModel.litros,
                         )
-                        busquedaCatElecViewModel.limpiar()
+
 
                     },
                     contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
